@@ -31,6 +31,7 @@ import bukti_berkas
 import kelas_admin_pages as ui
 import kelas_berkas as berkas
 import kelas_dasar as dasar
+import kelas_peserta
 import kelas_putusan as putusan
 import kelas_store as store
 import jadwal_admin_http as jadwal_http
@@ -85,6 +86,7 @@ def _get_antrean(penangan, principal) -> None:
     try:
         with _buka() as kon:
             daftar = store.antrean(kon)
+            peserta = kelas_peserta.daftar_peserta_aktif(kon, alur.waktu_sekarang())
             try:
                 kelompok = jadwal_store.daftar_kelompok(kon, alur.waktu_sekarang())
             except (sqlite3.OperationalError, ValueError):
@@ -95,7 +97,7 @@ def _get_antrean(penangan, principal) -> None:
         return h._galat(penangan, 403, daftar_ui.COPY_GALAT_FORM)
     except _GALAT_BACA:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
-    isi = ui.halaman_antrean(daftar, PESAN_HASIL.get(hasil, ""))
+    isi = ui.halaman_antrean(daftar, PESAN_HASIL.get(hasil, "")) + ui.blok_peserta(peserta)
     if kelompok is not None and token_jadwal is not None:
         try:
             guru = jadwal_http.guru_map()

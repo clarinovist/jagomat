@@ -1,7 +1,7 @@
 """Renderer murni halaman admin Paket Belajar: antrean bukti menunggu dan detail verifikasi (tanpa I/O).
 
 Mengikuti `harian_langganan_admin_pages`: mengembalikan fragmen HTML (str) yang dibungkus `admin_http._halaman_admin`
-oleh pemanggil. Tanpa id anak di antrean/detail, nama anak, kontak, nama berkas, atau sha256; bukti hanya referensi (`BuktiView`,
+oleh pemanggil. Tanpa id anak di antrean/detail (kecuali `blok_peserta`: nomor anak, seperti antrean tunggakan), nama anak, kontak, nama berkas, atau sha256; bukti hanya referensi (`BuktiView`,
 id = bilangan ledger `kelas_bukti`, sama dengan `kelas_putusan.bukti_meta`).
 Nominal disorot persis (tiga digit terakhir = kode unik). Form Setujui (tanpa alasan) dan Tolak (alasan wajib) hanya
 untuk status menunggu dan sesi berkuki; token tinjauan terikat ke order dan bukti yang dilihat dibuat pemanggil
@@ -30,6 +30,9 @@ SUBJUDUL = "Periksa bukti transfer paket Private/Mini Class terhadap nominal per
 AKSI_SETUJUI = "setujui_kelas"
 AKSI_TOLAK = "tolak_kelas"
 COPY_ANTREAN_KOSONG = "Tidak ada bukti paket belajar yang menunggu verifikasi."
+JUDUL_PESERTA = "Peserta paket aktif"
+COPY_PESERTA_KOSONG = "Belum ada paket aktif."
+LABEL_PENEMPATAN = {True: "Sudah ditempatkan", False: "Belum ditempatkan", None: "Tidak diketahui"}
 COPY_KONFIRMASI_SETUJUI = ("Setujui transfer ini? Paket aktif bila semua syaratnya terpenuhi (termasuk deposit Peta). "
                           "Keputusan tidak dapat dibatalkan.")
 COPY_KONFIRMASI_TOLAK = ("Tolak bukti ini? Orang tua akan melihat bahwa bukti ditolak dan dapat mengunggah ulang "
@@ -77,6 +80,19 @@ def _baris_antrean(item: k.ItemAntrean) -> str:
     tautan = '<a class="admin-tautan" href="%s?order=%s">Periksa bukti</a>' % (RUTE_VERIFIKASI, e(item.order_id))
     sel = (e(_nama_paket(item.kode_paket)), vp.nominal_sorot(item.total), vp._waktu(item.bukti_terakhir), tautan)
     return "<tr>%s</tr>" % "".join("<td>%s</td>" % s for s in sel)
+
+
+def _baris_peserta(peserta) -> str:
+    tautan = '<a class="admin-tautan" href="%s?order=%s">Buka</a>' % (RUTE_VERIFIKASI, e(peserta.order_id))
+    sel = ("Anak #%d" % peserta.siswa_id, e(_nama_paket(peserta.kode_paket)), vp._waktu(peserta.berakhir),
+           e(LABEL_PENEMPATAN[peserta.ditempatkan]), tautan)
+    return "<tr>%s</tr>" % "".join("<td>%s</td>" % s for s in sel)
+
+
+def blok_peserta(daftar: Sequence) -> str:
+    """Paket yang sudah disetujui dan masih aktif, belum ditempatkan dulu. Hanya nomor anak (tanpa nama atau kontak)."""
+    baris = "".join(_baris_peserta(p) for p in daftar)
+    return vp._tabel(JUDUL_PESERTA, ("Anak", "Paket", "Aktif sampai", "Penempatan", "Aksi"), baris, COPY_PESERTA_KOSONG)
 
 
 def halaman_antrean(daftar: Sequence[k.ItemAntrean], pesan: str = "") -> str:

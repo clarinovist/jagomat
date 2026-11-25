@@ -343,3 +343,20 @@ def test_detail_admin_tanpa_nama_anak_atau_akun(kidup, menunggu, admin):
     isi = minta_admin(kidup, "%s?order=%s" % (DETAIL, oid), admin)[1]
     for rahasia in ("Anak Alfa", "murid-a", "6281"):
         assert rahasia not in isi
+
+
+# --- butir QA #7: peserta yang sudah bayar tetap terlihat di daftar admin -----------------------
+
+def test_daftar_memuat_peserta_aktif_belum_ditempatkan_setelah_disetujui(kidup, menunggu, admin):
+    import schema_jadwal
+    schema_jadwal.migrasikan(admin_http._path_admin())   # produksi sudah punya tabel jadwal_*
+    murid, oid = menunggu
+    assert putus(kidup, admin, SETUJUI, oid)[0] == 303
+    isi = minta_admin(kidup, DAFTAR, admin)[1]
+    assert "Peserta paket aktif" in isi and "Belum ditempatkan" in isi
+    assert "Anak #%d" % murid.siswa_id in isi and "%s?order=%s" % (DETAIL, oid) in isi
+    assert "Anak Alfa" not in isi
+
+
+def test_daftar_peserta_aktif_kosong_pesan_jujur(kidup, admin):
+    assert "Belum ada paket aktif." in minta_admin(kidup, DAFTAR, admin)[1]
