@@ -61,5 +61,5 @@ def halaman_konfirmasi(g: G.GuruRingkas, *, nonaktifkan: bool, token: Optional[T
     return (
         tab_guru(TAB_AKUN)
         + '<p class="admin-jejak"><a href="%s">← Kembali ke guru %s</a></p>' % (e(P.alamat_guru(g.id_akun)), e(g.pengguna))
-        + '<section class="admin-kartu"><h2>%s guru %s</h2><p>%s</p><p class="admin-meta">Anak: %d. Meminta sandi admin. Jejaknya tampil di halaman guru, bukan di Riwayat admin.</p>%s</section>'
+        + '<section class="admin-kartu"><h2>%s guru %s</h2><p>%s</p><p class="admin-meta">Anak: %d. Meminta sandi admin. Jejaknya tercatat di Riwayat admin (tab Status guru) dan halaman guru.</p>%s</section>'
         % ("Nonaktifkan" if nonaktifkan else "Aktifkan kembali", e(g.pengguna), e(copy), g.jumlah_siswa, isi))

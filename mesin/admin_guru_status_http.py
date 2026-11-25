@@ -7,6 +7,8 @@ Koordinator lembaga ditolak. Sukses = PRG ke halaman guru. Tanpa kredensial di r
 """
 from __future__ import annotations
 
+import logging
+import sqlite3
 import time
 from typing import Optional
 
@@ -20,6 +22,9 @@ import admin_store
 import auth
 import database
 import guru_status
+import guru_status_jurnal
+
+_log = logging.getLogger(__name__)
 
 SECTION = "guru"
 KUNCI_QUERY = frozenset({"id"})
@@ -104,13 +109,23 @@ def _get(penangan, principal, rute: str) -> None:
 def _terapkan(principal, guru: G.GuruRingkas, revisi: int, nonaktifkan: bool) -> None:
     try:
         if nonaktifkan:
-            guru_status.nonaktifkan(guru.id_akun, revisi, principal.id_akun, int(time.time()))
+            revisi_baru = guru_status.nonaktifkan(guru.id_akun, revisi, principal.id_akun, int(time.time()))
         else:
-            guru_status.aktifkan(guru.id_akun, revisi)
+            revisi_baru = guru_status.aktifkan(guru.id_akun, revisi)
     except guru_status.StatusBerubah:
         raise admin_store.KonflikOperasi("akun berubah") from None
     except guru_status.StatusDitolak:
         raise _Tolak(ui.COPY_TIDAK_BISA) from None
+    _catat_jurnal(principal, guru.id_akun, revisi_baru, nonaktifkan)
+
+
+def _catat_jurnal(principal, id_akun: str, revisi_baru: int, nonaktifkan: bool) -> None:
+    """Jejak sesudah tulis akun berhasil. Gagal hanya masuk log (nama tipe galat, tanpa identitas); aksi tetap sah."""
+    aksi_jurnal = guru_status_jurnal.AKSI_NONAKTIFKAN if nonaktifkan else guru_status_jurnal.AKSI_AKTIFKAN
+    try:
+        guru_status_jurnal.catat(aksi_jurnal, id_akun, principal.id_akun, int(time.time()), revisi_baru)
+    except (sqlite3.Error, OSError, ValueError, guru_status_jurnal.GalatJurnal) as galat:
+        _log.error("Jurnal status guru gagal dicatat: %s", type(galat.__cause__ or galat).__name__)
 
 
 def _simpan(penangan, principal, aksi_kode: str, nonaktifkan: bool) -> None:

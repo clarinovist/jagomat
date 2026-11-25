@@ -18,7 +18,7 @@ from admin_ikon import ikon
 from admin_labels import LABEL_STATUS
 from admin_komponen import badge_aktif as _badge_aktif, lipat_aksi as _lipat_aksi, badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, pisah_kepala_cari as _pisah_kepala_cari, waktu as _waktu
 from admin_daftar_pages import render_keluarga, render_siswa  # noqa: F401 (API publik admin_pages)
-from admin_riwayat_pages import nav_riwayat, render_audit_batch, render_riwayat, render_riwayat_ai  # noqa: F401 (API publik admin_pages)
+from admin_riwayat_pages import nav_riwayat, render_audit_batch, render_riwayat, render_riwayat_ai, render_riwayat_guru  # noqa: F401 (API publik admin_pages)
 import brand
 from admin_style import GAYA_ADMIN
 import design_tokens as T

@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
+import admin_guru_akun_pages as P
 import admin_labels as L
 from admin_daftar_pages import kartu_tabel
 from admin_komponen import badge_status, e, opsi, pager, waktu
@@ -45,6 +46,7 @@ def nav_riwayat(aktif=None) -> str:
         ("tindakan", "Tindakan akun dan siswa", "/admin?section=riwayat"),
         ("batch", "Riwayat batch", "/admin?section=riwayat&amp;sumber=batch"),
         ("ai", "Riwayat AI", "/admin?section=riwayat&amp;sumber=ai"),
+        ("guru", "Status guru", "/admin?section=riwayat&amp;sumber=guru"),
     )
     return '<div class="admin-tab-baris" role="group" aria-label="Jenis riwayat">%s</div>' % "".join(
         '<a class="admin-tab" href="%s"%s>%s</a>' % (
@@ -240,6 +242,58 @@ def render_audit_batch(data, *, filter_data=None, sekarang=None) -> str:
                   total=data.total, filter_data=dict(filters, sumber="batch"), via_post=False),
             catatan='<p class="admin-meta admin-kartu-catatan">Metadata operasi tanpa alias, sandi, atau isi draft. '
                     'Satu batch dapat memiliki beberapa kelompok dan hasil parsial.</p>',
+            keterangan="%d hasil" % data.total)
+        + CATATAN_RIWAYAT
+    )
+
+
+LABEL_AKSI_GURU = {"nonaktifkan": "Nonaktifkan", "aktifkan": "Aktifkan"}
+CATATAN_JURNAL_GURU = (
+    '<p class="admin-meta admin-kartu-catatan">Mencatat nonaktifkan dan aktifkan kembali sejak fitur ini aktif. '
+    'Nama diambil dari akun yang masih ada; ID ditampilkan lengkap.</p>'
+)
+
+
+def _sel_guru(id_akun: str, nama_akun) -> str:
+    """Nama guru dengan tautan selama akunnya masih ada; bila tidak, keterangan dan ID."""
+    if id_akun not in nama_akun:
+        return '<span class="admin-redup">Akun tidak ditemukan</span> %s' % L.referensi(id_akun)
+    return '<a class="admin-tautan" href="%s">%s</a>' % (e(P.alamat_guru(id_akun)), e(nama_akun[id_akun]))
+
+
+def _baris_guru(x, nama_akun) -> str:
+    return (
+        "<tr><td>%s</td><td><strong>%s</strong></td><td>%s</td><td>%s</td><td data-angka>%d</td></tr>" % (
+            e(L.tanggal(x.pada)), e(LABEL_AKSI_GURU.get(x.aksi, x.aksi)), _sel_guru(x.id_akun, nama_akun),
+            L.referensi(x.oleh), x.revisi)
+    )
+
+
+def _catatan_filter_guru(filter_id: str) -> str:
+    if not filter_id:
+        return ""
+    return (
+        '<p class="admin-meta admin-kartu-catatan">Hanya satu guru. '
+        '<a class="admin-tautan" href="/admin?section=riwayat&amp;sumber=guru">Tampilkan semua guru</a></p>'
+    )
+
+
+def render_riwayat_guru(data, *, nama_akun, filter_id="", sekarang=None) -> str:
+    """Tab Status guru: jejak nonaktifkan / aktifkan dari jurnal; nama diambil dari akun yang masih ada.
+
+    `sekarang` diterima demi kesamaan dengan render_riwayat, tidak dipakai: tabel ini tidak dikelompokkan per hari.
+    """
+    filter_pager = {"sumber": "guru", **({"id": filter_id} if filter_id else {})}
+    baris = "".join(_baris_guru(x, nama_akun) for x in data.item) or (
+        '<tr><td colspan="5" class="admin-kosong">Belum ada perubahan status guru.</td></tr>'
+    )
+    return (
+        nav_riwayat("guru")
+        + kartu_tabel(
+            "Status guru", _kepala("Waktu", "Aksi", "Guru", "Oleh", "Revisi"), baris,
+            pager(section="riwayat", halaman=data.halaman, jumlah_halaman=data.jumlah_halaman,
+                  total=data.total, filter_data=filter_pager, via_post=False),
+            catatan=CATATAN_JURNAL_GURU + _catatan_filter_guru(filter_id),
             keterangan="%d hasil" % data.total)
         + CATATAN_RIWAYAT
     )

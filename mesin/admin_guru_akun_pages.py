@@ -117,6 +117,11 @@ def _tautan_aksi(g: G.GuruRingkas) -> str:
             e(alamat_tinjau("account_session_revoke", g.id_akun)), hapus, lembaga, siswa, _tautan_nonaktifkan(g)))
 
 
+def _tautan_jurnal(g: G.GuruRingkas) -> str:
+    return '<p class="admin-meta"><a class="admin-tautan" href="%s">Lihat jurnal status</a></p>' % e(
+        "/admin?section=riwayat&sumber=guru&id=%s" % g.id_akun)
+
+
 def render_detail(g: G.GuruRingkas, *, tindakan: Optional[str] = None, sekarang=None) -> str:
     """Identitas guru + tindakan. `tindakan` (formulir dari alur tinjauan) menggantikan tautan aksi."""
     return (
@@ -127,4 +132,5 @@ def render_detail(g: G.GuruRingkas, *, tindakan: Optional[str] = None, sekarang=
           '<dt>Jumlah anak</dt><dd>%d</dd><dt>Jumlah sesi</dt><dd>%d</dd><dt>Aktivitas terakhir</dt><dd>%s</dd></dl></section>'
         % (e(g.pengguna) + _lencana_nonaktif(g), e(G.LABEL_ASAL[g.asal]), _lembaga(g), g.jumlah_siswa, g.jumlah_sesi,
            sel_aktivitas(g.aktivitas_terakhir, sekarang))
+        + _tautan_jurnal(g)
         + (tindakan if tindakan is not None else _tautan_aksi(g)))

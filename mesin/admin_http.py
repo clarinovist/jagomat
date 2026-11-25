@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import hashlib
 import html
+import logging
 import os
 import secrets
 import sqlite3
@@ -28,6 +29,8 @@ import admin_store
 import admin_students
 import auth
 import database
+import guru_status
+import guru_status_jurnal
 import laju_masuk
 import sessions
 from admin_contracts import (
@@ -323,6 +326,27 @@ def _halaman_admin(principal, section, isi, *, penangan=None, skrip=False, judul
     )
 
 
+_log = logging.getLogger(__name__)
+
+
+def _nama_guru_akun() -> dict:
+    """id_akun -> nama pengguna guru yang masih ada; tombstone penghapusan keluarga dilewati."""
+    return {
+        akun["id_akun"]: akun.get("pengguna", "")
+        for akun in auth.muat_akun()
+        if akun.get("peran", guru_status.PERAN_GURU) == guru_status.PERAN_GURU
+        and akun.get("id_akun")
+        and not str(akun.get("pengguna", "")).startswith(guru_status.AWALAN_TOMBSTONE)
+    }
+
+
+def _isi_riwayat_guru(query, halaman) -> str:
+    """Tab Status guru. ID tak sah = ValueError (404 lewat jalur galat yang ada); galat baca diteruskan."""
+    id_akun = query.get("id", "")
+    jurnal = guru_status_jurnal.daftar(halaman=halaman, id_akun=id_akun)
+    return admin_pages.render_riwayat_guru(jurnal, nama_akun=_nama_guru_akun(), filter_id=id_akun)
+
+
 def _render_get(penangan, principal, query):
     section = query.get("section", "ringkasan")
     import admin_launch_http
@@ -476,6 +500,12 @@ def _render_get(penangan, principal, query):
                     halaman=halaman,
                 )
                 isi = admin_pages.render_riwayat(riwayat, filter_data=query)
+            elif query.get("sumber", "panel") == "guru":
+                try:
+                    isi = _isi_riwayat_guru(query, halaman)
+                except guru_status_jurnal.GalatJurnal as galat:
+                    _log.error("Jurnal status guru tidak bisa dibaca: %s", type(galat.__cause__ or galat).__name__)
+                    return _galat(penangan, 503, "Jurnal status guru tidak bisa dibaca.")
             else:
                 raise ValueError("Sumber tidak dikenal.")
     skrip = principal.metode == "cookie" and section == "keluarga"

@@ -59,6 +59,15 @@ def storage_ai_sintetis(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def jurnal_status_guru_sintetis(monkeypatch):
+    """Setiap test memakai jurnal status guru privat sendiri; tidak pernah /data."""
+    with tempfile.TemporaryDirectory(prefix="osn-jurnal-guru-test-") as direktori:
+        path = Path(direktori) / "guru-status-jurnal.db"
+        monkeypatch.setenv("GURU_STATUS_JURNAL_DB", str(path))
+        yield
+
+
+@pytest.fixture(autouse=True)
 def isolasi_pembatas_laju():
     """Pembatas laju menyimpan state global; test tidak boleh mewarisi hitungan.
 
