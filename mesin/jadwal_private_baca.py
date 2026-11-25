@@ -224,10 +224,13 @@ def _status_slot(kon_admin, kon_p, slot: dsr.BarisSlot, kini: str, guru_sah, ter
     return STATUS_SLOT_TERBUKA
 
 
+BATAS_DAFTAR_SLOT = 300  # halaman admin menampilkan slot terbaru saja; jumlah sebenarnya kecil (admin membuat satu per satu)
+
+
 def _daftar_slot(kon_admin, kon_p, kini: str, guru_sah) -> Tuple[SlotAdmin, ...]:
     terisi = terisi_penempatan(kon_admin)
     hasil = []
-    for baris in kon_p.execute("SELECT %s FROM private_slot ORDER BY mulai DESC,id DESC" % _KOLOM_SLOT):
+    for baris in kon_p.execute("SELECT %s FROM private_slot ORDER BY mulai DESC,id DESC LIMIT %d" % (_KOLOM_SLOT, BATAS_DAFTAR_SLOT)):
         slot = dsr.BarisSlot.dari(baris)
         status = _status_slot(kon_admin, kon_p, slot, kini, guru_sah, terisi)
         hasil.append(SlotAdmin(slot.id, slot.guru_id, slot.mulai, slot.menit, status, slot.guru_id in guru_sah))

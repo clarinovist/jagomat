@@ -10,12 +10,14 @@ from typing import Mapping, Optional, Sequence
 
 import admin_verifikasi_pages as vp
 import jadwal_dasar as jd
+import jadwal_private_admin_pages as pv
 import paket_belajar_katalog as katalog
 from pesanan_transfer_pages import waktu_wib
 
 RUTE_KELOMPOK = "/admin/kelas/kelompok"
 JUDUL_DAFTAR = "Kelompok Mini Class & jadwal"
 COPY_KOSONG = "Belum ada kelompok Mini Class."
+COPY_TAUTAN_PRIVATE = "Jadwal Private: slot guru dan pengajuan orang tua"
 COPY_PETUNJUK = ("Mini Class dijadwalkan per kelompok (maksimal 5 anak): satu tautan Zoom atau Google Meet, "
                  "satu guru, delapan pertemuan, dua kali seminggu selama empat pekan (selesai dalam masa akses 1 bulan). "
                  "Private dijadwalkan per anak dari halaman detail order.")
@@ -98,8 +100,9 @@ def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token) -> st
         for b in daftar)
     tabel = vp._tabel("Kelompok", ("Nama", "Tautan", "Guru", "Terisi", "Pertemuan berikut", "Peringatan"),
                       baris, COPY_KOSONG)
-    return ('<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">%s</p>%s%s</section>'
-            % (_e(JUDUL_DAFTAR), _e(COPY_PETUNJUK), tabel, form + catatan))
+    tautan = '<p><a class="admin-tautan" href="%s">%s</a></p>' % (pv.RUTE, _e(COPY_TAUTAN_PRIVATE))
+    return ('<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">%s</p>%s%s%s</section>'
+            % (_e(JUDUL_DAFTAR), _e(COPY_PETUNJUK), tautan, tabel, form + catatan))
 
 
 def _aksi_sesi(sesi: Mapping, token_ubah, token_batal) -> str:

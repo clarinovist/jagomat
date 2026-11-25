@@ -83,6 +83,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pembayaran", "admin"),  # Semua pembayaran: daftar baca-saja Peta + Latihan Harian + Paket Belajar
     ("/admin/kelas", "admin"),  # Paket Belajar: antrean bukti (+ /verifikasi, /bukti); admin tetap terbuka walau sakelar mati
     ("/admin/kelas/kelompok", "admin"),  # Jadwal: detail kelompok Mini Class (GET) dan buat/ubah (POST)
+    ("/admin/kelas/private", "admin"),  # Jadwal Private: halaman slot dan pengajuan orang tua (GET)
     ("/admin/kurikulum", "admin"),  # Kurikulum Merdeka: tabel materi per kelas (exact; tanpa query)
     ("/admin/kurikulum/cp-detail", "admin"),  # Detail CP: ringkasan CP, celah, per fase, per topik (exact)
     ("/admin/kurikulum/buat", "admin"),  # Buat soal per bab (`?kelas=&bab=&jumlah=&seed=`); tidak menulis DB
@@ -148,6 +149,10 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/kelas/penempatan/lepas", "admin"),  # Jadwal: lepas penempatan + sesi private
     ("/admin/kelas/pertemuan", "admin"),  # Jadwal: ubah tanggal/jam satu pertemuan
     ("/admin/kelas/pertemuan/batal", "admin"),  # Jadwal: batalkan/aktifkan satu pertemuan
+    ("/admin/kelas/private/slot", "admin"),  # Jadwal Private: buat slot (tinjauan + CSRF, tanpa sandi ulang)
+    ("/admin/kelas/private/slot/batal", "admin"),  # Jadwal Private: batalkan slot (id dari tinjauan)
+    ("/admin/kelas/private/setujui", "admin"),  # Jadwal Private: setujui pengajuan (id dari tinjauan)
+    ("/admin/kelas/private/tolak", "admin"),  # Jadwal Private: tolak pengajuan (id dari tinjauan)
     ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
     ("/admin/kurikulum/label", "admin"),  # ubah label awam topik; tinjauan bertanda tangan + sandi ulang
