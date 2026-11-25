@@ -13,7 +13,7 @@ sudah tersedia lewat halaman kelola terpisah sejak 21 Oktober; lihat
 [runtime aktif](pendamping-runtime.md#kendali-data-existing--21-oktober-2026).
 Composer standalone tetap tidak dihidupkan kembali oleh perubahan itu.
 
-Acuan: [palang proyek](../CLAUDE.md), [siklus belajar](siklus-belajar-terpandu.md),
+Acuan: palang proyek, [siklus belajar](siklus-belajar-terpandu.md),
 [design system](design-system.md), dan [workflow](workflow-reference.md).
 Jika ada konflik, palang akses/privasi dan kontrak siklus tetap berlaku.
 

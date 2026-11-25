@@ -14,7 +14,7 @@ metode backup/rehearsal, dan kondisi live wajib dicocokkan dengan runbook aktif.
 berikut. [CI kalender WIB](https://github.com/clarinovist/jagomat/actions/runs/35668660016)
 lulus untuk pasangan kandidat `7ac63da`/recovery `e206563`; pemasangan dilewati.
 Lihat [koreksi kalender](domain-clock-release.md) dan [status rilis](production-release.md).
-Izin operasi mengikuti [izin tetap](../CLAUDE.md#izin-tetap--resource-lokal);
+Izin operasi mengikuti izin tetap;
 validasi bundle, preflight, dan token approval teknis tetap wajib. Ini bukan
 izin restore data atau perubahan destruktif di luar scope.
 

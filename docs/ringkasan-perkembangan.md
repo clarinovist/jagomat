@@ -21,7 +21,7 @@ dan konfigurasi provider tidak diubah. Mengaktifkan ringkasan AI produksi belum
 boleh dilakukan; izin Pendamping existing bukan izin baru untuk data laporan.
 
 Acuan: [siklus belajar](siklus-belajar-terpandu.md),
-[runtime Pendamping](pendamping-runtime.md), dan [palang proyek](../CLAUDE.md).
+[runtime Pendamping](pendamping-runtime.md), dan palang proyek.
 
 **Pembaruan 22 Oktober:** pembatalan AI v1 tetap berlaku. Dashboard deterministik
 berikut telah berkembang menjadi tab Perkembangan (Ringkasan/Per materi), sedangkan

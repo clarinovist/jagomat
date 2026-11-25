@@ -26,7 +26,7 @@ Kompatibilitas dan pemulihan: [panduan penamaan](docs/repository-naming.md).
 | [`docs/`](docs/README.md) | Spesifikasi dan dokumentasi teknis aktif |
 | `scripts/check_repo.py` | Palang isi repo dan nama berkas sensitif untuk CI |
 | `.github/workflows/deploy.yml` | Test, build image, dan deploy |
-| [`CLAUDE.md`](CLAUDE.md) | Panduan kontributor dan palang keamanan/arsitektur |
+| `CLAUDE.md` (lokal, di luar repo) | Panduan kontributor dan palang keamanan/arsitektur; ada di `.gitignore`, tidak ikut Git |
 
 ## Pengembangan
 
@@ -42,7 +42,7 @@ mesin/.venv/bin/python scripts/check_repo.py
 
 Gunakan interpreter venv existing (lokal3.9.6; CI/container3.12). Full suite
 sebelum rilis dijalankan melalui CI empat shard; jangan memakai `-n auto`
-secara lokal karena test HTTP berbagi socket. Aturan lengkap di [CLAUDE.md](CLAUDE.md).
+secara lokal karena test HTTP berbagi socket. Aturan lengkap di CLAUDE.md.
 
 Palang repo memeriksa nama berkas di index Git, bukan isi berkas atau data
 runtime. Kegagalan membaca Git membuat pemeriksaan gagal, bukan dianggap

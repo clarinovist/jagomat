@@ -2412,7 +2412,7 @@ adalah histori, bukan perintah menjalankan ulang cutover.
 ### Izin operasi dan palang teknis
 
 Push, deploy, SSH, dan migrasi rutin dalam scope mengikuti
-[izin tetap workspace](../CLAUDE.md#izin-tetap--resource-lokal), tanpa meminta izin
+izin tetap workspace, tanpa meminta izin
 ulang per koneksi. Kata **approval** pada protokol deploy di dokumen ini berarti
 artefak teknis root-controlled yang terikat digest/TTL/preflight; izin tetap tidak
 membuat artefak itu sah tanpa bukti prasyarat. Gate yang gagal tetap menahan rilis.
@@ -2640,7 +2640,7 @@ di revision `4d5618d5fbb162f72c9a88397976c353ee62b88e`. Deploy kandidat
 menambah kontrak persistensi `ai-control.db`; container lama tidak disentuh.
 Repository variable deploy rutin sudah dinonaktifkan selama rollout terkontrol.
 Snapshot ini bukan jaminan keadaan live setelah tanggal tersebut.
-Panduan [CLAUDE.md](../CLAUDE.md), [kontrak runtime](pendamping-runtime.md), dan
+Panduan CLAUDE.md, [kontrak runtime](pendamping-runtime.md), dan
 izin operasi produksi tetap berlaku. Data keluarga/credential tidak masuk repo.
 
 ## Mengapa rilis ini perlu pengaman

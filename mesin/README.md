@@ -98,7 +98,7 @@ mesin/.venv/bin/python scripts/check_repo.py
 Full suite sebelum rilis memakai CI empat shard, bukan `-n auto` lokal karena test
 HTTP berbagi socket. Preview harus memakai DB/sandi/session temp dan fixture
 sintetis; **jangan menjalankan `serve.py` dengan default data nyata untuk preview**.
-Panduan lengkap: [workflow](../CLAUDE.md), [preview/verifikasi](../docs/workflow-reference.md).
+Panduan lengkap: workflow, [preview/verifikasi](../docs/workflow-reference.md).
 CLI `generate_worksheet.py` tetap alat latihan manual; gunakan `--help` dan path
 keluaran terisolasi, bukan asumsi CLI mengorkestrasi siklus terpandu.
 

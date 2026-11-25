@@ -3,7 +3,7 @@
 Peta modul dan keputusan teknis rinci, dipindahkan dari ringkasan pada 22 Oktober
 2026 tanpa perubahan arsitektur. Orientasi singkat: [context.md](context.md);
 cakupan: [spec.md](spec.md); status: [status proyek](status-proyek.md).
-[CLAUDE.md](../CLAUDE.md) tetap mengatur workflow, privasi dan gate.
+CLAUDE.md tetap mengatur workflow, privasi dan gate.
 
 ## Arsitektur
 

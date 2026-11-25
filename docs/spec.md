@@ -354,5 +354,5 @@ kurikulum. Pekerjaan [dibatalkan/ditunda](status-proyek.md) tidak dibuka otomati
 
 Acuan: [playbook](playbook-guru.md) · [Pendamping](pendamping-runtime.md) ·
 [paket](subscription-packages.md) · [privasi/dukungan](support-operations.md) ·
-[aturan proyek](../CLAUDE.md). Perubahan cakupan harus memperbarui ringkasan ini
+aturan proyek. Perubahan cakupan harus memperbarui ringkasan ini
 bersama kontrak detail; status operasi dicatat terpisah di runbook rilis.

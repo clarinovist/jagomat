@@ -1,6 +1,6 @@
 # Referensi workflow Jagomat
 
-Sumber kebijakan jalur/approval/gate adalah [`CLAUDE.md`](../CLAUDE.md). Baca bagian
+Sumber kebijakan jalur/approval/gate adalah `CLAUDE.md`. Baca bagian
 relevan saat menyentuh soal, test, visual, atau klaim produk; tidak perlu membaca
 seluruh riwayat untuk typo. Dokumen ini tidak menambah gate universal.
 

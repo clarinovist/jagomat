@@ -1,7 +1,7 @@
 # Jagomat — Konteks teknis ringkas
 
 Peta orientasi; detail di [referensi arsitektur](architecture-reference.md), kontrak
-produk di [spec.md](spec.md), palang kerja di [CLAUDE.md](../CLAUDE.md).
+produk di [spec.md](spec.md), palang kerja di CLAUDE.md.
 Status deployment/eksperimen: [status proyek](status-proyek.md).
 
 ## Arsitektur

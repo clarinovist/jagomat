@@ -3,7 +3,7 @@
 Dokumen ini menjelaskan kontrak **source**, bukan bukti deployment atau penerimaan
 redesign. [Spesifikasi Pendamping](pendamping-jagomat.md) menyimpan rancangan
 awal; bagian UI inline di dokumen ini menjelaskan kontrak implementasi sekarang;
-[palang proyek](../CLAUDE.md) dan [siklus belajar](siklus-belajar-terpandu.md)
+palang proyek dan [siklus belajar](siklus-belajar-terpandu.md)
 tetap berlaku. Seluruh verifikasi lokal menggunakan DB, akun, dan provider sintetis.
 
 ## Status saat ini — 22 Oktober 2026
@@ -311,7 +311,7 @@ editor yang lebih membantu merupakan pekerjaan UX yang **dibatalkan** pada
   rehearsal idempoten, `integrity_check`/`foreign_key_check`, dan recovery siap.
   Dua DB pada rollout Pendamping awal bukan inventaris produksi admin5 sekarang;
   ikuti [runbook rilis](production-release.md) untuk bundle empat DB + auth.
-  Push/deploy/SSH dalam scope mengikuti [izin tetap](../CLAUDE.md#izin-tetap--resource-lokal),
+  Push/deploy/SSH dalam scope mengikuti izin tetap,
   tetapi commit atau izin tersebut bukan bukti gate teknis sudah lulus.
 
 ## Batas penerimaan

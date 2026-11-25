@@ -31,7 +31,7 @@ Bukti dengan representasi berbeda tidak menjumlahkan kelemahan, jumlah probe, at
 ## Gate verifikasi Fase 8
 
 Daftar ini mencatat cakupan penerimaan teknis, bukan kewajiban menjalankan suite
-berat/Docker lokal. Eksekusi mengikuti [kebijakan resource](../CLAUDE.md#izin-tetap--resource-lokal):
+berat/Docker lokal. Eksekusi mengikuti kebijakan resource:
 scoped test lokal, full suite/sweep/build di CI atau lingkungan terisolasi.
 
 - Suite Python 3.9 dengan warning-as-error; unit, integrasi, HTTP dan golden generator.

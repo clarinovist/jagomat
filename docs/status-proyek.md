@@ -2,7 +2,7 @@
 
 **Diperbarui 25 November 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
-[CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
+CLAUDE.md. Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
 ## Arah dan rilis terakhir
 
