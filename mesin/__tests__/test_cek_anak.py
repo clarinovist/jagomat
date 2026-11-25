@@ -471,7 +471,8 @@ def test_hore_varian_akun_punya_tautan_beranda_dan_kalimat_orang_tua(cek):
     kode, isi, _t = _hore(cek, di="akun")
     assert kode == 200
     assert 'href="/murid">Kembali ke beranda</a>' in isi
-    assert "Minta Ayah/Bunda membuka halaman orang tua untuk melihat hasilnya." in isi
+    # Butir QA #12: tombol Tanya Ayah/Bunda langsung ke halaman orang tua (form PIN bila anak punya PIN).
+    assert 'href="/murid/orang-tua">Tanya Ayah/Bunda</a>' in isi
     assert "Tunjukkan layar ini" not in isi and "/masuk" not in isi
 
 
@@ -479,7 +480,7 @@ def test_hore_varian_akun_punya_tautan_beranda_dan_kalimat_orang_tua(cek):
 def test_hore_varian_lain_tidak_memuat_tautan_beranda(cek, di):
     isi = _hore(cek, **({"di": di} if di else {}))[1]
     assert "Kembali ke beranda" not in isi and 'href="/murid"' not in isi
-    assert "Minta Ayah/Bunda membuka" not in isi
+    assert "Tanya Ayah/Bunda" not in isi and 'href="/murid/orang-tua"' not in isi
     if di == "hp-ini":
         assert "Ayah/Bunda, masuk untuk lihat hasil" in isi
     else:

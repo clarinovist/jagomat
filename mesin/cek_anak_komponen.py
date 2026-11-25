@@ -30,6 +30,7 @@ JEDA_SETELAH = (5, 10)
 NILAI_DI_HP_INI = "hp-ini"
 NILAI_DI_AKUN = "akun"  # cek dimulai dari akun anak (F2b): layar akhir punya jalan kembali ke /murid
 TUJUAN_BERANDA_ANAK = "/murid"
+TUJUAN_ORANG_TUA = "/murid/orang-tua"  # halaman orang tua: form PIN bila anak punya PIN (butir QA #12)
 TUJUAN_LOGIN_HASIL = "/masuk?lanjut=/cek-kemampuan/hasil"
 DASAR_URL = "/mulai/"
 # Warna ubin per topik: konstanta. Label teksnya BUKAN konstanta: lihat `nama_topik`.
