@@ -29,8 +29,11 @@ KASUS = (
          "    if False:\n        _kirim_belum_dibuka(penangan)\n        return\n"),
     ], "test_gerbang_mati_get_tidak_menampilkan_form_guru_dan_post_tidak_membuat_akun"),
     ("gerbang_menyala_bukan_nilai_1", GERBANG, [
-        ('    return os.environ.get(NAMA_ENV, "0") == "1"', '    return os.environ.get(NAMA_ENV, "0") != "0"'),
+        ('    return os.environ.get(NAMA_SAKELAR, "0") == "1"', '    return os.environ.get(NAMA_SAKELAR, "0") != "0"'),
     ], "test_hanya_nilai_persis_1_membuka_gerbang"),
+    ("gerbang_mengabaikan_sakelar_admin", GERBANG, [
+        ("    return feature_switch.aktif(NAMA_SAKELAR, dari_env)", "    return dari_env()"),
+    ], "test_sakelar_admin_menang_atas_env"),
     ("form_longgar_menerima_field_asing", HTTP, [
         ("    if set(data) != KUNCI_FORM:", "    if not KUNCI_FORM <= set(data):"),
     ], "test_field_asing_ditolak_tanpa_akun"),

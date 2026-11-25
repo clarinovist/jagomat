@@ -34,6 +34,7 @@ NAMA_SAKELAR = (
     "DAFTAR_AKUN_ANAK",
     "LATIHAN_HARIAN",
     "PAKET_BELAJAR",
+    "DAFTAR_GURU",
 )
 
 BERKAS_BAWAAN = "/data/sakelar.db"

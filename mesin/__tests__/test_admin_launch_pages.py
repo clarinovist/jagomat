@@ -224,7 +224,7 @@ def test_operasional_ringkasan_aktif_di_atas_dengan_badge_awam():
     baris = re.findall(r'<li class="admin-ringkasan-item"><a class="admin-tautan-teks" href="#([^"]+)">(.*?)</a>(.*?)</li>', ringkasan)
     assert [b[0] for b in baris] == [sak.id_kartu(sak.FUNNEL), "pembayaran", sak.id_kartu(sak.TRANSFER), "pendaftaran",
                                      "s-osn_cetak_ringkas", "s-osn_bank_kalimat", "s-osn_lomba",
-                                     "s-daftar_akun_anak", "s-latihan_harian", "s-paket_belajar"]
+                                     "s-daftar_akun_anak", "s-latihan_harian", "s-paket_belajar", "s-daftar_guru"]
     status = {b[1]: re.sub(r"<[^>]+>", "", b[2]) for b in baris}
     assert status["Cek Kemampuan dan Paket Coba"] == "Aktif"
     assert status["Pembayaran QRIS (Midtrans)"] == "Buka + akses berbayar"

@@ -35,7 +35,7 @@ def test_baris_db_menang_atas_env(monkeypatch):
 
 
 def test_terdaftar_di_akhir_nama_sakelar_dengan_urutan_registri_sama():
-    assert fs.NAMA_SAKELAR[-1] == "PAKET_BELAJAR" and fs.NAMA_SAKELAR.count("PAKET_BELAJAR") == 1
+    assert fs.NAMA_SAKELAR.index("PAKET_BELAJAR") == len(fs.NAMA_SAKELAR) - 2 and fs.NAMA_SAKELAR.count("PAKET_BELAJAR") == 1
     assert tuple(sakelar_registry._INFO) == fs.NAMA_SAKELAR
     info = sakelar_registry.info("PAKET_BELAJAR")
     assert info.dari_env is gate.dari_env

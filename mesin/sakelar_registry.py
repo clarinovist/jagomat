@@ -15,6 +15,7 @@ import contest_gate
 import daftar_anak_gate
 import feature_switch
 import funnel_flag
+import guru_daftar_gate
 import paket_belajar_gate
 import pesanan_transfer_gerbang
 import story_frames
@@ -97,6 +98,15 @@ _INFO = {
                     "Paket yang sudah disetujui tetap tercatat.",
         kelompok=KELOMPOK_PENJUALAN,
         dari_env=paket_belajar_gate.dari_env),
+    "DAFTAR_GURU": InfoSakelar(
+        label="Pendaftaran guru mandiri",
+        dampak="Saat aktif, guru bisa membuat akun sendiri lewat tautan daftar guru, tanpa menunggu admin. "
+               "Akun baru tidak otomatis masuk lembaga; admin memasukkannya lewat Tambah guru di halaman lembaga. "
+               "Saat mati, tautan daftar guru tampil belum dibuka dan tidak ada akun yang dibuat.",
+        akibat_mati="Tautan daftar guru tampil belum dibuka; guru baru hanya bisa dibuat oleh admin. "
+                    "Akun guru yang sudah dibuat tetap bisa masuk.",
+        kelompok=KELOMPOK_PENJUALAN,
+        dari_env=guru_daftar_gate.dari_env),
 }
 
 if tuple(_INFO) != feature_switch.NAMA_SAKELAR:

@@ -94,6 +94,27 @@ def test_hanya_nilai_persis_1_membuka_gerbang(server, monkeypatch, nilai):
     assert guru_daftar_gate.aktif() is (nilai == "1")
 
 
+def test_sakelar_admin_menang_atas_env(server, monkeypatch, tmp_path):
+    import feature_switch
+    import guru_daftar_gate
+    import sakelar_registry
+    db = tmp_path / "sakelar-guru.db"
+    monkeypatch.setenv("SAKELAR_BERKAS_DB", str(db))
+    monkeypatch.setenv("DAFTAR_GURU", "1")
+    feature_switch.bersihkan_cache()
+    assert guru_daftar_gate.aktif() is True                      # belum ada baris DB: env jadi fallback
+    feature_switch.ubah("DAFTAR_GURU", False, actor_id="admin-sintetis", revisi_diharapkan=1,
+                        seed=sakelar_registry.seed_env())
+    assert guru_daftar_gate.aktif() is False                     # baris DB menang atas env
+    assert server.minta(GURU_PATH)[1].count('name="sandi"') == 0
+    feature_switch.ubah("DAFTAR_GURU", True, actor_id="admin-sintetis", revisi_diharapkan=2,
+                        seed=sakelar_registry.seed_env())
+    monkeypatch.delenv("DAFTAR_GURU")
+    assert guru_daftar_gate.aktif() is True                      # DB hidup tanpa env
+    assert 'name="sandi"' in server.minta(GURU_PATH)[1]
+    feature_switch.bersihkan_cache()
+
+
 def test_gerbang_hidup_get_menampilkan_form_guru_tanpa_isian_anak(hidup):
     kode, isi, _ = hidup.minta(GURU_PATH)
     assert kode == 200
