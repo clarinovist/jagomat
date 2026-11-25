@@ -65,7 +65,7 @@ KASUS = (
         ("    if data is None or set(data) != KUNCI_FORM_BUAT:", "    if data is None or not set(data) >= KUNCI_FORM_BUAT:"),
     ], TES_MURID, _FORM_KETAT),
     ("token_buat_tidak_terikat_kode", MURID, [
-        ("halaman.AKSI_BUAT + kode, data[\"token\"]", "halaman.AKSI_BUAT + \"mini\", data[\"token\"]"),
+        ("aksi + kode, data[\"token\"]", "aksi + \"mini\", data[\"token\"]"),
     ], TES_MURID, _TOKEN_KODE),
     ("satu_tagihan_lintas_paket_dilepas", MURID, [
         ("store.buat_tagihan(kon, akun_id, siswa_id, kode, kini, tolak_paket_lain_terbuka=True)",
@@ -98,3 +98,30 @@ KASUS = (
 @pytest.mark.parametrize("nama,berkas,ganti,berkas_tes,tes", KASUS, ids=[k[0] for k in KASUS])
 def test_mutasi_guard_http_kelas_merah_lalu_pulih(tmp_path, nama, berkas, ganti, berkas_tes, tes):
     uji_mutasi(tmp_path, berkas, ganti, berkas_tes, tes, SALIN_TES)
+
+
+# --- ganti paket (butir QA #3, 25 Nov 2026) -------------------------------------------------------------------
+TES_GANTI_DOMAIN = "test_kelas_ganti.py"
+TES_GANTI_HTTP = "test_kelas_ganti_http.py"
+SALIN_GANTI = tuple(sorted(p.name for p in Path(__file__).parent.glob("*_kit.py"))) + (
+    "conftest.py", TES_GANTI_DOMAIN, TES_GANTI_HTTP)
+
+KASUS_GANTI = (
+    # Dua guard lain di kelas_ganti (jumlah_bukti, len(terbuka)) tumpang tindih dengan status turunan dan trigger DB
+    # untuk dua paket yang ada sekarang (mutan setara, tak bisa merah); dipertahankan sebagai pertahanan berlapis.
+    ("ganti_deposit_tidak_dipindah", "kelas_ganti.py", [
+        ('kon, akun_id, siswa_id, paket, kini, lama["id"])', "kon, akun_id, siswa_id, paket, kini)"),
+    ], TES_GANTI_DOMAIN, "test_deposit_peta_ikut_ke_tagihan_baru"),
+    ("ganti_token_tidak_terikat_aksi", MURID, [
+        ("_form_buat(penangan, principal, halaman.AKSI_GANTI)", "_form_buat(penangan, principal, halaman.AKSI_BUAT)"),
+    ], TES_GANTI_HTTP, "test_ganti_berhasil_halaman_menampilkan_tagihan_baru_dan_bukti_masuk_ke_tagihan_baru"),
+    ("tagihan_berjalan_bukan_yang_terbaru", MURID, [
+        ("    for order, _fakta, _status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini):\n        return",
+         "    for order, _fakta, _status in reversed(list(ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini))):\n        return"),
+    ], TES_GANTI_HTTP, "test_ganti_berhasil_halaman_menampilkan_tagihan_baru_dan_bukti_masuk_ke_tagihan_baru"),
+)
+
+
+@pytest.mark.parametrize("nama,berkas,ganti,berkas_tes,tes", KASUS_GANTI, ids=[k[0] for k in KASUS_GANTI])
+def test_mutasi_guard_ganti_paket_merah_lalu_pulih(tmp_path, nama, berkas, ganti, berkas_tes, tes):
+    uji_mutasi(tmp_path, berkas, ganti, berkas_tes, tes, SALIN_GANTI)

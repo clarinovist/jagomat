@@ -29,7 +29,9 @@ from playful_style import GAYA_CERIA
 RUTE = "/murid/paket"
 RUTE_BUAT = RUTE + "/buat"
 RUTE_BUKTI = RUTE + "/bukti"
+RUTE_GANTI = RUTE + "/ganti"
 AKSI_BUAT = "kelas_buat:"
+AKSI_GANTI = "kelas_ganti:"
 AKSI_BUKTI = "kelas_bukti"
 ID_JUDUL = "judul-paket"
 COPY_JUDUL = "Paket belajar 1 bulan"
@@ -53,6 +55,9 @@ COPY_TAUTAN_KELAS = "Tautan kelas"
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
 COPY_KEMBALI = "Kembali ke pilih paket"
+COPY_JUDUL_GANTI = "Salah pilih paket?"
+COPY_PERINGATAN_GANTI = ("Jangan transfer ke tagihan yang lama. Bila Anda sudah telanjur mentransfer, hubungi tim lewat "
+                         "WhatsApp sebelum mengganti. Tagihan lama tidak bisa dipakai lagi dan habis sendiri.")
 COPY_TAUTAN_TAGIHAN = "Lanjutkan pembayaran"
 _ACCEPT_BUKTI = "image/jpeg,image/png,application/pdf"
 _LABEL_MODE = {k.MODE_ONLINE: "Belajar online", k.MODE_OFFLINE: "Tatap muka (offline)"}
@@ -232,6 +237,21 @@ def _isi_uang(tagihan: k.TagihanKelas, rekening: str, token_untuk: TokenUntuk) -
     return isi
 
 
+def _form_ganti(paket: k.PaketBelajar, token_untuk: TokenUntuk) -> str:
+    return (f'<form method="post" action="{RUTE_GANTI}">'
+            f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_GANTI + paket.kode))}">'
+            f'<input type="hidden" name="kode" value="{_e(paket.kode)}">'
+            f'{_tombol("Ganti ke " + paket.nama)}</form>')
+
+
+def _blok_ganti(tagihan: k.TagihanKelas, token_untuk: TokenUntuk) -> str:
+    """Ganti paket hanya selagi tagihan belum dibayar dan belum ada satu pun bukti (butir QA #3)."""
+    if tagihan.status != k.STATUS_BELUM_BAYAR or tagihan.jumlah_bukti:
+        return ""
+    lain = "".join(_form_ganti(p, token_untuk) for p in k.DAFTAR_PAKET if p.kode != tagihan.kode_paket)
+    return _kartu(f"<h2>{_e(COPY_JUDUL_GANTI)}</h2>{_p(COPY_PERINGATAN_GANTI, 'lg-kecil')}{lain}")
+
+
 def halaman_tagihan(tagihan: k.TagihanKelas, paket: k.PaketBelajar, rekening: str,
                     token_untuk: TokenUntuk, galat: str = "") -> bytes:
     """Halaman tagihan: rincian nominal, total transfer + kode unik, jendela bayar, status, form unggah bila perlu.
@@ -243,7 +263,7 @@ def halaman_tagihan(tagihan: k.TagihanKelas, paket: k.PaketBelajar, rekening: st
     uang = (f'<section class="lg-kartu lg-kertas"><h2>{_e(COPY_JUDUL_TAGIHAN)}</h2>'
             f'{_isi_uang(tagihan, rekening, token_untuk)}</section>')
     kembali = f'<p class="lg-kembali"><a href="{RUTE}">{_e(COPY_KEMBALI)}</a></p>'
-    return _bungkus(pesan + _kartu_status(tagihan) + rincian + uang + kembali)
+    return _bungkus(pesan + _kartu_status(tagihan) + rincian + uang + _blok_ganti(tagihan, token_untuk) + kembali)
 
 
 COPY_LABEL_KARTU_ORTU = "Paket belajar"

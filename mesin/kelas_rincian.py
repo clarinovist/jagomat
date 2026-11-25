@@ -36,23 +36,27 @@ def deposit_aktif(kon, akun_id: str, siswa_id: int, kini: str) -> Optional[str]:
     return order_id if purna.keadaan(kon, order_id, kini).voucher == purna.VOUCHER_AKTIF else None
 
 
-def _deposit_dipegang_lain(kon, akun_id: str, siswa_id: int, kode_paket: str, deposit_order: str, kini: str) -> bool:
+def _deposit_dipegang_lain(kon, akun_id: str, siswa_id: int, kode_paket: str, deposit_order: str, kini: str,
+                           abaikan_order: Optional[str] = None) -> bool:
     for order, _, _ in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini):
-        if order["paket"] == kode_paket:
+        if order["paket"] == kode_paket or order["id"] == abaikan_order:
             continue
         if ks.baris_tagihan(kon, order["id"])["deposit_order_id"] == deposit_order:
             return True
     return False
 
 
-def rincian_untuk(kon, akun_id: str, siswa_id: int, kode_paket: str, kini: str) -> Tuple[katalog.Rincian, Optional[str]]:
+def rincian_untuk(kon, akun_id: str, siswa_id: int, kode_paket: str, kini: str,
+                  abaikan_order: Optional[str] = None) -> Tuple[katalog.Rincian, Optional[str]]:
     """(rincian, order_id Peta yang dipotongkan atau None) untuk tagihan BARU paket ini pada `kini`.
 
+    `abaikan_order`: tagihan yang sedang digantikan; deposit yang ia pegang tidak dianggap dipegang lain.
     Harga bulanan dibaca dari harga aktif admin (`harga.harga_aktif`, koneksi yang sama). Galat skema harga
     dibiarkan naik: tagihan baru gagal tertutup, tidak memakai harga katalog diam-diam.
     """
     deposit = deposit_aktif(kon, akun_id, siswa_id, kini)
-    if deposit is not None and _deposit_dipegang_lain(kon, akun_id, siswa_id, kode_paket, deposit, kini):
+    if deposit is not None and _deposit_dipegang_lain(
+            kon, akun_id, siswa_id, kode_paket, deposit, kini, abaikan_order):
         deposit = None
     harga_paket = harga.harga_aktif(kon, kode_paket)
     rincian = katalog.hitung_rincian(kode_paket, deposit_aktif=deposit is not None, harga_paket=harga_paket)

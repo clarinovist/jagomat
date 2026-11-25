@@ -36,6 +36,8 @@ import database
 import jadwal_store
 import kelas_berkas as berkas
 import kelas_dasar as dasar
+import kelas_ganti
+import kelas_status as ks
 import kelas_pages as halaman
 import kelas_store as store
 import paket_belajar_gate
@@ -61,13 +63,15 @@ KODE_TIDAK_SIAP = 503
 COPY_BELUM_DIBUKA = "Pendaftaran paket belajar belum dibuka. Coba lagi nanti."
 COPY_BELUM_SIAP = "Belum bisa diproses sekarang. Coba lagi nanti."
 COPY_GAGAL_BUAT = "Tagihan belum bisa dibuat. Selesaikan tagihan yang sedang berjalan, atau coba lagi nanti."
+COPY_GAGAL_GANTI = ("Paket belum bisa diganti. Ganti hanya bisa selagi tagihan belum dibayar dan belum ada bukti, "
+                   "dan hanya sekali sampai tagihan lama habis. Hubungi tim bila masih perlu bantuan.")
 COPY_KODE_HABIS = "Tagihan belum bisa dibuat sekarang. Coba lagi nanti atau hubungi tim."
 COPY_TIDAK_TERIMA = "Tidak ada tagihan yang sedang menerima bukti. Daftar paket dulu, atau waktu pembayaran sudah habis."
 COPY_BATAS_BUKTI = "Batas bukti untuk tagihan ini sudah tercapai. Hubungi tim bila masih perlu bantuan."
 COPY_BERKAS = {"kosong": COPY_BERKAS_KOSONG, "besar": COPY_BERKAS_BESAR, "tipe": COPY_TIPE_TIDAK_DIDUKUNG,
                "terbaca": COPY_BERKAS_TAK_TERBACA}
 _GET = frozenset({halaman.RUTE})
-_POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI})
+_POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_GANTI})
 _GALAT_LAYANAN = (d.PesananError, sqlite3.Error, OSError, bukti_berkas.BuktiBerkasError, ValueError,
                   admin_store_core.StoreBelumSiap)
 
@@ -114,11 +118,10 @@ def _token_untuk(penangan, principal):
 
 
 def _tagihan_berjalan(kon, akun_id: str, siswa_id: int, kini: str):
-    """Tagihan terbuka anak ini (paket pertama di katalog yang punya), atau None."""
-    for paket in katalog.DAFTAR_PAKET:
-        tagihan = store.tagihan_terbuka(kon, akun_id, siswa_id, paket.kode, kini)
-        if tagihan is not None:
-            return tagihan
+    """Tagihan terbuka TERBARU anak ini, atau None. Setelah ganti paket, tagihan lama masih terbuka sampai habis
+    tetapi tidak pernah ditampilkan atau menerima bukti lewat halaman ini."""
+    for order, _fakta, _status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini):
+        return store.tagihan_terbuka(kon, akun_id, siswa_id, order["paket"], kini)
     return None
 
 
@@ -189,8 +192,8 @@ def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
 
 # --- POST: buat tagihan ----------------------------------------------------------------------
 
-def _form_buat(penangan, principal):
-    """Kode paket sah dari form `{token, kode}` bertoken, atau None (respons penolakan sudah dikirim)."""
+def _form_buat(penangan, principal, aksi: str = halaman.AKSI_BUAT):
+    """Kode paket sah dari form `{token, kode}` bertoken (`aksi` + kode), atau None (respons penolakan sudah dikirim)."""
     data = _baca_form(penangan)
     if data is None or set(data) != KUNCI_FORM_BUAT:
         penangan._tolak_isian()
@@ -200,7 +203,7 @@ def _form_buat(penangan, principal):
     except d.PesananDataTidakSah:
         penangan._tolak_isian()
         return None
-    if not pesanan_http.token_sah(principal, penangan._ambil_token(), halaman.AKSI_BUAT + kode, data["token"]):
+    if not pesanan_http.token_sah(principal, penangan._ambil_token(), aksi + kode, data["token"]):
         penangan._tolak_isian(403)
         return None
     return kode
@@ -234,6 +237,34 @@ def _post_buat(penangan, principal, siswa_id: int) -> None:
             _buat(kon, principal.id_akun, siswa_id, kode, alur.waktu_sekarang())
     except _GALAT_LAYANAN as galat:
         _galat_buat(penangan, galat)
+        return
+    _alihkan(penangan, halaman.RUTE)
+
+
+def _galat_ganti(penangan, galat: Exception) -> None:
+    if isinstance(galat, dasar.KodeUnikHabis):
+        _info(penangan, "Paket belum bisa diganti", COPY_KODE_HABIS, KODE_BENTROK)
+    elif isinstance(galat, d.PesananTidakDitemukan):
+        _tidak_ada(penangan)
+    elif isinstance(galat, d.PesananKonflik):
+        _info(penangan, "Paket belum bisa diganti", COPY_GAGAL_GANTI, KODE_BENTROK)
+    else:
+        _info(penangan, "Belum bisa diproses", COPY_BELUM_SIAP, KODE_TIDAK_SIAP)
+
+
+def _post_ganti(penangan, principal, siswa_id: int) -> None:
+    """Ganti paket selagi tagihan belum dibayar dan belum ada bukti; syarat dicek di transaksi yang sama."""
+    if not pesanan_http._izinkan(penangan, principal):
+        pesanan_http._tolak_laju(penangan)
+        return
+    kode = _form_buat(penangan, principal, halaman.AKSI_GANTI)
+    if kode is None:
+        return
+    try:
+        with _buka(tulis=True) as kon:
+            kelas_ganti.ganti_paket(kon, principal.id_akun, siswa_id, kode, alur.waktu_sekarang())
+    except _GALAT_LAYANAN as galat:
+        _galat_ganti(penangan, galat)
         return
     _alihkan(penangan, halaman.RUTE)
 
@@ -335,5 +366,6 @@ def tangani_post(penangan, jalur: str) -> bool:
     if _rekening() is None:  # gerbang pembayaran tertutup: 404 murid, tanpa efek
         _tidak_ada(penangan)
         return True
-    (_post_buat if jalur == halaman.RUTE_BUAT else _post_bukti)(penangan, *pembeli)
+    {halaman.RUTE_BUAT: _post_buat, halaman.RUTE_BUKTI: _post_bukti, halaman.RUTE_GANTI: _post_ganti}[jalur](
+        penangan, *pembeli)
     return True

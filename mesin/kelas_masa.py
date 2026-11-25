@@ -92,7 +92,9 @@ def _masa_paket(kon, akun_id: str, siswa_id: int, paket: katalog.PaketBelajar, k
 
 
 def tagihan_belum_dibayar(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[TagihanBelumBayar, ...]:
-    """Tagihan terbuka milik akun untuk anak ini yang belum ada bukti menunggu: belum_bayar atau ditolak (boleh unggah ulang).
+    """Tagihan TERBARU milik akun untuk anak ini bila belum ada bukti menunggu: belum_bayar atau ditolak (boleh unggah ulang).
+
+    Satu elemen paling banyak: setelah ganti paket, tagihan lama masih terbuka sampai habis tetapi tidak diingatkan.
 
     Jendela bayar yang sudah lewat tidak terbuka, jadi tidak ikut. Tanpa tulis; akun selalu ikut di kueri.
     """
@@ -100,10 +102,11 @@ def tagihan_belum_dibayar(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[T
     d.periksa_akun_id(akun_id)
     k.periksa_siswa_id(siswa_id)
     kini = k.ke_baku(sekarang)
-    return tuple(
-        TagihanBelumBayar(o["paket"], katalog.ambil(o["paket"]).nama, o["kedaluwarsa"], status)
-        for o, _fakta, status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini)
-        if status in (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK))
+    for o, _fakta, status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini):     # terbaru dulu
+        if status in (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK):
+            return (TagihanBelumBayar(o["paket"], katalog.ambil(o["paket"]).nama, o["kedaluwarsa"], status),)
+        return ()      # tagihan terbaru sudah punya bukti menunggu: tagihan lama (setelah ganti paket) tidak diingatkan
+    return ()
 
 
 def masa_paket_anak(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[MasaPaket, ...]:
