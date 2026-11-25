@@ -95,8 +95,8 @@ def _ubah_dalam_transaksi(kon, kode, rupiah_baru, diharapkan, oleh, waktu) -> Ha
     lama_aktif = aktif[kode]
     if lama_aktif != diharapkan:
         raise KonflikHarga("harga aktif %d tidak sama dengan yang diharapkan %d" % (lama_aktif, diharapkan))
-    # Lama di riwayat = harga EFEKTIF sebelum perubahan (nilai awal kode bila belum pernah diubah), supaya riwayat
-    # tetap menjawab "sebelumnya berapa" walau konstanta nilai awal di kode berubah kemudian.
+    # Lama di riwayat = baris tersimpan sebelumnya (None bila belum pernah diubah), bukan nilai awal.
+    baris_sebelumnya = _baris_tersimpan(kon).get(kode)
     kon.execute(
         "INSERT INTO harga_produk(kode, rupiah, diubah, diubah_oleh) VALUES(?,?,?,?) "
         "ON CONFLICT(kode) DO UPDATE SET rupiah=excluded.rupiah, diubah=excluded.diubah, "
@@ -104,7 +104,7 @@ def _ubah_dalam_transaksi(kon, kode, rupiah_baru, diharapkan, oleh, waktu) -> Ha
         (kode, rupiah_baru, waktu, oleh))
     kon.execute(
         "INSERT INTO harga_riwayat(kode, lama, baru, oleh, waktu) VALUES(?,?,?,?,?)",
-        (kode, lama_aktif, rupiah_baru, oleh, waktu))
+        (kode, baris_sebelumnya, rupiah_baru, oleh, waktu))
     return HasilUbahHarga(kode, lama_aktif, rupiah_baru)
 
 

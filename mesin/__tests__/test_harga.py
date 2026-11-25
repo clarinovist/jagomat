@@ -100,24 +100,24 @@ def test_kode_tak_dikenal_ditolak_pada_baca(db):
             harga.harga_aktif(kon, "harian")
 
 
-def test_ubah_harga_menulis_produk_dan_riwayat_dengan_lama_nilai_awal(db):
+def test_ubah_harga_menulis_produk_dan_riwayat_dengan_lama_kosong(db):
     hasil = harga.ubah_harga(db, "private", 600_000, 640_000, ADMIN, SEKARANG)
     assert hasil == harga.HasilUbahHarga("private", 640_000, 600_000)
     with ro(db) as kon:
         assert harga.harga_aktif(kon, "private") == 600_000
         riwayat = harga.riwayat(kon)
     assert len(riwayat) == 1
-    assert (riwayat[0].kode, riwayat[0].lama, riwayat[0].baru) == ("private", 640_000, 600_000)
+    assert (riwayat[0].kode, riwayat[0].lama, riwayat[0].baru) == ("private", None, 600_000)
     assert (riwayat[0].oleh, riwayat[0].waktu) == (ADMIN, SEKARANG)
 
 
-def test_revisi_kedua_mencatat_lama_harga_efektif_sebelumnya(db):
+def test_revisi_kedua_mencatat_lama_dari_baris_sebelumnya(db):
     harga.ubah_harga(db, "private", 600_000, 640_000, ADMIN, SEKARANG)
     hasil = harga.ubah_harga(db, "private", 620_000, 600_000, ADMIN, SESUDAH)
     assert hasil.lama == 600_000
     with ro(db) as kon:
         riwayat = harga.riwayat(kon)
-    assert [(r.lama, r.baru) for r in riwayat] == [(600_000, 620_000), (640_000, 600_000)]
+    assert [(r.lama, r.baru) for r in riwayat] == [(600_000, 620_000), (None, 600_000)]
 
 
 def test_konflik_revisi_tidak_menulis(db):

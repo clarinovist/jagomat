@@ -77,7 +77,6 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/bukti", "admin"),
     ("/admin/pesanan/order", "admin"),  # Fase C: detail order (periksa/refund pindah ke sini; POST tetap di rute lama)
     ("/admin/pesanan/rekening", "admin"),
-    ("/admin/harga", "admin"),  # Harga admin: GET tampilan; 404 identik untuk non-admin
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
     ("/admin/langganan", "admin"),  # F5: antrean bukti langganan Latihan Harian (+ /verifikasi, /bukti); sakelar mati = 404 rute tak dikenal
     ("/admin/pembayaran", "admin"),  # Semua pembayaran: daftar baca-saja Peta + Latihan Harian + Paket Belajar
@@ -138,7 +137,6 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/setujui", "admin"),  # transfer rekening (tahap 3): keputusan verifikasi dan rekening
     ("/admin/pesanan/tolak", "admin"),
     ("/admin/pesanan/rekening", "admin"),
-    ("/admin/harga", "admin"),  # Harga admin: POST ubah; tinjauan bertanda tangan + sandi ulang
     ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
     ("/admin/langganan", "admin"),  # F5: POST /setujui dan /tolak langganan; tinjauan bertanda tangan + sandi ulang
     ("/admin/kelas", "admin"),  # Paket Belajar: POST /setujui, /tolak; tinjauan bertanda tangan + sandi ulang
