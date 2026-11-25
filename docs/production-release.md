@@ -12,7 +12,7 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
-## Perbaikan hasil uji penguji (butir QA 1, 3-9, 12) — kode di main 25 November 2026, BELUM deploy
+## Perbaikan hasil uji penguji (butir QA 1-9, 12) — LIVE sejak 25 November 2026 (lihat bagian deploy di bawah)
 
 Sepuluh commit lokal di `main` (201f585 sampai commit antrean "belum ditempatkan"; di antaranya ada commit harga sesi lain,
 jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbaikan hasil uji penguji"). Untuk rilis:
@@ -37,6 +37,32 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
   diabaikan); akun guru yang sudah dibuat tetap sah.
 - **Tab Akun guru di admin:** tanpa migrasi dan tanpa berkas kontrak; rute `/admin?section=guru` baru dan parameter `dari=guru` pada /admin/tinjau. Rollback ke image lama: tab hilang, `section=guru` jatuh ke Ringkasan, aksi akun lewat menu Keluarga tetap. Cek setelah deploy: tab tampil untuk admin, non-admin 404, reset sandi guru sintetis dari tab.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
+
+## Deploy perbaikan hasil uji penguji, guru mandiri, dan tab Akun guru — 25 November 2026
+
+Controlled `deploy-v2` memasang **cf97b4d** (`cf97b4d1db0606315f705a62138dfde3999a3244`, digest `sha256:887876c3…61d0`), healthy, menggantikan
+**3c3d427**, ±19.37–19.42 WIB (situs ditutup ±3 menit). **Kode live berasal dari CABANG RILIS `rilis-qa-20261125`, BUKAN `main`**: cabang itu =
+`main` (3baa2c0) dikurangi tiga commit lapisan harga (`6da1fe8`, `3e4f755`, `a16a4e1`: skema `harga_*`, katalog membaca harga aktif, layar
+`/admin/harga`), karena perkakas rilis harga belum ada (probe skema di `deploy.py`, `release_harga_pair.py`, opsi backup/rehearsal, pin recovery baru;
+lihat plan harga bagian 11). Tanpa harga, sidik kontrak kembali **1bd09a6…** di kedua sisi: recovery tetap **37307ed**, TANPA migrasi, tanpa pin
+baru, tanpa flag/env baru, deployer `9f8ce27c…` tidak berubah (dipasang ulang identik; cadangan `/opt/osn/osn-deploy.bak-20261125T193644`).
+
+- **Isi:** ganti paket selagi belum dibayar, banner tagihan, bukti dipilih di dalam transaksi (`kelas_unggah`), tindakan `/murid/paket` mengikuti PIN tirai,
+  orang tua memilih kelompok Mini sendiri (`/murid/paket/jadwal`), kartu pesanan Peta, tautan Daftar + hero Peta, "Tanya Ayah/Bunda" ke PIN, daftar peserta paket aktif
+  dan butir antrean admin (belum dibayar, belum ditempatkan, guru baru belum masuk lembaga, Peta dibayar laporan belum terbit), tab admin **Akun guru**
+  (`/admin?section=guru`), guru mendaftar sendiri (`/daftar?peran=guru`) dengan sakelar admin baru **`DAFTAR_GURU` — MATI** (bawaan), copy kebijakan telepon (E2-0, `249d8a5`).
+- **Pair:** CI dispatch 45614815267 hijau (`pair_verified`, `provider_calls` 0, kontrak sama); recovery digest `sha256:135c41e5…cd2a` dibangun ulang dari 37307ed.
+- **Kit** `docs/plan/deploy-qa-20261125` (disalin dari kit surel; asersi basi dibuang: env surel sudah di kontainer, tanpa sapuan surel awal, `NAMA_SAKELAR[-3:]`
+  memuat `DAFTAR_GURU`; probe baru `PROBE_QA`): approval lama `3c3d427` diarsipkan ke `approval-consumed-3c3d427.json`, `PERSIAPAN_OK`, backup lima file + riset,
+  rehearsal C–B–C, backup lokal terverifikasi hash (`mesin/cadangan/deploy-qa-20261125/`), pemeriksaan skema, `deploy-v2` exit 0, `reopen` `LIVE_ADMIN_HEALTHY`, postcheck hijau
+  (0 Traceback/OperationalError/IntegrityError, `history_hash_preserved`, `config_restored`), cleanup 4 direktori.
+- **Smoke publik HTTPS (`https://jagomat.id`):** `/` 200, `/akun` 401, `/murid/` 303, `/murid/paket` 303, `/cek-kemampuan` 200, `/paket-coba` 200, `/kebijakan-privasi` 200,
+  `/daftar?peran=guru` 200 ("belum dibuka", tanpa form), `/admin` 404 anonim.
+- **Keadaan setelah rilis:** `PAKET_BELAJAR` tetap sesuai sakelar DB (menyala); `DAFTAR_GURU` mati; `sakelar.db` baru diperlebar saat sakelar pertama diubah (cadangkan dulu).
+  Approval baru `/opt/osn/rollout-approval.json` tersisa (kedaluwarsa); arsipkan sebelum rilis berikutnya.
+- **Rilis berikutnya dari `main`:** `main` masih memuat tiga commit harga yang BELUM live. Rilis harga wajib melewati pekerjaan perkakas rilis di atas (pin recovery baru karena
+  `schema_harga.py`/`kelas_store.py`), dan kandidatnya harus diturunkan dari `main` yang memuat cabang rilis ini sebagai leluhur atau perubahan setara (`rilis-qa-20261125` jangan dihapus).
+- **Rollback:** recovery 37307ed membaca DB yang sama (tanpa migrasi); tab Akun guru, rute pilih jadwal/guru mandiri hilang; sakelar `DAFTAR_GURU` diabaikan; data tetap.
 
 ## Deploy surel E1 + copy Mini/Peta — 25 November 2026
 

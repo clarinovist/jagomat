@@ -15,7 +15,7 @@ CLAUDE.md. Catatan lama harus dibaca menurut tanggal dan scope-nya.
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- **Kode lokal belum dirilis (25 November 2026):** perbaikan hasil uji penguji (ganti paket, banner tagihan, peserta aktif
+- **LIVE (25 November 2026, cf97b4d dari cabang `rilis-qa-20261125`, tanpa lapisan harga):** perbaikan hasil uji penguji (ganti paket, banner tagihan, pilih jadwal Mini sendiri, antrean admin, tab Akun guru, guru mandiri di balik sakelar `DAFTAR_GURU` MATI). Lapisan harga (`6da1fe8`, `3e4f755`, `a16a4e1`) ada di `main` tetapi BELUM dirilis; lihat `docs/production-release.md`.
   dan antrean admin, hero Peta, tombol Daftar, Tanya Ayah/Bunda, label Buat akun guru); tanpa migrasi dan tanpa pin
   baru, rincian di production-release.md. Belum ada: guru mendaftar sendiri, kode kelas/tautan guru, jadwal-tugas-absensi
   di sisi anak (butuh keputusan Pemilik).
