@@ -211,6 +211,23 @@ def test_pendaftaran_ditutup_admin_ditolak(hidup, monkeypatch):
     _tanpa_akun()
 
 
+def test_jatah_per_ip_atomik_di_bawah_permintaan_paralel(hidup):
+    import threading
+    import guru_daftar_http as gdh
+    hasil, gerbang = [], threading.Barrier(24)
+
+    def coba():
+        gerbang.wait()
+        hasil.append(gdh.ambil_jatah("203.0.113.9"))
+
+    pekerja = [threading.Thread(target=coba) for _ in range(24)]
+    for t in pekerja:
+        t.start()
+    for t in pekerja:
+        t.join()
+    assert sum(hasil) == laju_masuk.BATAS_GAGAL and len(hasil) == 24
+
+
 def test_laju_per_ip_menutup_keran_setelah_lima_akun(hidup):
     for n in range(laju_masuk.BATAS_GAGAL):
         assert _post(hidup, GURU_PATH, _form(hidup, nama="guru-%d" % n))[0] == 303

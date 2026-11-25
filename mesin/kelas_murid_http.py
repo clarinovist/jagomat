@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import threading
 
 import admin_store
 import admin_store_core
@@ -121,6 +122,17 @@ def _tidak_ada(penangan) -> None:
 def _token_untuk(penangan, principal):
     sesi = penangan._ambil_token()
     return lambda aksi: pesanan_http.buat_token(principal, sesi, aksi)
+
+
+# Unggah bukti dan ganti paket untuk anak yang sama diserialkan: unggah membaca tagihan lalu menulis bukti di transaksi terpisah, jadi
+# tanpa ini ganti paket dari tab lain bisa menyelip dan bukti masuk ke tagihan LAMA yang sudah digantikan. Satu proses server
+# (ThreadingHTTPServer), jadi kunci proses cukup; kunci dibagi per hash (tanpa pertumbuhan memori).
+_JUMLAH_KUNCI_ANAK = 64
+_KUNCI_ANAK = tuple(threading.Lock() for _ in range(_JUMLAH_KUNCI_ANAK))
+
+
+def _kunci_anak(akun_id: str, siswa_id: int):
+    return _KUNCI_ANAK[hash((akun_id, siswa_id)) % _JUMLAH_KUNCI_ANAK]
 
 
 def _tagihan_berjalan(kon, akun_id: str, siswa_id: int, kini: str):
@@ -277,7 +289,7 @@ def _post_ganti(penangan, principal, siswa_id: int) -> None:
     if kode is None:
         return
     try:
-        with _buka(tulis=True) as kon:
+        with _kunci_anak(principal.id_akun, siswa_id), _buka(tulis=True) as kon:
             kelas_ganti.ganti_paket(kon, principal.id_akun, siswa_id, kode, alur.waktu_sekarang())
     except _GALAT_LAYANAN as galat:
         _galat_ganti(penangan, galat)
@@ -384,7 +396,7 @@ def _unggah_sah(penangan, akun_id: str, siswa_id: int, form) -> None:
         _info(penangan, "Berkas belum bisa diterima", pesan, kode)
         return
     kini = alur.waktu_sekarang()
-    with _buka(tulis=True) as kon:
+    with _kunci_anak(akun_id, siswa_id), _buka(tulis=True) as kon:
         tagihan = _tagihan_berjalan(kon, akun_id, siswa_id, kini)
         hambatan = _hambatan(tagihan)
         if hambatan is not None:

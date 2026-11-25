@@ -8,6 +8,7 @@ Validasi server otoritatif sebelum menulis; form persis `{nama, sandi, setuju, t
 """
 from __future__ import annotations
 
+import threading
 import time
 import urllib.parse
 
@@ -18,6 +19,7 @@ import ip_klien
 import laju_masuk
 import sessions
 
+_KUNCI_JATAH = threading.Lock()
 PARAMETER = "peran"
 NILAI = "guru"
 KUNCI_FORM = frozenset({"nama", "sandi", "setuju", "token_form"})
@@ -79,6 +81,16 @@ def _baca_isian(penangan) -> dict:
     if set(data) != KUNCI_FORM:
         raise ValueError(PESAN_FORM_TIDAK_SAH)
     return data
+
+
+def ambil_jatah(kunci_ip: str) -> bool:
+    """Ambil satu jatah pendaftaran untuk IP ini; False bila jatah habis. Cek dan catat satu langkah (atomik per proses),
+    jadi permintaan paralel tidak bisa sama-sama lolos sebelum hitungan naik."""
+    with _KUNCI_JATAH:
+        if laju_masuk.sedang_diblokir(KUNCI_LAJU, kunci_ip):
+            return False
+        laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)
+        return True
 
 
 def _periksa(data: dict) -> str:
@@ -151,12 +163,10 @@ def tangani_post(penangan) -> None:
         if pesan:
             penangan._kirim(_halaman(pesan, galat=True, nama=nama, token_form=token_baru))
             return
-        if laju_masuk.sedang_diblokir(KUNCI_LAJU, kunci_ip):
+        if not ambil_jatah(kunci_ip):                          # satu percobaan pembuatan = satu hitungan laju
             penangan._kirim(_halaman(PESAN_LAJU, galat=True, nama=nama, token_form=data["token_form"]), 429)
             return
         akun_baru = _daftarkan(data)
-        if akun_baru.baru:
-            laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)       # satu akun baru = satu hitungan laju
     except admin_registration.RegistrasiBelumSelesai:
         penangan._kirim(_halaman(PESAN_BELUM_SELESAI, galat=True, nama=nama, token_form=data.get("token_form", "")), 503)
         return

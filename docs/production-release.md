@@ -22,7 +22,7 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
 - **Rollback ke image lama:** rute `/murid/paket/ganti` hilang; anak yang sudah mengganti paket punya dua tagihan terbuka
   (lama dan baru) sampai yang lama habis; image lama menampilkan paket pertama di katalog yang terbuka, bukan yang terbaru.
   Tidak ada data yang rusak; admin tetap hanya melihat tagihan yang punya bukti.
-- **Batas yang diketahui:** unggah bukti dan ganti paket bersamaan dari dua tab (lihat spec). Tutup di rilis yang memang butuh pin.
+- **Balapan unggah bukti lawan ganti paket:** ditutup dengan kunci proses per anak di `kelas_murid_http` (tanpa menyentuh `kelas_store`, tanpa pin recovery). Hanya benar selama server satu proses; bila suatu saat multi-proses, tutup di `catat_bukti` bersama pin recovery.
 - **Cek setelah deploy (uji dulu):** tombol Daftar di topbar, hero `/paket-coba` dan halaman bayar (maskot dan CSP funnel),
   tombol Tanya Ayah/Bunda, `/admin/kelas` (tabel peserta), "Perlu ditangani" (dua butir baru), ganti paket end-to-end dengan data sintetis.
 - **Pilih jadwal sendiri (butir QA 4):** rute baru `POST /murid/paket/jadwal`; modul `jadwal_pilih` bukan berkas `*store*`.

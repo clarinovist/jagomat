@@ -38,12 +38,11 @@ KASUS = (
         ("    if set(data) != KUNCI_FORM:", "    if not KUNCI_FORM <= set(data):"),
     ], "test_field_asing_ditolak_tanpa_akun"),
     ("laju_per_ip_dimatikan", HTTP, [
-        ("        if laju_masuk.sedang_diblokir(KUNCI_LAJU, kunci_ip):", "        if False:"),
-    ], "test_laju_per_ip_menutup_keran_setelah_lima_akun"),
-    ("laju_tidak_menghitung_akun_baru", HTTP, [
-        ("        if akun_baru.baru:\n            laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)",
-         "        if False:\n            laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)"),
-    ], "test_laju_per_ip_menutup_keran_setelah_lima_akun"),
+        ("        if laju_masuk.sedang_diblokir(KUNCI_LAJU, kunci_ip):\n            return False\n", ""),
+    ], "test_laju_per_ip_menutup_keran_setelah_lima_akun or test_jatah_per_ip_atomik_di_bawah_permintaan_paralel"),
+    ("laju_tidak_mencatat_jatah", HTTP, [
+        ("        laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)\n        return True", "        return True"),
+    ], "test_laju_per_ip_menutup_keran_setelah_lima_akun or test_jatah_per_ip_atomik_di_bawah_permintaan_paralel"),
     ("query_peran_ganda_dianggap_guru", HTTP, [
         ("    return nilai == [NILAI]", "    return NILAI in nilai"),
     ], "test_daftar_biasa_dan_peran_lain_tidak_berubah"),

@@ -47,6 +47,14 @@ def test_tagihan_terbaru_menang_juga_saat_waktu_buat_sama(kon_kelas):
     assert pertama == baru.order_id
 
 
+def test_tagihan_terbaru_menang_walau_jam_server_mundur(kon_kelas):
+    kk.tagih(kon_kelas, paket="mini")                                  # dibuat 09.00
+    mundur = "2026-11-20T08:00:00"                                      # jam server melompat mundur sebelum ganti
+    baru = _ganti(kon_kelas, "private", sekarang=mundur)
+    urutan = [o["id"] for o, _f, _s in ks.order_terbuka_siswa(kon_kelas, AKUN, 1, mundur)]
+    assert urutan[0] == baru.order_id
+
+
 def test_nominal_baru_dari_katalog_server_dan_kode_unik_beda(kon_kelas):
     lama = kk.tagih(kon_kelas, paket="mini")
     baru = _ganti(kon_kelas, "private")
