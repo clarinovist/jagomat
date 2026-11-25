@@ -32,6 +32,8 @@ class AntreanAdmin:
     bukti_backup: str = "Belum terverifikasi"
     backup_terverifikasi: bool = False
     transfer_menunggu: int = 0
+    harian_menunggu: int = 0  # bukti Latihan Harian menunggu (halaman /admin/langganan)
+    kelas_menunggu: int = 0  # bukti Paket Belajar menunggu (halaman /admin/kelas)
     perlu_keputusan: int = 0  # mendesak + penting penuh (tidak terpotong, tanpa tinjau ringan)
 
 
@@ -43,6 +45,8 @@ class SinyalNav:
     mendesak: int = 0
     operasional_perhatian: bool = False
     transfer_menunggu: int = 0  # badge menu Pesanan
+    harian_menunggu: int = 0  # badge menu Langganan Harian
+    kelas_menunggu: int = 0  # badge menu Paket belajar
 
 
 def sinyal_dari(antrean: AntreanAdmin) -> SinyalNav:
@@ -51,6 +55,8 @@ def sinyal_dari(antrean: AntreanAdmin) -> SinyalNav:
         mendesak=antrean.mendesak,
         operasional_perhatian=antrean.mendesak > 0 or not antrean.backup_terverifikasi,
         transfer_menunggu=antrean.transfer_menunggu,
+        harian_menunggu=antrean.harian_menunggu,
+        kelas_menunggu=antrean.kelas_menunggu,
     )
 
 

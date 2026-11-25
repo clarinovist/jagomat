@@ -333,3 +333,16 @@ def test_post_non_admin_tanpa_efek(hidup, menunggu, jalur):
         kode, _, _ = minta_mentah(hidup, jalur, akun, {"csrf": "x", "reauth": "x", "tinjauan": "x.y"})
         assert kode in (401, 403, 404)
     assert keadaan(hidup) == awal
+
+
+def test_bukti_menunggu_muncul_di_lencana_sidebar_dan_perlu_ditangani(hidup, menunggu, admin):
+    """Regresi: bukti Latihan Harian sempat tak terlihat di mana pun selain halamannya sendiri (tanpa lencana)."""
+    _, oid = menunggu
+    pesanan = minta_admin(hidup, "/admin/pesanan", admin)[1]
+    menu = pesanan[pesanan.index('href="/admin/langganan"'):]
+    menu = menu[:menu.index("</a>")]
+    assert 'class="admin-nav-badge">1<' in menu and " transfer menunggu verifikasi" in menu
+    perhatian = minta_admin(hidup, "/admin", admin)[1]
+    assert "Langganan Latihan Harian: transfer menunggu verifikasi" in perhatian
+    assert 'href="%s?order=%s"' % (DETAIL, oid) in perhatian
+    assert "Anak Alfa" not in perhatian and "murid-a" not in perhatian

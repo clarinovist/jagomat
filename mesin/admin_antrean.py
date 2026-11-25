@@ -7,8 +7,11 @@ import admin_labels as L
 import admin_operations
 import admin_queries as Q
 import admin_store
+import admin_antrean_bayar
 import admin_transfer_menunggu
 import admin_verifikasi_pages
+import harian_langganan_admin_pages
+import kelas_admin_pages
 from admin_antrean_pages import AntreanAdmin, BATAS_BARIS, ItemAntrean
 from pesanan_transfer_pages import rupiah
 
@@ -38,15 +41,16 @@ def _ringkas_ref(ref) -> str:
     return teks if len(teks) <= 16 else "%s…%s" % (teks[:8], teks[-6:])
 
 
-def _item_transfer_satu(transfer, sekarang: float) -> ItemAntrean:
+def _item_transfer_satu(transfer, sekarang: float, judul: str = "Transfer menunggu verifikasi",
+                       rute: str = admin_verifikasi_pages.RUTE_VERIFIKASI) -> ItemAntrean:
     waktu_unggah = transfer.diunggah + "Z" if transfer.diunggah else None  # ledger UTC naif; L.waktu menganggap WIB
     nominal = rupiah(transfer.nominal) if transfer.nominal else "nominal belum tercatat"
     unggah = ("bukti diunggah %s" % L.tanggal(waktu_unggah) if L.waktu(waktu_unggah)
               else "waktu unggah bukti tidak tercatat")
     return ItemAntrean(
-        "mendesak", "Transfer menunggu verifikasi",
+        "mendesak", judul,
         "%s · %s. Cocokkan dengan mutasi rekening sebelum menyetujui." % (nominal, unggah),
-        "%s?order=%s" % (admin_verifikasi_pages.RUTE_VERIFIKASI, transfer.order_id),
+        "%s?order=%s" % (rute, transfer.order_id),
         "Periksa bukti", "Order", _ringkas_ref(transfer.order_id), _umur_hari(waktu_unggah, sekarang),
     )
 
@@ -58,6 +62,18 @@ def _item_transfer(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
     except admin_transfer_menunggu.GALAT_BACA:
         return ()
     return tuple(_item_transfer_satu(t, sekarang) for t in menunggu)
+
+
+def _item_bayar_lain(path_admin, sekarang: float):
+    """(item Latihan Harian, item Paket Belajar): bukti menunggu di jalur selain Peta, terlama dulu."""
+    harian = admin_antrean_bayar.harian_menunggu(admin_transfer_menunggu.waktu_iso(sekarang))
+    kelas = admin_antrean_bayar.kelas_menunggu(path_admin)
+    return (
+        tuple(_item_transfer_satu(t, sekarang, admin_antrean_bayar.JUDUL_HARIAN,
+                                  harian_langganan_admin_pages.RUTE_VERIFIKASI) for t in harian),
+        tuple(_item_transfer_satu(t, sekarang, admin_antrean_bayar.JUDUL_KELAS,
+                                  kelas_admin_pages.RUTE_VERIFIKASI) for t in kelas),
+    )
 
 
 def _item_operasi(baris, sekarang: float) -> ItemAntrean:
@@ -168,24 +184,28 @@ def item_pengguna(konteks: Q.KonteksAdmin) -> Tuple[ItemAntrean, ...]:
 
 
 def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> AntreanAdmin:
-    """Antrean terurut transfer → operasi → backup → pengguna, dipotong ``BATAS_BARIS`` baris."""
+    """Antrean terurut transfer (Peta, Latihan Harian, Paket Belajar) → operasi → backup → pengguna, dipotong ``BATAS_BARIS`` baris."""
     transfer = _item_transfer(path_admin, sekarang)
+    harian, kelas = _item_bayar_lain(path_admin, sekarang)
     operasi, total_operasi, tersedia = _item_operasi_semua(path_admin, sekarang)
     if not tersedia:
         operasi = _fallback_operasi(path_admin)
         total_operasi = len(operasi)
     backup, bukti, terverifikasi = _item_backup(sekarang)
     lain = item_pengguna(konteks)
-    semua = transfer + operasi + backup + lain
-    mendesak = total_operasi + len(transfer)
+    semua = transfer + harian + kelas + operasi + backup + lain
+    menunggu_semua = len(transfer) + len(harian) + len(kelas)
+    mendesak = total_operasi + menunggu_semua
     penting = len(backup) + sum(1 for i in lain if i.tingkat == "penting")
     return AntreanAdmin(
         item=semua[:BATAS_BARIS],
-        total=len(transfer) + total_operasi + len(backup) + len(lain),
+        total=menunggu_semua + total_operasi + len(backup) + len(lain),
         mendesak=mendesak,
         layanan_tersedia=tersedia,
         bukti_backup=bukti,
         backup_terverifikasi=terverifikasi,
         transfer_menunggu=len(transfer),
+        harian_menunggu=len(harian),
+        kelas_menunggu=len(kelas),
         perlu_keputusan=mendesak + penting,
     )

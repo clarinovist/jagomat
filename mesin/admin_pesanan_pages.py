@@ -28,6 +28,8 @@ RUTE_VERIFIKASI = RUTE + "/verifikasi"
 RUTE_REKENING = RUTE + "/rekening"
 RUTE_ORDER = RUTE + "/order"
 RUTE_PENGATURAN_REKENING = "/admin/sakelar#rekening"
+RUTE_LANGGANAN = "/admin/langganan"  # ledger dan ACC terpisah: Latihan Harian
+RUTE_KELAS = "/admin/kelas"  # ledger dan ACC terpisah: Paket Belajar
 SARING_MENUNGGU = "menunggu"
 JUDUL = "Pesanan & transfer"
 SUBJUDUL = "Daftar order. Periksa bukti transfer atau buka detail order; tanpa kontak dan nama anak."
@@ -248,6 +250,13 @@ def _strip_layanan(gerbang_terbuka: bool, rekening_terisi: Optional[bool]) -> st
         e(" · ".join(bagian)), RUTE_PENGATURAN_REKENING, e(COPY_ATUR_LAYANAN))
 
 
+def _catatan_jalur_lain() -> str:
+    """Daftar ini hanya Peta Kemampuan; bukti transfer Latihan Harian dan Paket Belajar ada di halaman masing-masing."""
+    return ('<p class="admin-meta">Daftar ini hanya pesanan Peta Kemampuan. Bukti transfer lain ada di '
+            '<a class="admin-tautan" href="%s">Langganan Harian</a> dan '
+            '<a class="admin-tautan" href="%s">Paket belajar</a>.</p>' % (RUTE_LANGGANAN, RUTE_KELAS))
+
+
 def umpan_balik(hasil: Optional[str]) -> str:
     if hasil not in COPY_HASIL:
         return ""
@@ -270,7 +279,7 @@ def halaman(daftar: Mapping, *, halaman: int, gerbang_terbuka: bool, hasil: Opti
     baris = "".join(_baris(i, ringkas, laporan) for i in daftar["items"]) or (
         '<tr><td colspan="%d" class="admin-kosong">%s</td></tr>' % (len(_KOLOM), e(kosong)))
     kepala = tuple('<th scope="col">%s</th>' % x for x in _KOLOM)
-    return (umpan_balik(hasil) + _strip_layanan(gerbang_terbuka, rekening_terisi) + _chips(saring, hitungan or {})
+    return (umpan_balik(hasil) + _strip_layanan(gerbang_terbuka, rekening_terisi) + _catatan_jalur_lain() + _chips(saring, hitungan or {})
             + kartu_tabel("Pesanan", kepala, baris, _pager(halaman, daftar["total"], saring),
                           keterangan="%d tercatat · Halaman %d" % (daftar["total"], halaman)))
 
