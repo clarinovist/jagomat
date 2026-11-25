@@ -14,6 +14,7 @@ def bersihkan(path_admin, path_belajar, path_pendamping, path_auth, *, sekarang)
     """Batch berjalan maju; snapshot sumber dan kandidat purge diserialkan sink."""
     import admin_store
     import auth
+    import guru_status
     with admin_store.buka_baca(path_admin) as kon:
         if not sensor_schema.validasi(kon):
             return
@@ -34,6 +35,10 @@ def bersihkan(path_admin, path_belajar, path_pendamping, path_auth, *, sekarang)
                 continue
             sumber = s.Izin(p['akun_id'],p['generasi'],p['salt'],p['mulai'],p['berakhir'],bool(p['hasil']),bool(p['chat']))
             akun = akun_aktif.get(p['akun_id'])
+            if akun is not None and guru_status.nonaktif_admin(akun):
+                # Nonaktif-admin bisa diaktifkan kembali: jangan disapu di sini. Retensi biasa (sensor_store.retensi) tetap berlaku.
+                _cursor[key] = kandidat['akun_id']
+                continue
             sesi_sah = set(); chat_sah = set()
             if akun and not akun.get('dinonaktifkan'):
                 with closing(sqlite3.connect(Path(path_belajar).resolve().as_uri()+'?mode=rw',uri=True,timeout=.05)) as c:
