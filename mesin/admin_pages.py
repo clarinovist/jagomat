@@ -38,6 +38,7 @@ SECTION = (
     ("cek-topik", "Topik Cek Kemampuan", "/admin/cek-topik"),
     ("kurikulum", "Peta kurikulum", "/admin/kurikulum"),
     ("keluarga", "Keluarga", "/admin?section=keluarga"),
+    ("guru", "Akun guru", "/admin?section=guru"),
     ("siswa", "Siswa", "/admin?section=siswa"),
     ("lembaga", "Lembaga les", "/admin/lembaga"),
     ("pemakaian", "Guru & pemakaian", "/admin/pemakaian"),
@@ -64,7 +65,7 @@ GRUP_SECTION = (
 # Id section yang valid tetapi tidak punya butir menu sendiri: menyorot butir menu induknya.
 MENU_INDUK = {
     "perhatian": "ringkasan", "profil_guru": "pemakaian", "sakelar": "operasional", "kurikulum": "cek-topik",
-    "pendaftaran": "operasional", "pembayaran": "pesanan",
+    "pendaftaran": "operasional", "pembayaran": "pesanan", "guru": "pemakaian",
 }
 # Fitur yang dijadwalkan mati (docs/plan/2026-11-20-matikan-kpi-dan-ai.md): diberi tanda kecil di menu.
 SECTION_AKAN_DIMATIKAN = frozenset(("kpi", "ai"))
@@ -87,6 +88,8 @@ LABEL_KATEGORI = {
 def _judul_section(section: str) -> Tuple[str, str]:
     if section == "keluarga":
         return "Keluarga", "Daftar akun orang tua dan kepemilikan siswa."
+    if section == "guru":
+        return "Akun guru", "Guru yang bisa masuk ke aplikasi, lembaga tempatnya, dan tindakan akun."
     if section == "siswa":
         return "Siswa", "Identitas administratif, kelas, keluarga, dan status login."
     if section == "pendaftaran":
@@ -783,12 +786,12 @@ def render_audit_batch_detail(data):
            item, kelompok, penyerahan))
 
 
-def render_hasil_credential(alias: str, sandi: str) -> str:
+def render_hasil_credential(alias: str, sandi: str, *, kembali: str = "/admin?section=keluarga") -> str:
     return (
         '<section class="admin-kartu admin-catatan"><h2>Simpan akses sekarang</h2>'
         '<p>Sandi ini hanya ditampilkan pada respons ini dan tidak dapat dibaca ulang.</p>'
         '<dl class="admin-rincian"><dt>Alias</dt><dd>%s</dd>'
         '<dt>Sandi baru</dt><dd><input type="password" readonly value="%s" aria-label="Sandi baru"></dd></dl>'
-        '<p><a class="admin-tautan" href="/admin?section=keluarga">Selesai</a></p></section>'
-        % (_e(alias), _e(sandi))
+        '<p><a class="admin-tautan" href="%s">Selesai</a></p></section>'
+        % (_e(alias), _e(sandi), _e(kembali))
     )

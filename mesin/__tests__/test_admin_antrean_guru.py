@@ -115,6 +115,6 @@ def test_butir_antrean_tinjau_tanpa_menambah_perlu_keputusan(server, monkeypatch
     _daftar(server, "bu-ratna")
     sesudah = A.kumpulkan(KONTEKS_KOSONG, tmp_path / "x.db", sekarang=1_800_000_000.0)
     baru = [i for i in sesudah.item if i.judul == "1 guru baru belum masuk lembaga"]
-    assert len(baru) == 1 and baru[0].tingkat == "tinjau" and baru[0].jalur == "/admin/lembaga"
+    assert len(baru) == 1 and baru[0].tingkat == "tinjau" and baru[0].jalur == "/admin?section=guru&status=belum_lembaga"
     assert sesudah.total == sebelum.total + 1 and sesudah.perlu_keputusan == sebelum.perlu_keputusan
     assert "bu-ratna" not in str([baru[0].judul, baru[0].deskripsi])           # tanpa nama akun

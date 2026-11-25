@@ -328,6 +328,9 @@ def _render_get(penangan, principal, query):
     import admin_launch_http
     if section in admin_launch_http.SECTION:
         return admin_launch_http.get(penangan, principal, query)
+    if section == "guru":
+        import admin_guru_akun_http
+        return admin_guru_akun_http.get(penangan, principal, query)
     if section == "pendaftaran":
         # Pendaftaran mandiri pindah ke Pengaturan layanan (sakelar ke-6); bookmark lama tetap sampai.
         return _redirect(penangan, "/admin/sakelar#pendaftaran")
@@ -564,7 +567,7 @@ def tangani_get(penangan, jalur):
             penangan.wfile.write(isi)
             return True
         if jalur == "/admin/tinjau":
-            query = _query(penangan, diizinkan={"aksi", "id"})
+            query = _query(penangan, diizinkan={"aksi", "id", "dari"})
             _render_tinjauan(penangan, principal, query)
             return True
         query = _query(
@@ -605,6 +608,9 @@ def _render_tinjauan(penangan, principal, query):
             penangan, _halaman_admin(principal, "keluarga", isi, penangan=penangan, skrip=True),
             skrip=True,
         )
+    if query.get("dari") == "guru":
+        import admin_guru_akun_http
+        return admin_guru_akun_http.tinjau(penangan, principal, aksi, query.get("id", ""), akun, token_sesi, csrf)
     if aksi in (AKSI_RESET_SANDI, AKSI_CABUT_SESI, AKSI_HAPUS_LOGIN):
         target = _target_akun(query.get("id", ""))
         if target is None or target.get("peran") not in ("guru", "murid"):
@@ -850,7 +856,8 @@ def _post_akun(penangan, principal, data):
             target = _target_akun(meta["target_id"])
             alias = target["pengguna"] if target else "Akun"
             isi = admin_pages.render_hasil_credential(
-                alias, hasil.credential_sekali
+                alias, hasil.credential_sekali,
+                kembali="/admin?section=guru" if meta.get("section") == "guru" else "/admin?section=keluarga",
             )
             return _kirim_privat(
                 penangan,

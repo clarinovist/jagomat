@@ -6,9 +6,11 @@ from __future__ import annotations
 
 from admin_komponen import e
 
+TAB_AKUN = "akun"
 TAB_PEMAKAIAN = "pemakaian"
 TAB_PROFIL = "profil"
 _TAB = (
+    (TAB_AKUN, "Akun guru", "/admin?section=guru"),
     (TAB_PEMAKAIAN, "Pemakaian", "/admin/pemakaian"),
     (TAB_PROFIL, "Profil guru peninjau", "/admin/profil-guru"),
 )

@@ -35,6 +35,7 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
   ditolak 403. Setelah dinyalakan, cek dengan akun sintetis dan pastikan akun itu tidak muncul di lembaga mana pun.
   Butir antrean "guru baru belum masuk lembaga" hanya membaca receipt yang sudah ada (tanpa data baru). Rollback ke image lama: parameter `peran` diabaikan; DB sakelar yang sudah diperlebar tetap terbaca kode lama (baris `DAFTAR_GURU`
   diabaikan); akun guru yang sudah dibuat tetap sah.
+- **Tab Akun guru di admin:** tanpa migrasi dan tanpa berkas kontrak; rute `/admin?section=guru` baru dan parameter `dari=guru` pada /admin/tinjau. Rollback ke image lama: tab hilang, `section=guru` jatuh ke Ringkasan, aksi akun lewat menu Keluarga tetap. Cek setelah deploy: tab tampil untuk admin, non-admin 404, reset sandi guru sintetis dari tab.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
 
 ## Deploy surel E1 + copy Mini/Peta — 25 November 2026

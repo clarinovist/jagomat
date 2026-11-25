@@ -32,6 +32,7 @@ RUTE_ADMIN = (
     ("/admin", 200),
     ("/admin?section=perhatian", 200),
     ("/admin?section=keluarga", 200),
+    ("/admin?section=guru", 200),
     ("/admin?section=siswa", 200),
     ("/admin?section=pendaftaran", 303),
     ("/admin?section=langganan", 200),
@@ -175,14 +176,15 @@ def test_butir_rekening_menaut_ke_anchor_pengaturan_dan_aktif_di_halaman_ubah_re
 @pytest.mark.parametrize("jalur,tab_aktif,tab_lain", [
     ("/admin/pemakaian", "/admin/pemakaian", "/admin/profil-guru"),
     ("/admin/profil-guru", "/admin/profil-guru", "/admin/pemakaian"),
+    ("/admin?section=guru", "/admin?section=guru", "/admin/pemakaian"),
 ])
 def test_tab_guru_dan_pemakaian_di_kedua_halaman_dengan_butir_menu_aktif(transfer, admin, jalur, tab_aktif, tab_lain):
     isi = minta_admin(transfer, jalur, admin)[1]
     utama = _utama(isi)
     assert utama.count('class="admin-tab-baris"') == 1
     assert utama.count('aria-current="page"') == 1
-    assert re.search(r'<a class="admin-tab" href="%s" aria-current="page">' % tab_aktif, utama)
-    assert re.search(r'<a class="admin-tab" href="%s">' % tab_lain, utama)
+    assert re.search(r'<a class="admin-tab" href="%s" aria-current="page">' % re.escape(tab_aktif), utama)
+    assert re.search(r'<a class="admin-tab" href="%s">' % re.escape(tab_lain), utama)
     menu = _menu(isi)
     assert '<a href="/admin/pemakaian" aria-current="page">' in menu and "Guru &amp; pemakaian" in menu
     assert menu.count('aria-current="page"') == 1

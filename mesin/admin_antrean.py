@@ -26,9 +26,9 @@ JALUR_KESIAPAN = "/admin/sakelar#kesiapan"  # Pengaturan layanan, bagian Kesiapa
 JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
 KALIMAT_TINDAK_LANJUT_TUNGGAKAN = "Hubungi orang tua: ajak ikut kelas lagi atau tanyakan umpan balik."
 JALUR_BELUM_BAYAR = "/admin/pembayaran?status=belum_bayar"
-JALUR_GURU_BARU = "/admin/lembaga"
-KALIMAT_GURU_BARU = ("Guru ini mendaftar sendiri dan belum dimasukkan ke lembaga mana pun. Buka Lembaga, lalu pakai Tambah guru "
-                     "bila perlu; boleh dibiarkan bila memang tidak bergabung.")
+JALUR_GURU_BARU = "/admin?section=guru&status=belum_lembaga"
+KALIMAT_GURU_BARU = ("Guru ini mendaftar sendiri dan belum dimasukkan ke lembaga mana pun. Buka Akun guru, lalu pakai Tambah ke "
+                     "lembaga bila perlu; boleh dibiarkan bila memang tidak bergabung.")
 JALUR_BELUM_DITEMPATKAN = kelas_admin_pages.RUTE
 KALIMAT_BELUM_DITEMPATKAN = ("Sudah bayar dan disetujui, tetapi jadwal belum ada. Buka Paket belajar, tempatkan anak ke kelompok atau "
                             "jadwalkan Private, atau hubungi orang tua bila jadwalnya perlu dicocokkan.")
@@ -129,7 +129,7 @@ def _item_guru_baru() -> Tuple[ItemAntrean, ...]:
     if not jumlah:
         return ()
     return (ItemAntrean("tinjau", "%d guru baru belum masuk lembaga" % jumlah, KALIMAT_GURU_BARU,
-                        JALUR_GURU_BARU, "Buka lembaga"),)
+                        JALUR_GURU_BARU, "Buka akun guru"),)
 
 
 def _urutkan_tingkat(item: Tuple[ItemAntrean, ...]) -> Tuple[ItemAntrean, ...]:
