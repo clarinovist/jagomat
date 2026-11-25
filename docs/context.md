@@ -24,6 +24,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 ## Struktur dan data
 
 - `mesin/`: aplikasi, `__tests__/`, aset, `publik/`, konten internal `konten/`, Dockerfile.
+- Email transaksional E1 (25 Nov 2026, belum dipasang): `mesin/surel_resend.py` (pengirim Resend stdlib; gagal tertutup bila env `RESEND_API_KEY` kosong, `SUREL_PENGIRIM` opsional) dan `mesin/surel_tunggakan_admin.py` (CLI `--database`, ringkasan agregat tunggakan kelas ke env `SUREL_ADMIN`, DB dibuka baca-saja). E1 tanpa DB atau tabel baru; pemasangan env di server dan baris cron host adalah tindakan terpisah.
 - `scripts/`: palang repo, shard CI, build/probe/pair/deployer, katalog desain luring, ekspor token untuk alat desain, dan eksperimen sintetis. Modul `release_*_pair.py` adalah data probe; bentuknya (konstanta wajib + penanda unik) dijaga `release_pair_common.py` dan test kontrak, bukan disalin manual.
 - `docs/`: kontrak permanen; `docs/plan/` lokal/gitignored, bukan satu-satunya sumber keputusan.
 - Empat DB durable inti: belajar, Pendamping, kontrol AI, kontrol admin; auth
