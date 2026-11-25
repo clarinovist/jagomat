@@ -128,6 +128,7 @@ def _topbar(*, tautan_funnel: bool) -> str:
         nav = (
             '<a class="landing-nav-st" href="/cek-kemampuan">Cek kemampuan</a>\n'
             f'<a class="landing-nav-st" href="/paket-coba">{_e(NAMA_PAKET)}</a>\n'
+            '<a class="landing-nav-st" href="/daftar">Daftar</a>\n'
         )
     return f"""
 <a class="landing-lewati-st" href="#konten">Lewati ke konten</a>

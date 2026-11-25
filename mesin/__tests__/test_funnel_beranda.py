@@ -61,3 +61,25 @@ def test_landing_funnel_tetap_punya_tautan_masuk(monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     isi = funnel_pages.halaman_cek_kemampuan().decode()
     assert 'href="/masuk"' in isi
+
+
+# Butir QA #6 (25 Nov 2026): pengunjung baru perlu pintu daftar di pojok kanan atas, bukan hanya Masuk.
+def _topbar(isi: bytes) -> str:
+    teks = isi.decode()
+    awal = teks.index('<header class="landing-topbar-st">')
+    return teks[awal:teks.index("</header>", awal)]
+
+
+def test_topbar_funnel_punya_daftar_di_samping_masuk():
+    bar = _topbar(funnel_pages.halaman_cek_kemampuan())
+    assert '<a class="landing-nav-st" href="/daftar">Daftar</a>' in bar
+    assert bar.count('href="/masuk"') == 1
+    assert bar.index('href="/daftar"') < bar.index('href="/masuk"')
+
+
+def test_topbar_paket_coba_juga_punya_daftar():
+    assert 'href="/daftar">Daftar</a>' in _topbar(funnel_pages.halaman_paket_coba())
+
+
+def test_halaman_belum_dibuka_tanpa_daftar_di_topbar():
+    assert 'href="/daftar"' not in _topbar(funnel_pages.halaman_belum_dibuka())
