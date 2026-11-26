@@ -35,6 +35,7 @@ STATUS_MENUNGGU = "menunggu"
 STATUS_AKTIF = "aktif"
 STATUS_KEDALUWARSA = "kedaluwarsa"
 STATUS_DITOLAK = "ditolak"
+STATUS_DIBATALKAN = "dibatalkan"
 
 
 @dataclass(frozen=True)

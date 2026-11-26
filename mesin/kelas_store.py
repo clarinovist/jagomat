@@ -18,8 +18,9 @@ from __future__ import annotations
 from contextlib import contextmanager
 import secrets
 import sqlite3
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
+import kelas_batal
 import kelas_dasar as k
 import kelas_rincian
 import kelas_status as ks
@@ -115,6 +116,16 @@ def tagihan_terbuka(kon, akun_id, siswa_id, kode_paket, sekarang) -> Optional[ka
     return None if ada is None else _tagihan_kelas(kon, *ada)
 
 
+def tagihan_terbuka_semua(kon, akun_id, siswa_id, sekarang) -> Tuple[katalog.TagihanKelas, ...]:
+    """Semua tagihan terbuka (belum bayar, menunggu, ditolak) milik akun untuk anak ini, terbaru dulu. Tanpa tulis."""
+    d.periksa_koneksi(kon)
+    d.periksa_akun_id(akun_id)
+    k.periksa_siswa_id(siswa_id)
+    kini = k.ke_baku(sekarang)
+    return tuple(_tagihan_kelas(kon, order, fakta, status)
+                 for order, fakta, status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini))
+
+
 def berakhir_aktif(kon, akun_id, siswa_id, kode_paket, sekarang) -> Optional[str]:
     """Akhir masa aktif paket (UTC naif baku) bila anak sedang aktif pada `sekarang`, selain itu None.
 
@@ -175,15 +186,14 @@ def _tulis_order(kon, akun_id, siswa_id, kode_paket, rincian, deposit_order, kod
     return order_id
 
 
-def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None,
-                 tolak_paket_lain_terbuka=False) -> katalog.TagihanKelas:
+def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None) -> katalog.TagihanKelas:
     """Order + tagihan transfer paket untuk anak `siswa_id` atas nama `akun_id` (atomik, idempoten per paket terbuka).
 
     Nominal dihitung server: katalog + deposit Peta aktif (`kelas_rincian`); tidak ada angka dari
     pemanggil. Paket asing -> PesananDataTidakSah. Anak yang sudah punya order atas nama akun lain ->
     PesananTidakDitemukan. Sudah ada tagihan terbuka untuk paket itu: dikembalikan apa adanya. Kode unik dari
-    `secrets` (atau `acak(bebas)` suntikan tes); habis -> KodeUnikHabis. `tolak_paket_lain_terbuka` (jalur HTTP): bila
-    paket LAIN masih terbuka untuk anak ini, KelasKonflik di transaksi yang sama (tidak ada balapan dua tab).
+    `secrets` (atau `acak(bebas)` suntikan tes); habis -> KodeUnikHabis. Beberapa tagihan terbuka untuk paket BERBEDA
+    sah (satu per paket). Tagihan batal yang masih dalam jendela dipulihkan (lihat `kelas_batal`).
     """
     d.periksa_koneksi(kon)
     d.periksa_akun_id(akun_id)
@@ -196,8 +206,10 @@ def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None,
         ada = ks.order_terbuka(kon, akun_id, siswa_id, paket, kini)
         if ada is not None:
             return _tagihan_kelas(kon, *ada)
-        if tolak_paket_lain_terbuka and any(True for _ in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini)):
-            raise k.KelasKonflik("tagihan paket lain masih terbuka")
+        dipulihkan = kelas_batal.pulihkan_bila_ada(kon, akun_id, siswa_id, paket, kini)
+        if dipulihkan is not None:
+            fakta = ks.fakta_order(kon, dipulihkan["id"])
+            return _tagihan_kelas(kon, dipulihkan, fakta, ks.status_dari(dipulihkan, fakta, kini))
         rincian, deposit_order = kelas_rincian.rincian_untuk(kon, akun_id, siswa_id, paket, kini)
         kode = _alokasi_kode(kon, rincian.nominal, kini, pilih)
         order_id = _tulis_order(kon, akun_id, siswa_id, paket, rincian, deposit_order, kode, kini)
