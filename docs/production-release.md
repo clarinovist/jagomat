@@ -7,10 +7,19 @@ Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migra
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
 Deployer di host: `/usr/local/bin/osn-deploy` **identik byte-per-byte dengan `scripts/deploy.py`**
-(sha256 `9f8ce27cb26d16cc…`, diperbarui atomik 25 Nov 2026 dari `770c768b6ec5b1dc…`), jadi sumbernya terlacak di Git; hanya satu
+(sha256 `7d1ff8a5efc4db8f…`, diperbarui atomik 25 Nov 2026 dari `770c768b6ec5b1dc…`), jadi sumbernya terlacak di Git; hanya satu
 jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang sama dengan
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
+
+## Copy Peta + antrean tanpa masa tunggu — LIVE 26 November 2026 (8b9b30a)
+
+**Deploy:** controlled `deploy-v2` memasang **8b9b30a** (`8b9b30ab2fbb2c5bbae6d09bd9f3f14c424fd7d7`, digest `sha256:46612d26…acc7`) dengan recovery `d91a1c5` (digest build ulang `sha256:15c2ef9a…5978`), selesai 11.38 WIB (situs ditutup ±4 menit), menggantikan d420a24. Image-swap: tanpa migrasi (`migrate` = pemeriksaan skema), kontrak tetap `9d20466…`, deployer tetap `7d1ff8a5…`, `visual.conf` tidak disentuh, tanpa flag/env baru dan sakelar tidak berubah. Approval d420a24 diarsipkan lebih dulu (`approval-consumed-d420a24.json`); `/opt/osn/rollout-approval.json` kini milik 8b9b30a dan harus diarsipkan sebelum rilis berikutnya. Rehearsal C–B–C hijau, backup lima berkas + riset terverifikasi dan tersalin lokal (`mesin/cadangan/deploy-peta-copy-20261126/`), probe kandidat termasuk `PROBE_RILIS_COPY`, postcheck hijau (revision/digest cocok, healthy, 0 Traceback/OperationalError/IntegrityError, `config_restored`, `history_hash_preserved`), smoke 23 rute, cleanup 4 direktori. Kit: `docs/plan/deploy-peta-copy-20261126/` (gitignored, turunan kit Peta otomatis).
+
+- **Isi:** copy keputusan Pemilik 26 Nov: stiker hero Peta "Langsung terbit" (sebelumnya "Laporan otomatis"), potongan voucher "kelas Jagomat", FAQ privasi cek "tim Jagomat". Antrean admin "Peta dibayar, laporan belum terbit" kini selalu tingkat **penting** tanpa masa tunggu 48 jam, dengan kalimat "Laporan belum terbit otomatis; periksa bahan cek atau terbitkan manual."
+- **Terverifikasi di publik (`https://jagomat.id`):** `/`, `/paket-coba`, `/cek-kemampuan` 200; `/paket-coba` memuat "Langsung terbit" dan tidak lagi memuat "Laporan otomatis"; FAQ `/cek-kemampuan` memuat "tim Jagomat"; `/akun` 401, `/murid/` 303, rute admin anonim 404.
+- **Tidak diuji di produksi:** butir antrean baru dengan order nyata (smoke tidak menyentuh data anak; bukti = tes lokal + mutasi + probe modul di postcheck).
+- **Rollback ke image lama (d420a24):** recovery `d91a1c5` membuka DB yang sama (tanpa migrasi); stiker/FAQ/voucher kembali ke teks lama dan butir antrean kembali dua tingkat dengan masa tunggu 48 jam. Tidak ada data yang berubah.
 
 ## Peta otomatis — LIVE 26 November 2026 (d420a24)
 
