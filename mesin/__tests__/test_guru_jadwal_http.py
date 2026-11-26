@@ -40,6 +40,7 @@ JUMLAH_PERTEMUAN = 8  # sesi per kelompok (jadwal_pertemuan ke 1..8)
 NAMA_KELOMPOK_KOSONG = "Mini Kosong Sintetis"
 LABEL_DIBATALKAN = " · " + halaman.COPY_DIBATALKAN
 POLA_HREF_KELAS = re.compile(r'href="/guru/kelas/(klp_[0-9a-f]{32})"')
+POLA_AKSI_TAUTAN = re.compile(r'action="/guru/kelas/(klp_[0-9a-f]{32})/tautan"')  # form tambah anak (3b-2)
 POLA_BARIS_KELAS = re.compile(r'<li><strong>([^<]*)</strong><p class="jadwal-meta-st">([^<]*)</p>')
 POLA_SESI_DETAIL = re.compile(r"<li>Pertemuan (\d+) · ([^<]*)")
 POLA_BARIS_JADWAL = re.compile(r'<strong>([^<]*)</strong><p class="jadwal-meta-st">Pertemuan (\d+) · ([^<]*)')
@@ -148,7 +149,8 @@ def test_halaman_guru_tidak_membocorkan_id_mentah(server, jadwal):
         assert "kor_" not in isi and "akun_" not in isi, jalur
         assert "siswa_id" not in isi and "order_id" not in isi, jalur
         hrefs = POLA_HREF_KELAS.findall(isi)
-        assert isi.count("klp_") == len(hrefs), jalur
+        # id kelompok boleh muncul di href kelas dan di action form tambah anak milik pemilik sendiri (3b-2)
+        assert isi.count("klp_") == len(hrefs) + len(POLA_AKSI_TAUTAN.findall(isi)), jalur
         assert set(hrefs) == diharapkan, jalur
         if diharapkan:
             assert hrefs, jalur

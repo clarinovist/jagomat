@@ -153,6 +153,7 @@ _PROBE_POST = {
     "/akun": "/akun",
     "/akun/kontak": "/akun/kontak",
     "/guru/pertemuan/": "/guru/pertemuan/1",
+    "/guru/kelas/": "/guru/kelas/klp_" + "0" * 32 + "/tautan",
     "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
     "/cek-kemampuan/tautan": "/cek-kemampuan/tautan",
     "/paket-coba/pesan": "/paket-coba/pesan",

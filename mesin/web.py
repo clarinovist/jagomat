@@ -188,6 +188,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/akun", "guru"),
     ("/akun/kontak", "guru"),  # guard asal dispatcher + token form; admin 404
     ("/guru/pertemuan/", "guru"),  # POST catat kehadiran & jurnal: guard asal + token per pertemuan; selain pemilik = 404 identik
+    ("/guru/kelas/", "guru"),  # POST tambah anak dengan kode (`/guru/kelas/<klp_id>/tautan`): guard asal + token; selain pemilik = 404 identik
     # Funnel Fase 2b: sakelar mati = tak berefek, 404 rute tak dikenal.
     ("/cek-kemampuan/mulai", "guru"),
     ("/cek-kemampuan/tautan", "guru"),
@@ -986,6 +987,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import guru_pertemuan_http  # POST catat kehadiran & jurnal; setelah _lolos_sandi dan guard asal
         if guru_pertemuan_http.tangani_post(self, jalur):
+            return
+        import guru_tautan_http  # POST tambah anak dengan kode; setelah _lolos_sandi dan guard asal
+        if guru_tautan_http.tangani_post(self, jalur):
             return
 
         if share_http.tangani_guru_post(self, jalur):

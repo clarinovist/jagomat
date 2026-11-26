@@ -171,8 +171,11 @@ def halaman_kelas(ident, kelas: Sequence[dict]) -> bytes:
                            kelas_bungkus=KELAS_BUNGKUS_KELAS, privat=True)
 
 
-def halaman_detail(ident, kelas: dict) -> bytes:
-    """Satu kelompok: `nama`, `lokasi`, `kuota`, `terisi`, `anggota` (`nama` dan `akses_habis`), `sesi` (8 pertemuan)."""
+def halaman_detail(ident, kelas: dict, tautan: str = "") -> bytes:
+    """Satu kelompok: `nama`, `lokasi`, `kuota`, `terisi`, `anggota` (`nama` dan `akses_habis`), `sesi` (8 pertemuan).
+
+    `tautan` berisi HTML bagian 'Tambah anak dengan kode' dari `guru_tautan_pages` (kosong = tanpa bagian itu).
+    """
     sesi = _daftar_atau_kosong([_baris_sesi(s) for s in kelas["sesi"]], COPY_KOSONG_JADWAL)
     isi = ('<main aria-labelledby="judul-kelas" class="jadwal-st">'
            '<header><p class="jadwal-alis-st">MINI CLASS</p>'
@@ -184,6 +187,7 @@ def halaman_detail(ident, kelas: dict) -> bytes:
            f"{_daftar_anak(kelas['anggota'])}</section>"
            '<section class="jadwal-kartu-st" aria-label="Pertemuan"><h2>Pertemuan</h2>'
            f"{sesi}</section>"
+           f"{tautan}"
            f'<p><a class="jadwal-tautan-st" href="{RUTE_KELAS}">Kembali ke Kelas saya</a></p></main>')
     return _halaman_stitch("Kelas saya", GAYA + isi, ident=ident,
                            kelas_bungkus=KELAS_BUNGKUS_DETAIL, privat=True)

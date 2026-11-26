@@ -20,6 +20,7 @@ import guru_jadwal_baca as baca
 import guru_jadwal_pages as halaman
 import guru_pertemuan_aturan as aturan
 import guru_pertemuan_dasar as catatan
+import guru_tautan_http as tautan  # bagian 'Tambah anak dengan kode' di detail kelas (pemilik saja)
 import jadwal_store as js
 import kelas_dasar as dasar
 import lembaga_http
@@ -152,7 +153,8 @@ def _halaman_detail(penangan, principal, kelompok_id: str) -> None:
         "sesi": _sesi_tampilan(detail["sesi"], kini),
         "anggota": _tampilan_anggota(detail["anggota"], nama),
     }
-    penangan._kirim_privat(halaman.halaman_detail(_ident(principal), tampilan))
+    bagian = tautan.bagian_detail(penangan, principal, kelompok_id, kini)
+    penangan._kirim_privat(halaman.halaman_detail(_ident(principal), tampilan, bagian))
 
 
 def _boleh_isi(sesi: dict, kini: str) -> bool:
