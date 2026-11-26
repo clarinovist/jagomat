@@ -118,6 +118,7 @@ _PROBE_POST = {
     "/admin/kelas/kelompok/ubah": "/admin/kelas/kelompok/ubah",
     "/admin/kelas/penempatan": "/admin/kelas/penempatan",
     "/admin/kelas/penempatan/lepas": "/admin/kelas/penempatan/lepas",
+    "/admin/kelas/kode-anak": "/admin/kelas/kode-anak",
     "/admin/kelas/pertemuan": "/admin/kelas/pertemuan",
     "/admin/kelas/pertemuan/batal": "/admin/kelas/pertemuan/batal",
     "/admin/kelas/private/slot": "/admin/kelas/private/slot",
@@ -141,6 +142,7 @@ _PROBE_POST = {
     "/murid/orang-tua/pin/atur": "/murid/orang-tua/pin/atur",
     "/murid/orang-tua/pin/hapus": "/murid/orang-tua/pin/hapus",
     "/murid/orang-tua/kode": "/murid/orang-tua/kode",
+    "/murid/orang-tua/tautan": "/murid/orang-tua/tautan",
     "/murid/cek/mulai": "/murid/cek/mulai",
     "/murid/pesanan": "/murid/pesanan/pesan",
     "/murid/langganan": "/murid/langganan/buat",
@@ -259,7 +261,7 @@ def test_tabel_akses_punya_probe():
     # F3 halaman orang tua: exact, murid, tepat sesudah /murid (sebelum palang sandi guru `/sesi/`).
     assert get["/murid/orang-tua"] == "murid" and urutan.index("/murid/orang-tua") == urutan.index("/murid") + 1
     for rute in ("/murid/orang-tua/pin", "/murid/orang-tua/pin/atur", "/murid/orang-tua/pin/hapus",
-                 "/murid/orang-tua/kode"):
+                 "/murid/orang-tua/kode", "/murid/orang-tua/tautan"):
         assert post[rute] == "murid" and rute not in get
     # F2c: pesanan dari akun anak; tepat setelah /murid (sebelum palang sandi), POST di bawah prefix /murid/.
     assert get["/murid/pesanan"] == post["/murid/pesanan"] == "murid"

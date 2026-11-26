@@ -96,6 +96,8 @@ def _kirim(d, cookie, tindakan, **tambahan):
     isi = _req(d.server, RUTE, cookie=cookie)[1]
     masukan = _form_kode(isi, tindakan)
     data = {"tindakan": tindakan, "token": masukan["token"], **tambahan}
+    if tindakan != "buat":
+        data.setdefault("konfirmasi", "1")
     if "kode_id" in masukan:
         data.setdefault("kode_id", masukan["kode_id"])
     return _req(d.server, RUTE_KODE, data=data, cookie=cookie)
@@ -229,7 +231,7 @@ def test_token_sah_tetapi_tindakan_berbeda_ditolak_tanpa_efek(dunia):
     token_buat = _token_langsung(cookie, "buat")
 
     kode_status, _, _ = _req(dunia.server, RUTE_KODE,
-                             data={"tindakan": "ganti", "kode_id": "1", "token": token_buat}, cookie=cookie)
+                             data={"tindakan": "ganti", "konfirmasi": "1", "kode_id": "1", "token": token_buat}, cookie=cookie)
 
     assert kode_status == 403
     assert not dunia.berkas.exists()
@@ -321,7 +323,7 @@ def test_ganti_mematikan_kode_lama_dan_kirim_ulang_tidak_mengubah_apa_pun(dunia)
     kode_lama = KODE_TAMPIL.findall(_kirim(dunia, cookie, "buat")[1])[0]
     isi = _req(dunia.server, RUTE, cookie=cookie)[1]
     form = _form_kode(isi, "ganti")
-    data = {"tindakan": "ganti", "kode_id": form["kode_id"], "token": form["token"]}
+    data = {"tindakan": "ganti", "konfirmasi": "1", "kode_id": form["kode_id"], "token": form["token"]}
     sukses = _req(dunia.server, RUTE_KODE, data=data, cookie=cookie)
     sebelum = _data_berkas(dunia)
 
@@ -343,12 +345,12 @@ def test_dua_tab_ganti_dengan_kode_id_sama_yang_kedua_basi_tanpa_efek(dunia):
     _kirim(dunia, cookie, "buat")
     tab_satu = _form_kode(_req(dunia.server, RUTE, cookie=cookie)[1], "ganti")
     tab_dua = _form_kode(_req(dunia.server, RUTE, cookie=cookie)[1], "ganti")
-    _req(dunia.server, RUTE_KODE, data={"tindakan": "ganti", "kode_id": tab_satu["kode_id"],
+    _req(dunia.server, RUTE_KODE, data={"tindakan": "ganti", "konfirmasi": "1", "kode_id": tab_satu["kode_id"],
                                         "token": tab_satu["token"]}, cookie=cookie)
     sebelum = _data_berkas(dunia)
 
     kode_status, isi, _ = _req(dunia.server, RUTE_KODE,
-                               data={"tindakan": "ganti", "kode_id": tab_dua["kode_id"],
+                               data={"tindakan": "ganti", "konfirmasi": "1", "kode_id": tab_dua["kode_id"],
                                      "token": tab_dua["token"]}, cookie=cookie)
 
     assert kode_status == 409 and KODE_TAMPIL.search(isi) is None
@@ -361,7 +363,7 @@ def test_cabut_lalu_kirim_ulang_tidak_mencabut_kedua_kali(dunia):
     _kirim(dunia, cookie, "buat")
     isi = _req(dunia.server, RUTE, cookie=cookie)[1]
     form = _form_kode(isi, "cabut")
-    data = {"tindakan": "cabut", "kode_id": form["kode_id"], "token": form["token"]}
+    data = {"tindakan": "cabut", "konfirmasi": "1", "kode_id": form["kode_id"], "token": form["token"]}
 
     pertama = _req(dunia.server, RUTE_KODE, data=data, cookie=cookie)
     kedua = _req(dunia.server, RUTE_KODE, data=data, cookie=cookie)
@@ -380,7 +382,7 @@ def test_ganti_dengan_kode_id_tidak_sah_ditolak_400(dunia):
 
     for kode_id in ("abc", "0", "-1", ""):
         kode_status, _, _ = _req(dunia.server, RUTE_KODE,
-                                 data={"tindakan": "ganti", "kode_id": kode_id, "token": token}, cookie=cookie)
+                                 data={"tindakan": "ganti", "konfirmasi": "1", "kode_id": kode_id, "token": token}, cookie=cookie)
         assert kode_status == 400, kode_id
     assert baris_tabel(dunia.berkas, "kode_anak") == 1
 
@@ -397,13 +399,13 @@ def test_anak_dihapus_buat_dan_ganti_ditolak_cabut_tetap_bisa(dunia):
     form_ganti = _form_kode(isi, "ganti")
 
     ganti = _req(dunia.server, RUTE_KODE,
-                 data={"tindakan": "ganti", "kode_id": form_ganti["kode_id"], "token": form_ganti["token"]},
+                 data={"tindakan": "ganti", "konfirmasi": "1", "kode_id": form_ganti["kode_id"], "token": form_ganti["token"]},
                  cookie=cookie)
     assert ganti[0] == 409 and halaman_kode.TEKS_ANAK in ganti[1] and KODE_TAMPIL.search(ganti[1]) is None
     assert _data_berkas(dunia) == sebelum
 
     cabut = _req(dunia.server, RUTE_KODE,
-                 data={"tindakan": "cabut", "kode_id": form_ganti["kode_id"],
+                 data={"tindakan": "cabut", "konfirmasi": "1", "kode_id": form_ganti["kode_id"],
                        "token": _form_kode(isi, "cabut")["token"]}, cookie=cookie)
     assert cabut[0] == 200
     assert baris_tabel(dunia.berkas, "kode_cabut") == 1
@@ -546,7 +548,7 @@ def test_buat_dan_ganti_mencatat_oleh_dan_peran_dari_sesi(dunia):
     assert _baris_terakhir(dunia.berkas, SQL_KODE_TERAKHIR) == (akun, akun, "orang_tua")
     form = _form_kode(_req(dunia.server, RUTE, cookie=cookie)[1], "ganti")
     ganti = _req(dunia.server, RUTE_KODE,
-                 data={"tindakan": "ganti", "kode_id": form["kode_id"], "token": form["token"]}, cookie=cookie)
+                 data={"tindakan": "ganti", "konfirmasi": "1", "kode_id": form["kode_id"], "token": form["token"]}, cookie=cookie)
 
     assert ganti[0] == 200
     assert _baris_terakhir(dunia.berkas, SQL_KODE_TERAKHIR) == (akun, akun, "orang_tua")

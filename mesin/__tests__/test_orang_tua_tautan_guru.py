@@ -51,6 +51,8 @@ def _buka_tirai(server) -> str:
 def _kode_dari_post(server, cookie, tindakan: str, **tambahan) -> str:
     masukan = form_kode(req(server, RUTE, cookie=cookie)[1], tindakan)
     data = {"tindakan": tindakan, "token": masukan["token"], **tambahan}
+    if tindakan != "buat":
+        data.setdefault("konfirmasi", "1")
     if "kode_id" in masukan:
         data.setdefault("kode_id", masukan["kode_id"])
     kode_status, isi, _ = req(server, RUTE_KODE, data=data, cookie=cookie)
@@ -61,7 +63,7 @@ def _kode_dari_post(server, cookie, tindakan: str, **tambahan) -> str:
 def _cabut(server, cookie) -> None:
     masukan = form_kode(req(server, RUTE, cookie=cookie)[1], "cabut")
     kode_status, _, _ = req(server, RUTE_KODE,
-                            data={"tindakan": "cabut", "kode_id": masukan["kode_id"], "token": masukan["token"]},
+                            data={"tindakan": "cabut", "kode_id": masukan["kode_id"], "token": masukan["token"], "konfirmasi": "1"},
                             cookie=cookie)
     assert kode_status == 200
 

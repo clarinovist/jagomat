@@ -159,6 +159,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/kelas/private/slot/batal", "admin"),  # Jadwal Private: batalkan slot (id dari tinjauan)
     ("/admin/kelas/private/setujui", "admin"),  # Jadwal Private: setujui pengajuan (id dari tinjauan)
     ("/admin/kelas/private/tolak", "admin"),  # Jadwal Private: tolak pengajuan (id dari tinjauan)
+    ("/admin/kelas/kode-anak", "admin"),  # 3b-5: kode anak (buat/ganti/cabut) di detail order Paket Belajar; token + cookie, tanpa sandi ulang
     ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
     ("/admin/kurikulum/label", "admin"),  # ubah label awam topik; tinjauan bertanda tangan + sandi ulang
@@ -176,6 +177,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/orang-tua/pin/atur", "murid"),  # F3: pasang/ganti PIN (hanya tirai terbuka atau tanpa PIN)
     ("/murid/orang-tua/pin/hapus", "murid"),  # F3: hapus PIN (tirai terbuka + konfirmasi)
     ("/murid/orang-tua/kode", "murid"),  # 3b-3B: buat/ganti/cabut kode anak; sakelar, PIN, tirai, token di server; mati = jalur murid asing
+    ("/murid/orang-tua/tautan", "murid"),  # 3b-3C: setuju/tolak permintaan guru; sakelar, PIN, tirai, token di server; mati = jalur murid asing
     ("/murid/cek/mulai", "murid"),  # F2b: mulai cek dari sesi anak (exact); DAFTAR_AKUN_ANAK + funnel mati = jalur murid asing
     ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
     ("/murid/langganan", "murid"),  # F5: POST buat tagihan / unggah bukti langganan; sakelar mati = jalur murid asing

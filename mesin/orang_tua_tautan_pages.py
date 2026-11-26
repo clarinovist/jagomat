@@ -3,7 +3,8 @@
 Kode mentah hanya muncul di `halaman_kode_baru` (sekali, pada respons POST buat/ganti). Kartu tidak pernah memuat kode,
 hash, atau id akun: hanya tanggal kode aktif dan peran pembuatnya ("admin" atau "Ayah/Bunda").
 
-TITIK SISIP (3b-3 persetujuan, langkah berikutnya): daftar permintaan menunggu dirender di `kartu`, sesudah form.
+Permintaan guru yang menunggu (3b-3) dirender di `bagian_menunggu`, sesudah form kode di dalam kartu. Setiap form
+putusan memuat hanya `permintaan_id`, `hasil`, dan `token`. Form ganti/cabut memuat centang konfirmasi wajib.
 """
 
 from __future__ import annotations
@@ -16,9 +17,24 @@ from pesanan_transfer_pages import waktu_wib
 from support_pages import halaman_pesan_murid
 
 RUTE_KODE = RUTE + "/kode"
+RUTE_PUTUSAN = RUTE + "/tautan"
 TINDAKAN_BUAT = "buat"
 TINDAKAN_GANTI = "ganti"
 TINDAKAN_CABUT = "cabut"
+HASIL_SETUJU = "setuju"
+HASIL_TOLAK = "tolak"
+COPY_KONFIRMASI_UBAH = "Kode yang sudah diberikan ke guru akan mati; permintaan yang menunggu dibatalkan."
+JUDUL_MENUNGGU = "Permintaan guru menunggu"
+COPY_MENUNGGU = ("Guru mengajukan anak ini untuk masuk kelompoknya. Setuju menempatkan anak ke kelompok itu; "
+                 "tolak membatalkan permintaan.")
+COPY_KOSONG_MENUNGGU = "Belum ada permintaan guru yang menunggu."
+COPY_MENUNGGU_TAK_TERBACA = "Permintaan guru belum bisa ditampilkan sekarang. Muat ulang halaman, ya."
+LABEL_SETUJU = "Setuju"
+LABEL_TOLAK = "Tolak"
+JUDUL_SETUJU = "Permintaan disetujui"
+TEKS_SETUJU = "Anak sudah masuk kelompok itu. Guru bisa melihat anak di kelasnya."
+JUDUL_TOLAK = "Permintaan ditolak"
+TEKS_TOLAK = "Anak tidak masuk kelompok itu. Guru yang sama baru bisa mengajukan lagi setelah 7 hari."
 JUDUL_KARTU = "Kode anak untuk guru"
 COPY_KARTU = ("Guru memasukkan kode ini untuk memasukkan anak ke kelompok Mini miliknya. "
               "Kode tidak bisa dilihat lagi setelah dibuat.")
@@ -49,11 +65,19 @@ def _e(teks) -> str:
     return html.escape(str(teks), quote=True)
 
 
+def _konfirmasi_html(tindakan: str) -> str:
+    """Centang wajib untuk tindakan yang mematikan kode lama (ganti, cabut). Server juga menolak tanpa centang."""
+    if tindakan == TINDAKAN_BUAT:
+        return ""
+    return ('<label class="ortu-konfirmasi-st"><input type="checkbox" name="konfirmasi" value="1" required>'
+            f'<span>{_e(COPY_KONFIRMASI_UBAH)}</span></label>')
+
+
 def _formulir(tindakan: str, label: str, token: str, kode_id: Optional[int] = None) -> str:
     kode_html = f'<input type="hidden" name="kode_id" value="{_e(kode_id)}">' if kode_id is not None else ""
     return (f'<form method="post" action="{_e(RUTE_KODE)}">'
             f'<input type="hidden" name="tindakan" value="{_e(tindakan)}">{kode_html}'
-            f'<input type="hidden" name="token" value="{_e(token)}">'
+            f'<input type="hidden" name="token" value="{_e(token)}">{_konfirmasi_html(tindakan)}'
             f'<button type="submit" class="ortu-tombol-st">{_e(label)}</button></form>')
 
 
@@ -76,14 +100,60 @@ def _bungkus(isi: str) -> str:
             f"<p>{_e(COPY_KARTU)}</p>{isi}</section>")
 
 
-def kartu(aktif: Optional[dict], tokens: Dict[str, str]) -> str:
+def kartu(aktif: Optional[dict], tokens: Dict[str, str], menunggu_html: str = "") -> str:
     """Kartu kode anak. `aktif` = {"id", "dibuat", "peran"} atau None; `tokens` berisi token per tindakan yang tampil."""
-    return _bungkus(_isi_kartu(aktif, tokens))
+    return _bungkus(_isi_kartu(aktif, tokens) + menunggu_html)
 
 
 def kartu_tak_terbaca() -> str:
     """Kartu tanpa form bila keadaan kode tidak bisa dibaca: tidak pernah menampilkan 'belum ada kode' yang keliru."""
     return _bungkus(f"<p>{_e(COPY_TAK_TERBACA)}</p>")
+
+
+def _formulir_putusan(permintaan_id: int, hasil: str, label: str, token: str) -> str:
+    return (f'<form method="post" action="{_e(RUTE_PUTUSAN)}">'
+            f'<input type="hidden" name="permintaan_id" value="{_e(permintaan_id)}">'
+            f'<input type="hidden" name="hasil" value="{_e(hasil)}">'
+            f'<input type="hidden" name="token" value="{_e(token)}">'
+            f'<button type="submit" class="ortu-tombol-st">{_e(label)}</button></form>')
+
+
+def _baris_menunggu(baris: dict) -> str:
+    """Satu permintaan: guru, kelompok, pertemuan pertama, waktu pengajuan, batas, dan dua form putusan."""
+    tokens = baris["tokens"]
+    rincian = [f"<p><strong>{_e(baris['guru'])}</strong> mengajukan anak ini untuk "
+               f"<strong>{_e(baris['kelompok'])}</strong>.</p>"]
+    if baris["mulai"]:
+        rincian.append(f"<p>Pertemuan pertama {_e(waktu_wib(baris['mulai']))}.</p>")
+    rincian.append(f"<p>Diajukan {_e(waktu_wib(baris['dibuat']))}. "
+                   f"Berlaku sampai {_e(waktu_wib(baris['kedaluwarsa']))}.</p>")
+    return ('<li class="ortu-permintaan-st">' + "".join(rincian)
+            + _formulir_putusan(baris["id"], HASIL_SETUJU, LABEL_SETUJU, tokens[HASIL_SETUJU])
+            + _formulir_putusan(baris["id"], HASIL_TOLAK, LABEL_TOLAK, tokens[HASIL_TOLAK]) + "</li>")
+
+
+def _bungkus_menunggu(isi: str) -> str:
+    return f'<div id="ortu-tautan-menunggu"><h3>{_e(JUDUL_MENUNGGU)}</h3>{isi}</div>'
+
+
+def bagian_menunggu(baris: list) -> str:
+    """Daftar permintaan menunggu. `baris` = dict hasil `orang_tua_putusan_daftar` plus `tokens` per hasil."""
+    if not baris:
+        return _bungkus_menunggu(f"<p>{_e(COPY_KOSONG_MENUNGGU)}</p>")
+    daftar = "".join(_baris_menunggu(b) for b in baris)
+    return _bungkus_menunggu(f"<p>{_e(COPY_MENUNGGU)}</p><ul>{daftar}</ul>")
+
+
+def bagian_menunggu_tak_terbaca() -> str:
+    """Bagian permintaan bila data kelompok/guru belum bisa dibaca; kartu kode tetap tampil."""
+    return _bungkus_menunggu(f"<p>{_e(COPY_MENUNGGU_TAK_TERBACA)}</p>")
+
+
+def halaman_putusan(hasil: str) -> bytes:
+    """Jawaban sukses setuju/tolak: 200 tanpa data anak, guru, atau id."""
+    if hasil == HASIL_SETUJU:
+        return halaman_info(JUDUL_SETUJU, TEKS_SETUJU)
+    return halaman_info(JUDUL_TOLAK, TEKS_TOLAK)
 
 
 def halaman_kode_baru(kode_tampil: str) -> bytes:
