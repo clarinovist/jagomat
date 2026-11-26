@@ -25,6 +25,7 @@ import admin_store
 import form_token
 import guru_tautan_aturan as aturan
 import guru_tautan_dasar as dasar
+import guru_tautan_laju as laju
 import jadwal_store as js
 import kelas_kit
 import orang_tua_tautan_http as tautan_http
@@ -494,3 +495,49 @@ def test_anak_dihapus_antara_pengajuan_dan_persetujuan_gagal_tanpa_efek(d):
     assert jawaban[0] == 409 and "Akun anak ini sudah tidak aktif" in jawaban[1]
     assert _keadaan(d) == sebelum
     assert _penempatan(d.kondisi.siswa_id) == []
+
+
+# --- batas aksi per akun (LOW-1) ----------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _laju_aksi_bersih():
+    """Penghitung laju aksi di memori dikosongkan antar tes; tes tidak boleh mewarisi kuota tes lain."""
+    laju._reset()
+    yield
+    laju._reset()
+
+
+@pytest.fixture
+def jam_laju(monkeypatch):
+    """Jam yang diatur tes untuk penghitung laju saja. Sesi dan token tetap memakai jam asli."""
+    waktu = {"kini": 1_800_000_000.0}
+    monkeypatch.setattr(laju, "_waktu_kini", lambda sekarang: waktu["kini"] if sekarang is None else float(sekarang))
+    return waktu
+
+
+def _setuju_id_tak_ada(d, cookie) -> tuple:
+    """Setuju ke id tak ada: galat domain (409) yang tetap memakai kuota. Mengembalikan jawaban HTTP."""
+    token = _token_langsung(cookie, ID_TAK_ADA, "setuju")
+    return _kirim_putusan(d, cookie, ID_TAK_ADA, "setuju", token)
+
+
+def test_putusan_ikut_menghabiskan_kuota_akun_yang_sama(d, jam_laju):
+    cookie, _permintaan_id, _kode = _siapkan_permintaan(d)  # pembuatan kode sudah memakai satu aksi
+    for _ in range(aturan.AKSI_PER_AKUN - 1):
+        assert _setuju_id_tak_ada(d, cookie)[0] == 409
+    sebelum = _keadaan(d)
+
+    kode_status, isi, _ = _setuju_id_tak_ada(d, cookie)
+
+    assert kode_status == 429 and tautan_http.JUDUL_LAJU in isi
+    assert _keadaan(d) == sebelum
+
+
+def test_penolakan_token_putusan_tidak_menghabiskan_kuota(d, jam_laju):
+    cookie, _permintaan_id, _kode = _siapkan_permintaan(d)  # pembuatan kode sudah memakai satu aksi
+    for _ in range(aturan.AKSI_PER_AKUN + 5):
+        assert _kirim_putusan(d, cookie, ID_TAK_ADA, "setuju", "1.0000")[0] == 403
+    for _ in range(aturan.AKSI_PER_AKUN - 1):
+        assert _setuju_id_tak_ada(d, cookie)[0] == 409
+
+    assert _setuju_id_tak_ada(d, cookie)[0] == 429

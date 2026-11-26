@@ -8,7 +8,9 @@ Gerbang ditegakkan SERVER pada POST, berurutan, dan berhenti di langkah pertama 
    `tautan-ortu-form-v1:` untuk `tautan:<permintaan_id>:<hasil>`;
 5. siswa_id HANYA dari sesi murid (404);
 6. PIN terpasang (403) dan tirai terbuka untuk sesi cookie (`tirai_aksi`, fail-closed);
-7. aksi. Kode lewat `guru_tautan_kode` (409 untuk kode basi, sudah ada, atau anak tak ada; 503 untuk galat tulis).
+7. batas aksi per akun (429 halaman info, tanpa efek). Hanya aksi yang lolos langkah 1-6 yang dihitung; setiap aksi
+   yang sampai ke domain ikut terhitung, sukses maupun gagal. Penolakan gerbang tidak pernah menghabiskan kuota;
+8. aksi. Kode lewat `guru_tautan_kode` (409 untuk kode basi, sudah ada, atau anak tak ada; 503 untuk galat tulis).
    Putusan lewat `guru_tautan_tempat` (409 untuk galat domain dengan alasan tertutup; 503 untuk galat tulis).
 
 Kode baru tampil sekali pada respons 200 (`no-store`, tanpa redirect). Kartu GET memuat tanggal dan peran pembuat
@@ -23,6 +25,7 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+import threading
 from typing import Optional, Tuple
 
 import admin_store_core
@@ -32,6 +35,7 @@ import form_token
 import guru_tautan_aturan as aturan
 import guru_tautan_dasar as dasar
 import guru_tautan_kode as kode
+import guru_tautan_laju as laju
 import guru_tautan_tempat as tempat
 import kelas_dasar as kd
 import orang_tua_putusan_daftar as daftar
@@ -43,6 +47,12 @@ import tirai_aksi
 from support_pages import halaman_pesan_murid
 
 _log = logging.getLogger(__name__)
+
+NAMA_LAJU_AKSI = "tautan-ortu-aksi"
+STATUS_LAJU = 429
+JUDUL_LAJU = "Terlalu banyak permintaan"
+TEKS_LAJU = "Batas aksi kode anak untuk akun ini sementara sudah tercapai. Coba lagi beberapa saat lagi."
+_GEMBOK_LAJU_AKSI = threading.Lock()
 
 DOMAIN_TOKEN_KODE = b"kode-anak-form-v1:"
 DOMAIN_TOKEN_PUTUSAN = b"tautan-ortu-form-v1:"
@@ -300,6 +310,36 @@ def _tolak_tanpa_masuk(penangan) -> None:
     penangan._kirim(halaman_pesan_murid("Perlu masuk", "<h1>Halaman murid</h1>"), 401)
 
 
+def _tolak_jika_batas_aksi(penangan, principal) -> bool:
+    """Catat satu aksi di penghitung akun, atau tolak 429 bila kuota jendela habis. True bila respons sudah dikirim.
+
+    Dipanggil hanya setelah gerbang lolos dan sebelum aksi jalan, sehingga aksi sukses, galat domain, dan galat tulis
+    semuanya terhitung. `catat_gagal` dipakai sebagai pencatat kejadian. Cek dan catat dikunci bersama supaya dua
+    permintaan serentak tidak sama-sama lolos tepat di batas.
+    """
+    kunci = principal.id_akun
+    with _GEMBOK_LAJU_AKSI:
+        if laju.diblokir(NAMA_LAJU_AKSI, kunci, jendela=aturan.JENDELA_AKSI_DETIK, batas=aturan.AKSI_PER_AKUN):
+            tertolak = True
+        else:
+            laju.catat_gagal(NAMA_LAJU_AKSI, kunci, jendela=aturan.JENDELA_AKSI_DETIK)
+            tertolak = False
+    if tertolak:
+        _log.info("batas aksi kode anak tercapai untuk satu akun")
+        penangan._kirim_privat(halaman.halaman_info(JUDUL_LAJU, TEKS_LAJU), STATUS_LAJU)
+    return tertolak
+
+
+def _siswa_untuk_aksi(penangan, principal) -> Optional[int]:
+    """siswa_id bila sesi, tirai, dan batas aksi lolos; None bila respons penolakan sudah dikirim."""
+    siswa_id = _siswa_terhubung(penangan, principal)
+    if siswa_id is None or not _gerbang_tirai(penangan, principal, siswa_id):
+        return None
+    if _tolak_jika_batas_aksi(penangan, principal):
+        return None
+    return siswa_id
+
+
 def _tangani_kode_post(penangan, principal, data: Optional[dict]) -> None:
     if not _bentuk_sah(data):
         penangan._tolak_isian()
@@ -307,8 +347,8 @@ def _tangani_kode_post(penangan, principal, data: Optional[dict]) -> None:
     if not _token_sah(principal, penangan._ambil_token(), data[KUNCI_TINDAKAN], data[KUNCI_TOKEN]):
         penangan._tolak_isian(STATUS_TOKEN)
         return
-    siswa_id = _siswa_terhubung(penangan, principal)
-    if siswa_id is not None and _gerbang_tirai(penangan, principal, siswa_id):
+    siswa_id = _siswa_untuk_aksi(penangan, principal)
+    if siswa_id is not None:
         _jalankan(penangan, principal, siswa_id, data)
 
 
@@ -321,8 +361,8 @@ def _tangani_putusan_post(penangan, principal, data: Optional[dict]) -> None:
     if not _token_putusan_sah(principal, penangan._ambil_token(), permintaan_id, hasil, data[KUNCI_TOKEN]):
         penangan._tolak_isian(STATUS_TOKEN)
         return
-    siswa_id = _siswa_terhubung(penangan, principal)
-    if siswa_id is not None and _gerbang_tirai(penangan, principal, siswa_id):
+    siswa_id = _siswa_untuk_aksi(penangan, principal)
+    if siswa_id is not None:
         _putuskan(penangan, principal, siswa_id, permintaan_id, hasil)
 
 

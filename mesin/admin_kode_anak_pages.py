@@ -23,6 +23,8 @@ COPY_KARTU = ("Guru memasukkan kode ini untuk memasukkan anak ke kelompok Mini m
 COPY_BELUM = "Belum ada kode aktif."
 COPY_TAK_TERBACA = "Kode anak belum bisa ditampilkan sekarang. Muat ulang halaman, ya."
 COPY_TANPA_SESI = "Tampilan baca-saja. Masuk melalui formulir untuk membuat atau mengganti kode."
+COPY_ANAK_TAK_AKTIF = ("Akun anak ini sudah tidak aktif atau bukan akun murid; kode baru tidak bisa dibuat. "
+                       "Kode yang masih ada tetap bisa dicabut.")
 COPY_PEMBUAT = {"admin": "admin", "orang_tua": "orang tua"}
 COPY_DAMPAK = ("Ganti atau cabut mematikan kode yang sudah diberikan ke guru, dan permintaan guru yang menunggu "
                "ikut dibatalkan.")
@@ -60,15 +62,18 @@ def _teks_aktif(aktif: Mapping) -> str:
     return f"<p>Kode aktif sejak {_e(waktu_wib(aktif['dibuat']))}, dibuat oleh {_e(pembuat)}.</p>"
 
 
+def _formulir_cabut(order_id: str, token: str) -> str:
+    return _formulir(order_id, TINDAKAN_CABUT, LABEL_CABUT, token,
+                     konfirmasi=KONFIRMASI_CABUT, kelas="admin-tombol admin-bahaya-garis")
+
+
 def _isi_formulir(order_id: str, aktif: Optional[Mapping], tokens: Mapping) -> str:
     """Formulir buat (tanpa aktif) atau ganti dan cabut (dengan `kode_id` aktif dan konfirmasi)."""
     if aktif is None:
         return _formulir(order_id, TINDAKAN_BUAT, LABEL_BUAT, tokens[TINDAKAN_BUAT])
     ganti = _formulir(order_id, TINDAKAN_GANTI, LABEL_GANTI, tokens[TINDAKAN_GANTI], kode_id=aktif["id"],
                       konfirmasi=KONFIRMASI_GANTI)
-    cabut = _formulir(order_id, TINDAKAN_CABUT, LABEL_CABUT, tokens[TINDAKAN_CABUT],
-                      konfirmasi=KONFIRMASI_CABUT, kelas="admin-tombol admin-bahaya-garis")
-    return f'<p class="admin-meta">{_e(COPY_DAMPAK)}</p>' + ganti + cabut
+    return f'<p class="admin-meta">{_e(COPY_DAMPAK)}</p>' + ganti + _formulir_cabut(order_id, tokens[TINDAKAN_CABUT])
 
 
 def _bungkus(isi: str) -> str:
@@ -83,6 +88,18 @@ def blok(order_id: str, aktif: Optional[Mapping], tokens: Optional[Mapping]) -> 
     if tokens is None:
         return _bungkus(teks + f'<p class="admin-meta">{_e(COPY_TANPA_SESI)}</p>')
     return _bungkus(teks + _isi_formulir(order_id, aktif, tokens))
+
+
+def blok_anak_tak_aktif(order_id: str, aktif: Optional[Mapping], tokens: Optional[Mapping]) -> str:
+    """Blok baca-saja untuk akun anak yang tidak lagi aktif: tanpa Buat dan tanpa Ganti. Cabut hanya bila ada kode
+    aktif dan sesi kuki (`tokens` = {cabut: token} atau None)."""
+    teks = f"<p>{_e(COPY_BELUM)}</p>" if aktif is None else _teks_aktif(aktif)
+    teks += f'<p class="admin-meta">{_e(COPY_ANAK_TAK_AKTIF)}</p>'
+    if aktif is None:
+        return _bungkus(teks)
+    if tokens is None:
+        return _bungkus(teks + f'<p class="admin-meta">{_e(COPY_TANPA_SESI)}</p>')
+    return _bungkus(teks + _formulir_cabut(order_id, tokens[TINDAKAN_CABUT]))
 
 
 def blok_tak_terbaca() -> str:

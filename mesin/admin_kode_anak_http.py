@@ -18,6 +18,10 @@ Kode mentah tampil sekali pada respons 200 buat/ganti (`no-store`, tanpa redirec
 baik ada kode yang dicabut maupun tidak. Pencatat `oleh` = id akun admin sesi dan `peran` = admin. Blok GET tidak
 memuat kode, akun, atau id siswa. Gerbang `KODE_ANAK_AKTIF` mati: blok kosong, dan POST dijawab 404 identik
 sebelum form dibaca.
+
+Bila akun anak tidak lagi aktif (`anak_masih_ada` False: akun murid hilang atau nonaktif, bukan akun murid, atau siswa
+dianonimkan), blok hanya baca-saja: tanpa Buat dan Ganti, dan Cabut tampil hanya bila ada kode aktif. POST tidak
+berubah; domain tetap menolak buat dan ganti.
 """
 
 from __future__ import annotations
@@ -31,6 +35,7 @@ import admin_kode_anak_pages as halaman
 import admin_security
 import admin_store
 import form_token
+import guru_tautan_anak
 import guru_tautan_aturan as aturan
 import guru_tautan_dasar as dasar
 import guru_tautan_kode as kode
@@ -123,13 +128,22 @@ def _anak_mini_order(order_id: str) -> Optional[Tuple[str, int]]:
     return baris["akun_id"], baris["siswa_id"]
 
 
-def _tokens(penangan, principal, order_id: str, aktif: Optional[dict]) -> Optional[Dict[str, str]]:
-    """Token per tindakan yang tampil; None untuk sesi bukan kuki (tampilan baca-saja)."""
+def _tokens(penangan, principal, order_id: str, tindakan: tuple) -> Optional[Dict[str, str]]:
+    """Token untuk `tindakan` yang tampil; None untuk sesi bukan kuki (tampilan baca-saja)."""
     if principal.metode != "cookie":
         return None
     sesi = h._wajib_cookie(penangan, principal)
-    tindakan = (halaman.TINDAKAN_BUAT,) if aktif is None else (halaman.TINDAKAN_GANTI, halaman.TINDAKAN_CABUT)
     return {nama: _token(principal, sesi, nama, order_id) for nama in tindakan}
+
+
+def _tindakan_tampil(aktif: Optional[dict]) -> tuple:
+    return (halaman.TINDAKAN_BUAT,) if aktif is None else (halaman.TINDAKAN_GANTI, halaman.TINDAKAN_CABUT)
+
+
+def _blok_anak_tak_aktif(penangan, principal, order_id: str, aktif: Optional[dict]) -> str:
+    """Akun anak tidak aktif: hanya Cabut yang boleh tampil, dan hanya bila ada kode aktif."""
+    tokens = None if aktif is None else _tokens(penangan, principal, order_id, (halaman.TINDAKAN_CABUT,))
+    return halaman.blok_anak_tak_aktif(order_id, aktif, tokens)
 
 
 def blok_html(penangan, principal, order_id: str) -> str:
@@ -142,7 +156,9 @@ def blok_html(penangan, principal, order_id: str) -> str:
         if anak is None:
             return ""
         aktif = kode.kode_aktif(anak[0], anak[1])
-        tokens = _tokens(penangan, principal, order_id, aktif)
+        if not guru_tautan_anak.anak_masih_ada(anak[0], anak[1]):
+            return _blok_anak_tak_aktif(penangan, principal, order_id, aktif)
+        tokens = _tokens(penangan, principal, order_id, _tindakan_tampil(aktif))
     except _GALAT_BACA as galat:
         _log.warning("kode anak tidak terbaca untuk detail order: %s", type(galat).__name__)
         return halaman.blok_tak_terbaca()

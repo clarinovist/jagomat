@@ -7,6 +7,7 @@ tes penolakan membuktikan sesuatu.
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 import sqlite3
@@ -25,6 +26,7 @@ import form_token
 import guru_tautan_aturan as aturan
 import guru_tautan_dasar as dasar
 import guru_tautan_kode as kode
+import guru_tautan_laju as laju
 import orang_tua_tautan_http as tautan_http
 import orang_tua_tautan_pages as halaman_kode
 import pin_orang_tua_store as pin_store
@@ -553,3 +555,131 @@ def test_buat_dan_ganti_mencatat_oleh_dan_peran_dari_sesi(dunia):
     assert ganti[0] == 200
     assert _baris_terakhir(dunia.berkas, SQL_KODE_TERAKHIR) == (akun, akun, "orang_tua")
     assert _baris_terakhir(dunia.berkas, SQL_CABUT_TERAKHIR) == (akun, "orang_tua")
+
+
+# --- batas aksi per akun (LOW-1) ----------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _laju_aksi_bersih():
+    """Penghitung laju aksi di memori dikosongkan antar tes; tes tidak boleh mewarisi kuota tes lain."""
+    laju._reset()
+    yield
+    laju._reset()
+
+
+@pytest.fixture
+def jam_laju(monkeypatch):
+    """Jam yang diatur tes untuk penghitung laju saja. Sesi dan token tetap memakai jam asli."""
+    waktu = {"kini": 1_800_000_000.0}
+    monkeypatch.setattr(laju, "_waktu_kini", lambda sekarang: waktu["kini"] if sekarang is None else float(sekarang))
+    return waktu
+
+
+def _sidik_berkas(berkas: Path) -> tuple:
+    """Isi berkas DB dan sisa WAL-nya bila ada. Penolakan tanpa efek harus menyisakan keduanya sama persis."""
+    return tuple(hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else None
+                 for p in (berkas, berkas.with_name(berkas.name + "-wal")))
+
+
+def _habiskan_kuota(d, cookie) -> None:
+    """Aksi pertama `buat` lalu `ganti` sampai kuota penuh. Semua aksi ini sukses dan masing-masing menulis."""
+    assert _kirim(d, cookie, "buat")[0] == 200
+    for _ in range(aturan.AKSI_PER_AKUN - 1):
+        assert _kirim(d, cookie, "ganti")[0] == 200
+
+
+def _ditolak_batas(d, cookie) -> None:
+    """Aksi berikutnya ditolak 429 tanpa efek: jumlah baris dan isi berkas DB tautan tidak berubah."""
+    sebelum_baris, sebelum_berkas = _data_berkas(d), _sidik_berkas(d.berkas)
+
+    kode_status, isi, _ = _kirim(d, cookie, "ganti")
+
+    assert kode_status == 429
+    assert tautan_http.JUDUL_LAJU in isi and KODE_TAMPIL.search(isi) is None
+    assert _data_berkas(d) == sebelum_baris and _sidik_berkas(d.berkas) == sebelum_berkas
+
+
+def test_aksi_ke_sebelas_dalam_jendela_ditolak_429_tanpa_efek(dunia, jam_laju):
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    cookie = _buka_tirai(dunia)
+
+    _habiskan_kuota(dunia, cookie)
+    _ditolak_batas(dunia, cookie)
+
+
+def test_aksi_gagal_domain_ikut_dihitung_sebagai_satu_aksi(dunia, jam_laju):
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    cookie = _buka_tirai(dunia)
+    assert _kirim(dunia, cookie, "buat")[0] == 200
+
+    for _ in range(aturan.AKSI_PER_AKUN - 1):
+        token = _token_langsung(cookie, "buat")
+        ulang = _req(dunia.server, RUTE_KODE, data={"tindakan": "buat", "token": token}, cookie=cookie)
+        assert ulang[0] == 409  # kode aktif sudah ada: galat domain, tetap memakai kuota
+
+    _ditolak_batas(dunia, cookie)
+
+
+def test_penolakan_token_salah_tidak_menghabiskan_kuota(dunia, jam_laju):
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    cookie = _buka_tirai(dunia)
+    for _ in range(aturan.AKSI_PER_AKUN + 5):
+        kode_status, _, _ = _req(dunia.server, RUTE_KODE, data={"tindakan": "buat", "token": "1.0000"}, cookie=cookie)
+        assert kode_status == 403
+
+    _habiskan_kuota(dunia, cookie)
+    _ditolak_batas(dunia, cookie)
+
+
+def test_penolakan_tirai_tertutup_tidak_menghabiskan_kuota(dunia, jam_laju):
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    cookie_tertutup = _login(dunia.server, "raka-m", SANDI_A)
+    token = _token_langsung(cookie_tertutup, "buat")
+    for _ in range(aturan.AKSI_PER_AKUN + 5):
+        kode_status, _, _ = _req(dunia.server, RUTE_KODE, data={"tindakan": "buat", "token": token},
+                                 cookie=cookie_tertutup)
+        assert kode_status == tirai_aksi.KODE_TERTUTUP
+
+    cookie = _buka_tirai(dunia)
+    _habiskan_kuota(dunia, cookie)
+    _ditolak_batas(dunia, cookie)
+
+
+def test_penolakan_tanpa_pin_tidak_menghabiskan_kuota(dunia, jam_laju):
+    cookie_tanpa_pin = _login(dunia.server, "raka-m", SANDI_A)
+    token = _token_langsung(cookie_tanpa_pin, "buat")
+    for _ in range(aturan.AKSI_PER_AKUN + 5):
+        kode_status, _, _ = _req(dunia.server, RUTE_KODE, data={"tindakan": "buat", "token": token},
+                                 cookie=cookie_tanpa_pin)
+        assert kode_status == 403
+
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    cookie = _buka_tirai(dunia)
+    _habiskan_kuota(dunia, cookie)
+    _ditolak_batas(dunia, cookie)
+
+
+def test_kuota_akun_murid_lain_tidak_terpengaruh(dunia, jam_laju):
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    _pasang_pin(dunia, dunia.b, PIN_B)
+    cookie_a = _buka_tirai(dunia)
+    _habiskan_kuota(dunia, cookie_a)
+    _ditolak_batas(dunia, cookie_a)
+
+    cookie_b = _buka_tirai(dunia, "dina-m", SANDI_B, PIN_B)
+    kode_status, isi, _ = _kirim(dunia, cookie_b, "buat")
+
+    assert kode_status == 200 and KODE_TAMPIL.search(isi)
+
+
+def test_kuota_pulih_setelah_jendela_aksi_lewat(dunia, jam_laju):
+    _pasang_pin(dunia, dunia.a, PIN_A)
+    cookie = _buka_tirai(dunia)
+    _habiskan_kuota(dunia, cookie)
+    _ditolak_batas(dunia, cookie)
+
+    jam_laju["kini"] += aturan.JENDELA_AKSI_DETIK - 1
+    assert _kirim(dunia, cookie, "ganti")[0] == 429
+    jam_laju["kini"] += 1
+
+    assert _kirim(dunia, cookie, "ganti")[0] == 200

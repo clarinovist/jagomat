@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import html
 import http.cookies
+import json
 import logging
 import re
 import sqlite3
@@ -19,6 +20,7 @@ import pytest
 import admin_kode_anak_http as akh
 import admin_kode_anak_pages as akp
 import admin_store
+import auth
 import form_token
 import guru_tautan_aturan as aturan
 import guru_tautan_dasar as dasar
@@ -31,8 +33,8 @@ from cek_http_kit import (  # noqa: F401
     AKUN_ADMIN, AKUN_A, AKUN_MURID, ambil_token, id_akun, minta_mentah, server, tambah_anak,
 )
 from guru_tautan_kit import (
-    JALUR_TAUTAN, KINI, SANDI_ANAK, baris_tabel, hapus_keluarga_sintetis, keadaan_tautan, siapkan_db_tautan,
-    siapkan_kelompok_dan_order, tambah_murid,
+    JALUR_TAUTAN, KINI, KODE, LOGIN_ANAK, SANDI_ANAK, baris_tabel, hapus_keluarga_sintetis, keadaan_tautan,
+    siapkan_db_tautan, siapkan_kelompok_dan_order, tambah_murid,
 )
 from harian_kit import jam  # noqa: F401
 
@@ -293,7 +295,9 @@ def test_cabut_tetap_bisa_untuk_anak_dihapus_tetapi_ganti_dan_buat_ditolak(dunia
     assert kode_cabut == 200
     assert _sql(dunia.berkas, SQL_CABUT_TERAKHIR) == (dunia.admin, aturan.PERAN_ADMIN)
 
-    kode_buat, isi_buat, _tajuk = _kirim(dunia, _form_dari_detail(dunia, "buat"))
+    assert _tindakan_tersedia(_isi_detail(dunia)) == set()  # anak tak aktif dan tanpa kode: tanpa formulir sama sekali
+    data_buat = {"tindakan": "buat", "order_id": dunia.order, "token": _token_admin(dunia, "buat", dunia.order)}
+    kode_buat, isi_buat, _tajuk = _kirim(dunia, data_buat)
     assert kode_buat == 409 and not POLA_KODE_TAMPIL.search(isi_buat)
 
 
@@ -435,3 +439,119 @@ def test_post_order_private_404_identik_dengan_order_tak_ada(dunia, tindakan):
     assert hasil == _respons(_kirim(dunia, data_tak_ada))
     assert hasil == _referensi_404(dunia, None, data_private, _cookie(dunia))
     assert _keadaan(dunia) == sebelum and not dunia.berkas.exists()
+
+
+# --- akun anak tidak aktif atau bukan akun murid (LOW-2) ---------------------------------------
+
+def _tindakan_tersedia(isi: str) -> set:
+    """Tindakan formulir kode anak yang tampil di halaman ini. Kosong bila blok hanya baca-saja."""
+    return {dict(POLA_ISIAN.findall(badan)).get("tindakan") for _atribut, badan in POLA_FORM.findall(isi)}
+
+
+def _ubah_akun_murid(login: str, **kunci) -> None:
+    """Ubah satu akun murid di berkas auth secara mentah. Keadaan ini tidak bisa dibuat lewat API."""
+    berkas = auth.BERKAS_SANDI
+    data = json.loads(berkas.read_text(encoding="utf-8"))
+    for akun in data["akun"]:
+        if akun["pengguna"] == login:
+            akun.update(kunci)
+    berkas.write_text(json.dumps(data), encoding="utf-8")
+
+
+def _akun_murid_hilang(_d) -> None:
+    assert auth.hapus_akun(LOGIN_ANAK)
+
+
+def _akun_murid_dinonaktifkan(_d) -> None:
+    _ubah_akun_murid(LOGIN_ANAK, dinonaktifkan=True)
+
+
+def _anak_dianonimkan(_d) -> None:
+    hapus_keluarga_sintetis(AKUN_A[0])
+
+
+PERUBAHAN_ANAK_TAK_AKTIF = [
+    pytest.param(_akun_murid_hilang, id="akun-murid-hilang"),
+    pytest.param(_akun_murid_dinonaktifkan, id="akun-murid-nonaktif"),
+    pytest.param(_anak_dianonimkan, id="anak-dianonimkan"),
+]
+
+
+def _tambah_order_mini_akun_guru(server) -> tuple:
+    """Order Mini lunas yang `akun_id`-nya akun guru, bukan akun murid (seperti akun guru lama).
+
+    Mengembalikan (order, siswa).
+    """
+    siswa = tambah_anak(server, "Anak Sintetis Gamma", AKUN_A[0], None)
+    with store.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        kelas_kit.lunas(kon, siswa, katalog.KODE_MINI, n=2, akun=id_akun(AKUN_A), sekarang=KINI)
+        kon.commit()
+    return _order_anak(siswa), siswa
+
+
+def _isi_order(d, order_id: str) -> str:
+    kode_status, isi, _tajuk = minta_mentah(d.server, RUTE_DETAIL + "?order=" + order_id, None, None, _cookie(d))
+    assert kode_status == 200
+    return isi
+
+
+def test_order_akun_bukan_murid_tanpa_kode_hanya_baca_saja(dunia):
+    order_guru, _siswa = _tambah_order_mini_akun_guru(dunia.server)
+
+    isi = _isi_order(dunia, order_guru)
+
+    assert akp.COPY_ANAK_TAK_AKTIF in isi
+    assert _tindakan_tersedia(isi) == set()
+
+
+def test_order_akun_bukan_murid_dengan_kode_sisa_hanya_tombol_cabut(dunia):
+    order_guru, siswa = _tambah_order_mini_akun_guru(dunia.server)
+    guru = id_akun(AKUN_A)
+    dasar.buat_kode(akun_id=guru, siswa_id=siswa, kode_hash=aturan.hash_kode(KODE), oleh=guru,
+                    peran=aturan.PERAN_ORANG_TUA, pada=KINI)  # kode sisa dari akun lama; buat lewat domain ditolak
+
+    isi = _isi_order(dunia, order_guru)
+    kode_status, _isi_hasil, _tajuk = _kirim(dunia, _form(isi, "cabut"))
+
+    assert akp.COPY_ANAK_TAK_AKTIF in isi and _tindakan_tersedia(isi) == {"cabut"}
+    assert kode_status == 200
+    assert kode.kode_aktif(guru, siswa) is None
+
+
+def test_post_buat_order_akun_bukan_murid_tetap_ditolak_409_tanpa_kode(dunia):
+    order_guru, siswa = _tambah_order_mini_akun_guru(dunia.server)
+    data = {"tindakan": "buat", "order_id": order_guru, "token": _token_admin(dunia, "buat", order_guru)}
+
+    kode_status, isi, _tajuk = _kirim(dunia, data)
+
+    assert kode_status == 409 and not POLA_KODE_TAMPIL.search(isi)
+    assert not dunia.berkas.exists()
+
+
+@pytest.mark.parametrize("perubahan", PERUBAHAN_ANAK_TAK_AKTIF)
+def test_anak_tak_aktif_tanpa_kode_hanya_baca_saja_dan_post_buat_tetap_409(dunia, perubahan):
+    assert _tindakan_tersedia(_isi_detail(dunia)) == {"buat"}  # kontrol positif: sebelum berubah, Buat tampil
+    perubahan(dunia)
+    data = {"tindakan": "buat", "order_id": dunia.order, "token": _token_admin(dunia, "buat", dunia.order)}
+
+    isi = _isi_detail(dunia)
+    kode_status, isi_post, _tajuk = _kirim(dunia, data)
+
+    assert akp.COPY_ANAK_TAK_AKTIF in isi and _tindakan_tersedia(isi) == set()
+    assert kode_status == 409 and not POLA_KODE_TAMPIL.search(isi_post)
+    assert not dunia.berkas.exists()
+
+
+@pytest.mark.parametrize("perubahan", PERUBAHAN_ANAK_TAK_AKTIF)
+def test_anak_tak_aktif_dengan_kode_hanya_tombol_cabut_dan_cabut_tetap_jalan(dunia, perubahan):
+    assert _buat(dunia)[0] == 200
+    assert _tindakan_tersedia(_isi_detail(dunia)) == {"ganti", "cabut"}  # kontrol positif
+    perubahan(dunia)
+
+    isi = _isi_detail(dunia)
+    kode_status, _isi_hasil, _tajuk = _kirim(dunia, _form(isi, "cabut"))
+
+    assert akp.COPY_ANAK_TAK_AKTIF in isi and _tindakan_tersedia(isi) == {"cabut"}
+    assert kode_status == 200
+    assert _sql(dunia.berkas, SQL_CABUT_TERAKHIR) == (dunia.admin, aturan.PERAN_ADMIN)
+    assert kode.kode_aktif(dunia.kondisi.murid_id, dunia.kondisi.siswa_id) is None
