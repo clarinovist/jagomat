@@ -288,7 +288,8 @@ def test_gagal_di_tengah_tulis_membatalkan_seluruh_transaksi(berkas, monkeypatch
     assert D.terkini(KUNCI, MULAI, path=berkas) == {"topik": TOPIK, "hadir": {ORDER_A: "hadir"}}
 
 
-def test_gagal_pada_tulis_pertama_tidak_meninggalkan_skema_setengah_jadi(berkas, monkeypatch):
+def test_gagal_pada_tulis_pertama_tidak_meninggalkan_berkas_kosong(berkas, monkeypatch):
+    """Berkas 0 byte tidak punya header SQLite: `sqlite_copy` backup operasional menolaknya dan seluruh backup gagal."""
     # Arrange
     def gagal_sisipkan_jurnal(kon, catatan):
         raise sqlite3.OperationalError("gangguan uji")
@@ -298,10 +299,38 @@ def test_gagal_pada_tulis_pertama_tidak_meninggalkan_skema_setengah_jadi(berkas,
     # Act / Assert
     with pytest.raises(D.GalatCatatan):
         _catat(berkas)
-    assert berkas.exists()
-    assert _versi(berkas) == 0
-    assert _tabel(berkas) == set()
+    assert not berkas.exists()
     assert D.terkini(KUNCI, MULAI, path=berkas) == {"topik": None, "hadir": {}}
+
+
+def test_gagal_pada_berkas_yang_sudah_ada_tidak_menghapusnya(berkas, monkeypatch):
+    # Arrange: berkas sah sudah ada, lalu penulisan berikutnya gagal
+    _catat(berkas)
+    ukuran = berkas.stat().st_size
+
+    def gagal_sisipkan_jurnal(kon, catatan):
+        raise sqlite3.OperationalError("gangguan uji")
+
+    monkeypatch.setattr(D, "_sisipkan_jurnal", gagal_sisipkan_jurnal)
+
+    # Act / Assert
+    with pytest.raises(D.GalatCatatan):
+        _catat(berkas, topik=TOPIK_LAIN, pada=PADA_LAIN)
+    assert berkas.exists() and berkas.stat().st_size == ukuran
+
+
+def test_berkas_kosong_buatan_pihak_lain_tidak_dihapus_saat_gagal(berkas, monkeypatch):
+    """Hanya berkas yang dibuat oleh catat() sendiri yang boleh dibersihkan."""
+    berkas.touch(mode=0o600)
+
+    def gagal_sisipkan_jurnal(kon, catatan):
+        raise sqlite3.OperationalError("gangguan uji")
+
+    monkeypatch.setattr(D, "_sisipkan_jurnal", gagal_sisipkan_jurnal)
+
+    with pytest.raises(D.GalatCatatan):
+        _catat(berkas)
+    assert berkas.exists()
 
 
 # --- validasi sebelum berkas disentuh ---------------------------------------------------

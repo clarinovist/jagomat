@@ -25,14 +25,15 @@
   aman yang ada. Direktori sumber belum terbentuk sah hanya bila tanpa referensi;
 - `opsional/` (manifest **v2**): DB SQLite di `/data` yang boleh tidak ada,
   yaitu `sakelar.db` (sakelar fitur admin), `kurikulum.db` (override kurikulum),
-  `cetakan.db` (cetakan soal berpola, `cetakan_store`), dan `cetakan_ai.db` (kuota + audit permintaan draf AI cetakan,
-  `cetakan_ai_store`). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
+  `cetakan.db` (cetakan soal berpola, `cetakan_store`), `cetakan_ai.db` (kuota + audit permintaan draf AI cetakan,
+  `cetakan_ai_store`), dan `guru-pertemuan.db` (kehadiran + jurnal pertemuan guru, append-only, hanya id/topik/status tanpa nama; dibuat saat tulis pertama oleh guru,
+  `guru_pertemuan_dasar`). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
   disalin dengan SQLite backup API; yang tidak ada dilewati; symlink/non-regular
   ditolak. Manifest mencatat daftar terurut di key `optional`; isi `opsional/` harus
   persis sama, tiap DB lulus integrity+FK, dan `sakelar.db` wajib `user_version`
   sesuai `feature_switch.VERSI_SKEMA` serta tabel `sakelar`+`audit_sakelar`;
-  `kurikulum.db`, `cetakan.db`, dan `cetakan_ai.db` wajib `user_version` + `TABEL_SKEMA` modulnya
-  (`kurikulum_override`, `cetakan_store`, `cetakan_ai_store`).
+  `kurikulum.db`, `cetakan.db`, `cetakan_ai.db`, dan `guru-pertemuan.db` wajib `user_version` + `TABEL_SKEMA` modulnya
+  (`kurikulum_override`, `cetakan_store`, `cetakan_ai_store`, `guru_pertemuan_bentuk`).
   Folder `opsional/` selalu ada, boleh kosong. Bundle **v1 lama tetap valid** (tanpa
   `opsional/`). `admin_backup.BERKAS_WAJIB` dan bundle core tidak berubah. Tool host
   di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py`, `kurikulum_override.py`, dan
@@ -40,7 +41,11 @@
   (tool host lama TIDAK menolak: `OPSIONAL`-nya tak memuat `cetakan_ai.db`, jadi berkas itu diam-diam tak ikut bundle; sebaliknya
   `operational_backup.py` baru tanpa `cetakan_ai_store.py` + `jurnal_wal.py` di host gagal `ImportError` saat cek skema. Perbarui tool host
   `/opt/osn/backup-tool` DAN salinan `/opt/osn/backup-harian/backup_harian.py` (daftar `OPSIONAL` sendiri) sebelum mengandalkan backup kuota;
-  cetakan.db tetap aman, `cetakan_ai.db` hanya kuota + audit permintaan, bukan isi cetakan);
+  cetakan.db tetap aman, `cetakan_ai.db` hanya kuota + audit permintaan, bukan isi cetakan). Untuk `guru-pertemuan.db` tool host cukup membawa
+  `mesin/guru_pertemuan_bentuk.py` (konstanta saja, TANPA impor; sengaja dipisah agar host tidak perlu `auth`/`topics`); tool host lama diam-diam tidak
+  menyertakannya, jadi perbarui `/opt/osn/backup-tool` DAN `/opt/osn/backup-harian/backup_harian.py` bersama rilis fitur jurnal pertemuan. Berkas
+  0 byte tidak punya header SQLite dan membuat `sqlite_copy` menolak seluruh bundle; `guru_pertemuan_dasar.catat` karena itu membuang berkas kosong yang
+  baru ia buat bila penulisan pertama gagal;
 - `operational-manifest.json`: revision/digest aplikasi, cutoff, daftar/hash/ukuran
   file dan direktori. Tidak berisi isi jawaban, nama anak, atau credential.
   Path lampiran tetap privat, bukan untuk log/prompt.
@@ -181,7 +186,7 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   dengan galat sehingga jejaknya masuk log.
 - **Isi**: lima DB wajib (`latihan`, `admin-control`, `ai-control`, `pendamping`,
   `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`,
-  `cetakan_ai.db` bila ada (dibuat saat fiturnya pertama dipakai), serta `kelas-daftar.db`
+  `cetakan_ai.db`, `guru-pertemuan.db` bila ada (dibuat saat fiturnya pertama dipakai), serta `kelas-daftar.db`
   (sumber `/var/lib/kelas-daftar/daftar.db`, pendaftaran `kelas.jagomat.id` milik service
   `kelas-daftar` di port 8731) yang disalin lewat backup API baca-saja. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
   lolos `integrity_check`, dan hash-nya dicatat di `manifest.json` dengan

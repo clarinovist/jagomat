@@ -9,6 +9,8 @@ from test_operational_backup import backup, sumber, buat, REV, IMAGE
 import feature_switch
 import cetakan_ai_store
 import cetakan_store
+import guru_pertemuan_bentuk
+import guru_pertemuan_dasar
 import kurikulum_override
 
 SEED = {nama: False for nama in feature_switch.NAMA_SAKELAR}
@@ -40,6 +42,15 @@ def buat_cetakan(data):
 def buat_kuota_ai(data):
     cetakan_ai_store.reservasi(2, 2, 'uji', path=data / 'cetakan_ai.db')
     return data / 'cetakan_ai.db'
+
+
+def buat_catatan_pertemuan(data):
+    """DB catatan pertemuan sintetis lewat jalur tulis yang sama dengan aplikasi (berkas dibuat 0600, skema v1)."""
+    guru_pertemuan_dasar.catat(
+        kunci='klp_' + 'c' * 32 + ':1', pertemuan_id=1, mulai='2026-11-21T02:00:00', topik='lainnya',
+        hadir={'kor_' + 'a' * 32: 'hadir'}, oleh='akun_' + 'd' * 32, peran='guru',
+        pada='2026-11-27T01:00:00', path=data / 'guru-pertemuan.db')
+    return data / 'guru-pertemuan.db'
 
 
 def sahkan_ulang(target, **manifest):
@@ -113,16 +124,71 @@ def test_capture_cetakan_v2_tercatat_dan_skema_lolos(sumber, tmp_path):
     c.close()
 
 
-def test_capture_keempat_opsional_terurut(sumber, tmp_path):
+def test_capture_kelima_opsional_terurut(sumber, tmp_path):
     buat_sakelar(sumber)
     buat_kurikulum(sumber)
     buat_cetakan(sumber)
     buat_kuota_ai(sumber)
+    buat_catatan_pertemuan(sumber)
     target = buat(sumber, tmp_path)
-    assert backup.OPSIONAL == ('sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db')
+    assert backup.OPSIONAL == ('sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db')
     assert backup.read_json(target / backup.MANIFEST)['optional'] == [
-        'cetakan.db', 'cetakan_ai.db', 'kurikulum.db', 'sakelar.db']
-    assert backup.validate(target)['optional'] == ('cetakan.db', 'cetakan_ai.db', 'kurikulum.db', 'sakelar.db')
+        'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'kurikulum.db', 'sakelar.db']
+    assert backup.validate(target)['optional'] == (
+        'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'kurikulum.db', 'sakelar.db')
+
+
+def test_capture_tanpa_catatan_pertemuan_tetap_valid_seperti_empat_opsional_lama(sumber, tmp_path):
+    buat_sakelar(sumber)
+    buat_cetakan(sumber)
+    buat_kuota_ai(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('cetakan.db', 'cetakan_ai.db', 'sakelar.db')
+
+
+def test_nama_opsional_catatan_pertemuan_sama_dengan_nama_berkas_aplikasi():
+    """Daftar OPSIONAL (literal) dan modul bentuk harus menyebut berkas yang sama."""
+    assert guru_pertemuan_bentuk.NAMA_BERKAS in backup.OPSIONAL
+    assert guru_pertemuan_dasar.BERKAS_BAWAAN == '/data/' + guru_pertemuan_bentuk.NAMA_BERKAS
+
+
+def test_capture_catatan_pertemuan_tercatat_dan_skema_lolos(sumber, tmp_path):
+    buat_catatan_pertemuan(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('guru-pertemuan.db',)
+    with sqlite3.connect(target / 'opsional/guru-pertemuan.db') as c:
+        assert c.execute('SELECT topik, peran FROM pertemuan_jurnal').fetchone() == ('lainnya', 'guru')
+        assert c.execute('SELECT status FROM pertemuan_hadir').fetchone() == ('hadir',)
+    c.close()
+
+
+def test_capture_tolak_catatan_pertemuan_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):
+    ubah_sqlite(sumber / 'guru-pertemuan.db', 'CREATE TABLE sementara(id INTEGER)')
+    with pytest.raises(backup.Ditolak, match='schema catatan pertemuan'):
+        buat(sumber, tmp_path)
+    assert not (tmp_path / 'backup-uji').exists()
+
+
+def test_catatan_pertemuan_user_version_salah_ditolak(sumber, tmp_path):
+    buat_catatan_pertemuan(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/guru-pertemuan.db', 'PRAGMA user_version = 2')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema catatan pertemuan'):
+        backup.validate(target)
+
+
+@pytest.mark.parametrize('tabel', guru_pertemuan_bentuk.TABEL_SKEMA)
+def test_catatan_pertemuan_tabel_hilang_ditolak(sumber, tmp_path, tabel):
+    buat_catatan_pertemuan(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/guru-pertemuan.db',
+                'DROP TRIGGER IF EXISTS %s_tolak_ubah' % tabel,
+                'DROP TRIGGER IF EXISTS %s_tolak_hapus' % tabel,
+                'DROP TABLE %s' % tabel)
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema catatan pertemuan'):
+        backup.validate(target)
 
 
 def test_capture_kuota_cetakan_ai_tercatat_dan_skema_lolos(sumber, tmp_path):

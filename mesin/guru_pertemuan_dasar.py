@@ -8,6 +8,7 @@ tulis pertama; terkini() dan punya_jurnal() tidak pernah membuat berkas.
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
 from collections.abc import Mapping
@@ -18,11 +19,12 @@ from typing import Dict, Iterable, List, Set, Tuple
 
 import auth
 import guru_pertemuan_aturan as aturan
+from guru_pertemuan_bentuk import NAMA_BERKAS, TABEL_SKEMA, VERSI_SKEMA  # noqa: F401  (diekspor ulang untuk pemakai lama)
+
+_log = logging.getLogger(__name__)
 
 ENV_DB = "GURU_PERTEMUAN_DB"
-BERKAS_BAWAAN = "/data/guru-pertemuan.db"
-VERSI_SKEMA = 1
-TABEL_SKEMA = ("pertemuan_jurnal", "pertemuan_hadir")
+BERKAS_BAWAAN = "/data/" + NAMA_BERKAS
 PERAN_SAH = ("guru", "admin")
 PERTEMUAN_ID_MIN = 1
 PANJANG_POTONGAN_PASANGAN = 400
@@ -175,12 +177,28 @@ def _pastikan_skema(kon) -> None:
     kon.execute(f"PRAGMA user_version = {VERSI_SKEMA}")
 
 
-def _siapkan_berkas(tujuan: Path) -> None:
-    """Berkas baru dibuat 0600 sebelum SQLite membukanya; berkas yang sudah ada tidak diubah."""
+def _siapkan_berkas(tujuan: Path) -> bool:
+    """Berkas baru dibuat 0600 sebelum SQLite membukanya. True bila berkas dibuat di sini; yang sudah ada tidak diubah."""
     try:
         os.close(os.open(tujuan, os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0), IZIN_BERKAS))
     except FileExistsError:
-        pass
+        return False
+    return True
+
+
+def _hapus_bila_kosong(tujuan: Path, dibuat_di_sini: bool) -> None:
+    """Bersihkan berkas 0 byte yang baru dibuat `catat` bila penulisan pertama gagal.
+
+    Berkas 0 byte tidak punya header SQLite: `sqlite_copy` backup operasional menolaknya sehingga seluruh backup
+    gagal. Berkas yang sudah ada sebelumnya atau sudah berisi tidak pernah disentuh.
+    """
+    if not dibuat_di_sini:
+        return
+    try:
+        if tujuan.stat().st_size == 0:
+            tujuan.unlink()
+    except OSError:
+        _log.warning("berkas catatan kosong tidak bisa dibersihkan")
 
 
 # --- keadaan terkini --------------------------------------------------------------------
@@ -246,14 +264,18 @@ def catat(*, kunci, pertemuan_id, mulai, topik, hadir: Mapping[str, str], oleh, 
     """Tambah baris yang berbeda dari keadaan terkini dalam satu transaksi. Kirim ulang identik = 0 baris."""
     catatan = _bentuk_catatan(kunci, pertemuan_id, mulai, topik, hadir, oleh, peran, pada)
     tujuan = _path_db(path)
+    dibuat_di_sini = False
     try:
-        _siapkan_berkas(tujuan)
+        dibuat_di_sini = _siapkan_berkas(tujuan)
         with closing(sqlite3.connect(str(tujuan), timeout=TIMEOUT_DETIK)) as kon, kon:
             kon.execute("BEGIN IMMEDIATE")
             _pastikan_skema(kon)
             return _tulis_selisih(kon, catatan)
     except (OSError, sqlite3.Error) as err:
         raise GalatCatatan(_PESAN_TULIS) from err
+    finally:
+        # Sukses: berkas berisi skema, tidak disentuh. Gagal pada pembuatan pertama: transaksi dibatalkan, berkas 0 byte dibuang.
+        _hapus_bila_kosong(tujuan, dibuat_di_sini)
 
 
 # --- baca (tanpa membuat berkas) --------------------------------------------------------
