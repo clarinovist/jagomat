@@ -175,6 +175,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/orang-tua/pin", "murid"),  # F3: buka tirai dengan PIN; sakelar mati = identik rute tak dikenal
     ("/murid/orang-tua/pin/atur", "murid"),  # F3: pasang/ganti PIN (hanya tirai terbuka atau tanpa PIN)
     ("/murid/orang-tua/pin/hapus", "murid"),  # F3: hapus PIN (tirai terbuka + konfirmasi)
+    ("/murid/orang-tua/kode", "murid"),  # 3b-3B: buat/ganti/cabut kode anak; sakelar, PIN, tirai, token di server; mati = jalur murid asing
     ("/murid/cek/mulai", "murid"),  # F2b: mulai cek dari sesi anak (exact); DAFTAR_AKUN_ANAK + funnel mati = jalur murid asing
     ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
     ("/murid/langganan", "murid"),  # F5: POST buat tagihan / unggah bukti langganan; sakelar mati = jalur murid asing

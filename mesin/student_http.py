@@ -171,6 +171,9 @@ def tangani_post(penangan, jalur: str) -> bool:
     if jalur.startswith("/murid/foto/"):
         _post_foto(penangan, jalur)
         return True
+    import orang_tua_tautan_http
+    if orang_tua_tautan_http.tangani_post(penangan, jalur):
+        return True
     import orang_tua_http
     return orang_tua_http.tangani_post(penangan, jalur)
 

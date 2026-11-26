@@ -29,6 +29,7 @@ import kelas_store
 import laju_masuk
 import orang_tua_data
 import orang_tua_pages as halaman
+import orang_tua_tautan_http as tautan_kode
 import paket_belajar_gate
 import pesanan_alur as alur
 import pin_orang_tua_store as pin_store
@@ -52,6 +53,7 @@ class _Konteks:
     id_akun: str
     siswa_id: int
     token: Optional[str]  # token cookie sesi; None untuk Basic (tidak bisa membuka tirai)
+    principal: Optional[object] = None  # principal sesi; dipakai kartu kode anak (form token)
 
     def terbuka(self) -> bool:
         return self.token is not None and tirai.terbuka(self.token, self.id_akun, self.siswa_id)
@@ -72,7 +74,7 @@ def tersedia() -> bool:
 
 def _konteks(penangan, principal, siswa_id: int) -> _Konteks:
     token = penangan._ambil_token() if principal.metode == "cookie" else None
-    return _Konteks(principal.id_akun, siswa_id, token or None)
+    return _Konteks(principal.id_akun, siswa_id, token or None, principal)
 
 
 def _kunci_laju(penangan, siswa_id: int) -> tuple:
@@ -111,8 +113,16 @@ def _tampilkan(penangan, kon, ctx: _Konteks, *, kabar: str = "", galat: str = ""
     tautan = paket_belajar_gate.aktif()
     isi = halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat, tautan_paket=tautan,
                               masa_paket=_masa_paket(ctx) if tautan else (),
-                              tagihan_paket=_tagihan_paket(ctx) if tautan else ())
+                              tagihan_paket=_tagihan_paket(ctx) if tautan else (),
+                              kartu_kode=_kartu_kode(ctx, ada_pin))
     _kirim(penangan, isi, kode)
+
+
+def _kartu_kode(ctx: _Konteks, ada_pin: bool) -> str:
+    """Kartu kode anak untuk guru hanya bila PIN terpasang dan tirai terbuka untuk sesi cookie ini (tanpa DB baru)."""
+    if not ada_pin or not ctx.terbuka() or ctx.principal is None:
+        return ""
+    return tautan_kode.kartu_kode(ctx.principal, ctx.token, ctx.siswa_id)
 
 
 def _tagihan_paket(ctx: _Konteks) -> tuple:

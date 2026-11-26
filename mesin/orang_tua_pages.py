@@ -295,11 +295,11 @@ def _kaki() -> str:
 
 
 def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan_paket: bool = False,
-                masa_paket=(), tagihan_paket=()) -> bytes:
+                masa_paket=(), tagihan_paket=(), kartu_kode: str = "") -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
     Urutan: banner perpanjang Latihan Harian, banner tagihan Latihan Harian belum dibayar, banner paket belajar
-    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), laporan Guru, PIN (lipat).
+    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), kartu kode anak untuk guru (`kartu_kode`, kosong bila tidak tampil), laporan Guru, PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     banner_paket = (kelas_pages.banner_tagihan(tagihan_paket, data.nama_anak)
@@ -316,7 +316,7 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan
         + peta_laporan_ortu_pages.blok_peta(data.peta)
         + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + (kelas_pages.kartu_orang_tua() if tautan_paket else "")
-        + _blok_laporan_lama(data.laporan, data.status_pesanan)
+        + kartu_kode + _blok_laporan_lama(data.laporan, data.status_pesanan)
         + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
     return _dokumen(badan, ceria=True)
