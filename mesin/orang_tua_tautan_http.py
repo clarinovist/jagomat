@@ -90,8 +90,8 @@ _PESAN_PUTUSAN = {
 # --- identitas, token, dan bentuk isian ------------------------------------------------------------
 
 def tersedia() -> bool:
-    """Sakelar DAFTAR_AKUN_ANAK dan PAKET_BELAJAR keduanya hidup."""
-    return daftar_anak_gate.aktif() and paket_belajar_gate.aktif()
+    """Gerbang KODE_ANAK_AKTIF, sakelar DAFTAR_AKUN_ANAK, dan PAKET_BELAJAR, ketiganya hidup."""
+    return aturan.kode_anak_aktif() and daftar_anak_gate.aktif() and paket_belajar_gate.aktif()
 
 
 def _aksi(tindakan: str) -> str:

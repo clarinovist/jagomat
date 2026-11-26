@@ -16,7 +16,8 @@ Urutan POST. Tiap langkah yang gagal berhenti di situ:
 
 Kode mentah tampil sekali pada respons 200 buat/ganti (`no-store`, tanpa redirect). Cabut menjawab 200 yang sama
 baik ada kode yang dicabut maupun tidak. Pencatat `oleh` = id akun admin sesi dan `peran` = admin. Blok GET tidak
-memuat kode, akun, atau id siswa.
+memuat kode, akun, atau id siswa. Gerbang `KODE_ANAK_AKTIF` mati: blok kosong, dan POST dijawab 404 identik
+sebelum form dibaca.
 """
 
 from __future__ import annotations
@@ -132,7 +133,10 @@ def _tokens(penangan, principal, order_id: str, aktif: Optional[dict]) -> Option
 
 
 def blok_html(penangan, principal, order_id: str) -> str:
-    """Blok 'Kode anak untuk guru' untuk detail order. Galat baca menjadi blok tak terbaca (halaman tetap 200)."""
+    """Blok 'Kode anak untuk guru' untuk detail order. Galat baca menjadi blok tak terbaca (halaman tetap 200).
+    Gerbang mati = blok kosong tanpa membaca apa pun."""
+    if not aturan.kode_anak_aktif():
+        return ""
     try:
         anak = _anak_mini_order(order_id)
         if anak is None:
@@ -187,6 +191,9 @@ def tangani_post(penangan, jalur) -> bool:
     """POST `/admin/kelas/kode-anak`. False bila jalur bukan milik modul ini."""
     if jalur != halaman.RUTE_KODE:
         return False
+    if not aturan.kode_anak_aktif():
+        h._tidak_ada(penangan)
+        return True
     principal = h._principal_admin(penangan)
     if principal is None:
         h._tidak_ada(penangan)

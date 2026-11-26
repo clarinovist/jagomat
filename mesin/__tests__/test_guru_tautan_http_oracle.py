@@ -470,3 +470,65 @@ def test_galat_tak_terduga_di_ajukan_dijawab_seperti_kode_salah(server, jam, tmp
     assert _jawaban(uji) == _jawaban(referensi)
     assert setelah["permintaan"] == sebelum["permintaan"] == 0
     assert setelah["percobaan_gagal"] == sebelum["percobaan_gagal"] + 1, "tepat satu percobaan gagal tercatat"
+
+
+# --- kuota 10 permintaan per hari per kode (PERMINTAAN_PER_KODE, JENDELA_KODE) ----------------
+
+def _guru_sintetis(nomor: int) -> str:
+    """ID akun guru berbentuk sah (`akun_` + 32 hex) yang tidak pernah diterbitkan `auth`."""
+    return f"akun_{nomor:032x}"
+
+
+def _isi_permintaan(db, kondisi, kode_id: int, jumlah: int) -> None:
+    """Isi `jumlah` permintaan lewat `dasar.ajukan`. Tiap baris dari guru sintetis berbeda: satu permintaan menunggu
+    per (guru, anak), jadi guru HTTP (AKUN_A) harus tetap bebas dari permintaan menunggu."""
+    for nomor in range(jumlah):
+        dasar.ajukan(guru_id=_guru_sintetis(nomor), kelompok_id=kondisi.kelompok_id, kode_id=kode_id,
+                     pada=KINI, path=db)
+
+
+def test_kuota_kode_permintaan_ke_sepuluh_lewat_http_masih_sukses(server, jam, tmp_path, monkeypatch):
+    """Kontrol positif: dengan sembilan permintaan tersimpan, permintaan HTTP ke-10 untuk kode yang sama diterima."""
+    db = siapkan_db_tautan(tmp_path, monkeypatch)
+    kondisi = siapkan_kelompok_dan_order(server)
+    kode_id = buat_kode_anak(kondisi)
+    _isi_permintaan(db, kondisi, kode_id, aturan.PERMINTAAN_PER_KODE - 1)
+
+    kode, _isi, _headers = _ajukan(server, kondisi.kelompok_id, KODE)
+
+    assert kode == 200
+    assert baris_tabel(db, "permintaan") == aturan.PERMINTAAN_PER_KODE
+
+
+def test_kuota_kode_permintaan_ke_sebelas_dijawab_seperti_kegagalan_generik(server, jam, tmp_path, monkeypatch):
+    db = siapkan_db_tautan(tmp_path, monkeypatch)
+    kondisi = siapkan_kelompok_dan_order(server)
+    kode_id = buat_kode_anak(kondisi)
+    _isi_permintaan(db, kondisi, kode_id, aturan.PERMINTAAN_PER_KODE)
+    referensi = _ajukan(server, kondisi.kelompok_id, KODE_REF)
+    sebelum = keadaan_tautan(db)
+
+    uji = _ajukan(server, kondisi.kelompok_id, KODE)
+
+    setelah = keadaan_tautan(db)
+    assert _jawaban(referensi)[0] == 400
+    assert _jawaban(uji) == _jawaban(referensi)
+    assert "Location" not in uji[2]
+    assert setelah["permintaan"] == sebelum["permintaan"] == aturan.PERMINTAAN_PER_KODE
+    assert setelah["kode_anak"] == sebelum["kode_anak"]
+    assert setelah["percobaan_gagal"] == sebelum["percobaan_gagal"] + 1, "tepat satu percobaan gagal tercatat"
+
+
+def test_kuota_kode_pulih_setelah_lebih_dari_24_jam(server, jam, tmp_path, monkeypatch):
+    db = siapkan_db_tautan(tmp_path, monkeypatch)
+    kondisi = siapkan_kelompok_dan_order(server)
+    kode_id = buat_kode_anak(kondisi)
+    _isi_permintaan(db, kondisi, kode_id, aturan.PERMINTAAN_PER_KODE)
+    penuh = _ajukan(server, kondisi.kelompok_id, KODE)
+    assert penuh[0] == 400, "kontrol: sebelum jendela lewat, kuota masih penuh"
+
+    jam.maju_jam(25)
+    pulih = _ajukan(server, kondisi.kelompok_id, KODE)
+
+    assert pulih[0] == 200
+    assert baris_tabel(db, "permintaan") == aturan.PERMINTAAN_PER_KODE + 1

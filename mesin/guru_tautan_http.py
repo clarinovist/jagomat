@@ -1,7 +1,8 @@
 """Tambah anak dengan kode di detail kelas guru: `POST /guru/kelas/<klp_id>/tautan` (Fase 3b-2).
 
 Identitas HANYA dari sesi: guru_id = `id_akun` principal peran guru. Kelompok milik guru lain, tak ada, atau id cacat
-dijawab 404 identik dengan rute tak dikenal (`lembaga_http._tidak_ada`).
+dijawab 404 identik dengan rute tak dikenal (`lembaga_http._tidak_ada`). Gerbang `KODE_ANAK_AKTIF` mati menjawab
+dengan 404 yang sama sebelum langkah apa pun, dan bagian detail kosong.
 
 Urutan POST. Tiap langkah yang gagal berhenti di situ:
 1. pemilik kelompok (404);
@@ -248,7 +249,10 @@ def _permintaan_kelompok(guru_id: str, kelompok_id: str, kini: str) -> list:
 
 
 def bagian_detail(penangan, principal, kelompok_id: str, kini: str) -> str:
-    """HTML bagian 'Tambah anak dengan kode' dan daftar permintaan. Galat baca = bagian kosong, bukan 404 atau 500."""
+    """HTML bagian 'Tambah anak dengan kode' dan daftar permintaan. Galat baca = bagian kosong, bukan 404 atau 500.
+    Gerbang mati = bagian kosong tanpa membaca apa pun."""
+    if not aturan.kode_anak_aktif():
+        return ""
     try:
         with js.buka(admin_store.BAWAAN) as kon:
             pesan_tutup = masuk.kelompok_pesan_tutup(kon, kelompok_id, kini)
@@ -266,6 +270,9 @@ def tangani_post(penangan, jalur: str) -> bool:
     """POST `/guru/kelas/<klp_id>/tautan`. Dipanggil setelah palang sandi dan guard asal dispatcher."""
     if not (jalur.startswith(RUTE_PREFIX) and jalur.endswith(SUFIKS_TAUTAN)):
         return False
+    if not aturan.kode_anak_aktif():
+        lembaga_http._tidak_ada(penangan)
+        return True
     principal = _principal_guru(penangan)
     kelompok_id = _kelompok_dari_jalur(jalur)
     kini = _kini()

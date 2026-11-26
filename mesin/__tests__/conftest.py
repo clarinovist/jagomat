@@ -102,3 +102,29 @@ def cache_sinyal_nav_bersih():
     admin_sinyal_cache.kosongkan()
     yield
     admin_sinyal_cache.kosongkan()
+
+
+# Berkas yang menguji permukaan kode anak lewat HTTP. Gerbang KODE_ANAK_AKTIF mati di kode rilis, jadi berkas-berkas
+# ini dinyalakan di sini supaya tesnya tetap menguji fitur yang menyala. Berkas gerbang sendiri (test_guru_tautan_gerbang)
+# SENGAJA tidak termasuk: ia harus membuktikan keadaan mati. Berkas lain tidak menyentuh permukaan ini.
+BERKAS_GERBANG_KODE_ANAK_NYALA = frozenset({
+    "test_guru_tautan_http",
+    "test_guru_tautan_http_oracle",
+    "test_guru_jadwal_http",
+    "test_orang_tua_tautan_http",
+    "test_orang_tua_tautan_putusan",
+    "test_orang_tua_tautan_guru",
+    "test_admin_kode_anak_http",
+})
+
+
+@pytest.fixture(autouse=True)
+def gerbang_kode_anak_menyala_untuk_berkas_tautan(request, monkeypatch):
+    """Nyalakan KODE_ANAK_AKTIF hanya untuk berkas di BERKAS_GERBANG_KODE_ANAK_NYALA; berkas lain tetap memakai default mati."""
+    modul = getattr(request, "module", None)
+    nama_berkas = modul.__name__.rsplit(".", 1)[-1] if modul is not None else ""
+    if nama_berkas in BERKAS_GERBANG_KODE_ANAK_NYALA:
+        import guru_tautan_aturan
+
+        monkeypatch.setattr(guru_tautan_aturan, "KODE_ANAK_AKTIF", True)
+    yield

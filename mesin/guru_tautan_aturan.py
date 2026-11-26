@@ -43,6 +43,11 @@ PERAN_SAH = (PERAN_ORANG_TUA, PERAN_ADMIN)
 FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 _POLA_WAKTU = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}")
 
+# Gerbang fitur kode anak (syarat rilis L6). MATI = ketiga permukaan (guru, orang tua, admin) tidak ada: 404
+# identik, tanpa efek, tanpa membuat `guru-tautan.db`. Hanya dinyalakan di commit rilis, SETELAH backup
+# `guru-tautan.db` dan tool backup HOST terpasang. Tes menyalakannya lewat monkeypatch atau fixture.
+KODE_ANAK_AKTIF = False
+
 
 # --- kode -------------------------------------------------------------------------------
 
@@ -152,3 +157,10 @@ def guru_diblokir(jumlah_gagal: int) -> bool:
 
 def kode_penuh(jumlah_permintaan: int) -> bool:
     return jumlah_permintaan >= PERMINTAAN_PER_KODE
+
+
+# --- gerbang -----------------------------------------------------------------------------
+
+def kode_anak_aktif() -> bool:
+    """Gerbang fitur kode anak. Konstanta dibaca saat dipanggil, bukan saat impor, supaya monkeypatch di tes berlaku."""
+    return KODE_ANAK_AKTIF is True
