@@ -42,6 +42,22 @@ def _tempatkan_privat(kon, guru, siswa, n, tanggal, jam="16:30"):
                  sekarang=kelas_kit.SESUDAH_UPLOAD)
 
 
+def _lunas_mini_akses_lewat(kon, siswa, n):
+    """Order Mini lunas dengan masa akses sebulan yang berakhir 19 Nov (disetujui 19 Okt, sebelum jam uji 23 Nov)."""
+    tagihan, bukti_id = kelas_kit.menunggu(kon, siswa, "mini", n, sekarang="2026-10-19T09:00:00",
+                                           unggah_pada="2026-10-19T09:30:00")
+    kelas_kit.setuju(kon, tagihan, bukti_id, sekarang="2026-10-19T10:00:00")
+    return tagihan.order_id
+
+
+def _tempatkan_mentah(kon, kelompok_id, order_id):
+    """Penempatan langsung lewat SQL: tempatkan() memeriksa pertemuan terhadap masa akses, sedangkan order ini sengaja lewat."""
+    kon.execute("INSERT INTO jadwal_penempatan(order_id,kelompok_id,guru_id,lokasi,dibuat,diubah,dibuat_oleh,"
+                "diubah_oleh) VALUES(?,?,NULL,NULL,?,?,?,?)",
+                (order_id, kelompok_id, kelas_kit.KINI, kelas_kit.KINI, ADMIN, ADMIN))
+    kon.commit()
+
+
 def _isi_contoh(server):
     """Dua guru: A punya Mini Alfa (anak Alfa) dan Private (anak Beta); B punya Mini Beta dan Private (anak Delta)."""
     anak = {
@@ -179,6 +195,22 @@ def test_respons_guru_memakai_header_privat(server, jadwal):
         assert kode == 200, jalur
         assert tajuk.get("Cache-Control") == "no-store", jalur
         assert tajuk.get("Referrer-Policy") == "no-referrer", jalur
+
+
+# --- H9: anggota dengan masa akses lewat diberi tanda teks, nama tetap tampil ------------------
+
+def test_anggota_akses_habis_diberi_tanda_teks_dan_nama_tetap_tampil(server, jadwal):
+    siswa = tambah_anak(server, "Anak Sintetis Epsilon", "guru", None)
+    with js.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        order = _lunas_mini_akses_lewat(kon, siswa, n=9)
+        _tempatkan_mentah(kon, jadwal["kid_a"], order)
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    assert "<li>Anak Sintetis Epsilon · Akses habis</li>" in isi
+    assert "<li>Anak Sintetis Alfa</li>" in isi
+    assert isi.count("Akses habis") == 1
+    assert "Terisi 2 dari 5 anak." in isi
+    assert "siswa_id" not in isi and "order_id" not in isi and "akun_" not in isi
 
 
 # --- H7: DB admin belum dipasang atau rusak ------------------------------------------------

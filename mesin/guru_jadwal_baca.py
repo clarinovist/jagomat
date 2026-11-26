@@ -34,13 +34,26 @@ def _order_aktif_ids(kon, order_ids: Iterable[str], kini: str) -> Set[str]:
     return aktif
 
 
-def _anggota_aktif(kon, kelompok_id: str, kini: str) -> List[int]:
-    """siswa_id anggota kelompok yang ordernya aktif, urut id order."""
+def _akses_habis(berakhir: Optional[str], kini: str) -> bool:
+    """Masa akses habis bila `berakhir <= kini`: akses berlaku pada [mulai, berakhir), seperti `kelas_store.berakhir_aktif`.
+
+    Tanpa baris kelas_akses (`berakhir` None) TIDAK dianggap habis; keadaan itu tidak ditebak. Kedua nilai memakai
+    format waktu baku yang sama, jadi pembandingan teks sah.
+    """
+    return berakhir is not None and berakhir <= kini
+
+
+def _anggota_aktif(kon, kelompok_id: str, kini: str) -> List[dict]:
+    """Anggota kelompok yang ordernya aktif, urut id order: `siswa_id` dan `akses_habis`. Anggota dengan akses
+    lewat tetap ada; hanya ditandai."""
     baris = kon.execute(
-        "SELECT p.order_id, o.siswa_id FROM jadwal_penempatan p JOIN kelas_order o ON o.id=p.order_id "
-        "WHERE p.kelompok_id=? ORDER BY p.order_id", (kelompok_id,)).fetchall()
+        "SELECT p.order_id, o.siswa_id, MAX(a.berakhir) AS berakhir "
+        "FROM jadwal_penempatan p JOIN kelas_order o ON o.id=p.order_id "
+        "LEFT JOIN kelas_akses a ON a.order_id=p.order_id "
+        "WHERE p.kelompok_id=? GROUP BY p.order_id, o.siswa_id ORDER BY p.order_id", (kelompok_id,)).fetchall()
     aktif = _order_aktif_ids(kon, (b["order_id"] for b in baris), kini)
-    return [b["siswa_id"] for b in baris if b["order_id"] in aktif]
+    return [{"siswa_id": b["siswa_id"], "akses_habis": _akses_habis(b["berakhir"], kini)}
+            for b in baris if b["order_id"] in aktif]
 
 
 def _pertemuan_berikut(kon, kelompok_id: str, kini: str) -> Optional[str]:
@@ -101,7 +114,10 @@ def daftar_kelas(kon, guru_id: str, kini) -> List[dict]:
 
 
 def detail_kelas(kon, guru_id: str, kelompok_id, kini) -> Optional[dict]:
-    """Detail satu kelompok milik guru, atau None. Id cacat, tak ada, dan milik guru lain sama-sama None."""
+    """Detail satu kelompok milik guru, atau None. Id cacat, tak ada, dan milik guru lain sama-sama None.
+
+    `anggota`: list `{"siswa_id", "akses_habis"}` urut id order (lihat `_anggota_aktif`).
+    """
     if not _id_kelompok_sah(kelompok_id):
         return None
     waktu = dasar.ke_baku(kini)

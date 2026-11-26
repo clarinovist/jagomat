@@ -5,6 +5,7 @@ Kasus B1-B5 dari plan Fase 1. Data sepenuhnya sintetis (akun_ buatan, anak nomor
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,8 @@ GURU_B = "akun_" + "b" * 32
 GURU_KOSONG = "akun_" + "c" * 32
 KINI_LAMPAU = "2026-11-20T12:00:00"             # sebelum semua pertemuan contoh
 KINI_SESI_PERTAMA_LEWAT = "2026-11-22T00:00:00"  # sesi Mini pertama (21 Nov 09.00 WIB) sudah lewat
+KINI_AKSES_LEWAT = "2026-12-22T00:00:00"         # siswa 1 (akses berakhir 20 Des) sudah habis; siswa 9 (24 Des) belum
+FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 KELAS_TIDAK_SAH = ("klp_" + "f" * 32, "klp-bukan-id", None)
 SQL_TULIS = ("INSERT", "UPDATE", "DELETE", "REPLACE", "CREATE", "DROP", "ALTER")
 
@@ -72,6 +75,17 @@ def _sisip_privat_mentah(kon, order_id, guru):
                     "diubah_oleh) VALUES(NULL,?,?,?,60,0,?,?)",
                     (order_id, ke, "2026-11-%02dT09:30:00" % (22 + ke), kelas_kit.KINI, ADMIN))
     kon.commit()
+
+
+def _lunas_mini_pada(kon, siswa, n, dibuat, unggah, disetujui):
+    """Order Mini lunas dengan masa akses satu bulan yang mulai pada `disetujui` (berakhir sebulan kemudian)."""
+    tagihan, bukti_id = kelas_kit.menunggu(kon, siswa, "mini", n, sekarang=dibuat, unggah_pada=unggah)
+    kelas_kit.setuju(kon, tagihan, bukti_id, sekarang=disetujui)
+    return tagihan.order_id
+
+
+def _akses_berakhir(kon, siswa_id):
+    return kon.execute("SELECT berakhir FROM kelas_akses WHERE siswa_id=?", (siswa_id,)).fetchone()[0]
 
 
 def _isi_contoh(kon):
@@ -166,7 +180,7 @@ def test_order_tidak_aktif_tidak_tampil_sebagai_anggota_atau_pertemuan(db, conto
         daftar = gb.daftar_kelas(kon, GURU_A, KINI_LAMPAU)
     assert {p["siswa_id"] for p in mendatang if p["jenis"] == "privat"} == {2}
     assert len(mendatang) == 16
-    assert detail["anggota"] == [1]
+    assert detail["anggota"] == [{"siswa_id": 1, "akses_habis": False}]
     assert daftar[0]["terisi"] == 1
 
 
@@ -180,7 +194,60 @@ def test_detail_kelas_milik_lain_tak_ada_dan_cacat_sama_hasilnya(db, contoh):
     assert hasil == [None, None, None, None]
     assert milik["nama"] == "Mini Alfa"
     assert len(milik["sesi"]) == 8
-    assert milik["anggota"] == [1]
+    assert milik["anggota"] == [{"siswa_id": 1, "akses_habis": False}]
+
+
+# --- akses habis: anggota Mini dengan masa akses lewat tetap tampil dan diberi tanda ------------
+
+def _tambah_anggota_akses_24_des(kon, kid_a):
+    """Siswa 9 disetujui 24 Nov (akses berakhir 24 Des 10.00 UTC), ditempatkan mentah ke kelas Alfa."""
+    order = _lunas_mini_pada(kon, 9, 9, dibuat="2026-11-24T09:00:00", unggah="2026-11-24T09:30:00",
+                             disetujui="2026-11-24T10:00:00")
+    _sisip_penempatan_mini_mentah(kon, order, kid_a)
+    return order
+
+
+def test_anggota_mini_ditandai_akses_habis_sesuai_masa_berlaku(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        _tambah_anggota_akses_24_des(kon, contoh["kid_a"])
+    with _ro(db) as kon:
+        # Kondisi uji: siswa 1 berakhir 20 Des 09.30 UTC, siswa 9 berakhir 24 Des 10.00 UTC.
+        assert _akses_berakhir(kon, 1) == "2026-12-20T09:30:00"
+        assert _akses_berakhir(kon, 9) == "2026-12-24T10:00:00"
+        detail = gb.detail_kelas(kon, GURU_A, contoh["kid_a"], KINI_AKSES_LEWAT)
+        terisi = gb.daftar_kelas(kon, GURU_A, KINI_AKSES_LEWAT)[0]["terisi"]
+    # Urutan anggota mengikuti id order acak (`id_order_baru`), jadi dibandingkan menurut siswa_id.
+    assert sorted(detail["anggota"], key=lambda a: a["siswa_id"]) == [
+        {"siswa_id": 1, "akses_habis": True}, {"siswa_id": 9, "akses_habis": False}]
+    assert terisi == 2
+
+
+def test_akses_habis_tepat_di_batas_berakhir(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        _tambah_anggota_akses_24_des(kon, contoh["kid_a"])
+    with _ro(db) as kon:
+        berakhir = _akses_berakhir(kon, 9)
+        sedetik_sebelumnya = (datetime.strptime(berakhir, FORMAT_WAKTU) - timedelta(seconds=1)).strftime(FORMAT_WAKTU)
+        tepat = gb.detail_kelas(kon, GURU_A, contoh["kid_a"], berakhir)["anggota"]
+        sebelum = gb.detail_kelas(kon, GURU_A, contoh["kid_a"], sedetik_sebelumnya)["anggota"]
+    assert {"siswa_id": 9, "akses_habis": True} in tepat
+    assert {"siswa_id": 9, "akses_habis": False} in sebelum
+
+
+def test_order_aktif_tanpa_baris_akses_tidak_ditandai_habis(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        oid = kelas_kit.sisip_order(kon, 11, siswa=11, paket="mini")
+        kelas_kit.sisip_tagihan(kon, oid)
+        bukti_id = kelas_kit.sisip_bukti(kon, oid, 11)
+        kelas_kit.sisip_verifikasi(kon, oid, bukti_id)
+        _sisip_penempatan_mini_mentah(kon, oid, contoh["kid_a"])
+    with _ro(db) as kon:
+        # Kondisi uji: order lunas (aktif) tetapi tanpa baris kelas_akses.
+        akses = kon.execute("SELECT COUNT(*) FROM kelas_akses WHERE order_id=?", (oid,)).fetchone()[0]
+        status = ks.status_dari(ks.baris_order(kon, oid), ks.fakta_order(kon, oid), KINI_AKSES_LEWAT)
+        detail = gb.detail_kelas(kon, GURU_A, contoh["kid_a"], KINI_AKSES_LEWAT)
+    assert akses == 0 and status == kelas_dasar.STATUS_AKTIF
+    assert {"siswa_id": 11, "akses_habis": False} in detail["anggota"]
 
 
 # --- B5: tanpa tulis, tanpa berkas baru ---------------------------------------------------

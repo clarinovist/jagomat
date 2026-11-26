@@ -22,6 +22,7 @@ COPY_KOSONG_KELAS = "Belum ada kelas untuk Anda."
 COPY_KOSONG_ANAK = "Belum ada anak di kelas ini."
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_TIDAK_ADA_BERIKUT = "Tidak ada pertemuan mendatang."
+COPY_AKSES_HABIS = "Akses habis"
 
 GAYA = f"""<style>
 .jadwal-st {{ display: grid; gap: {T.SP_4}; }}
@@ -82,10 +83,16 @@ def _baris_sesi(sesi: dict) -> str:
     return f"<li>{_e(_keterangan_sesi(sesi))}</li>"
 
 
-def _daftar_anak(nama_anak: Sequence[str]) -> str:
-    if not nama_anak:
+def _baris_anak(anak: dict) -> str:
+    """Nama anak (di-escape); bila masa akses habis, ditambah teks `COPY_AKSES_HABIS` (bukan hanya warna)."""
+    tanda = (" · " + COPY_AKSES_HABIS) if anak["akses_habis"] else ""
+    return f"<li>{_e(anak['nama'])}{tanda}</li>"
+
+
+def _daftar_anak(anak: Sequence[dict]) -> str:
+    if not anak:
         return _p(COPY_KOSONG_ANAK, "jadwal-meta-st")
-    return '<ul class="jadwal-daftar-st">' + "".join(f"<li>{_e(nama)}</li>" for nama in nama_anak) + "</ul>"
+    return '<ul class="jadwal-daftar-st">' + "".join(_baris_anak(a) for a in anak) + "</ul>"
 
 
 def halaman_jadwal(ident, pertemuan: Sequence[dict]) -> bytes:
@@ -118,7 +125,7 @@ def halaman_kelas(ident, kelas: Sequence[dict]) -> bytes:
 
 
 def halaman_detail(ident, kelas: dict) -> bytes:
-    """Satu kelompok: `nama`, `lokasi`, `kuota`, `terisi`, `anggota` (nama saja), `sesi` (8 pertemuan)."""
+    """Satu kelompok: `nama`, `lokasi`, `kuota`, `terisi`, `anggota` (`nama` dan `akses_habis`), `sesi` (8 pertemuan)."""
     sesi = _daftar_atau_kosong([_baris_sesi(s) for s in kelas["sesi"]], COPY_KOSONG_JADWAL)
     isi = ('<main aria-labelledby="judul-kelas" class="jadwal-st">'
            '<header><p class="jadwal-alis-st">MINI CLASS</p>'

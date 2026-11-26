@@ -104,20 +104,27 @@ def _halaman_kelas(penangan, principal) -> None:
     penangan._kirim_privat(halaman.halaman_kelas(_ident(principal), kelas))
 
 
+def _tampilan_anggota(anggota: list, nama: dict) -> list:
+    """Anggota untuk view-model: `nama` dan `akses_habis` saja (tanpa siswa_id), terurut nama tanpa membedakan huruf."""
+    daftar = [{"nama": nama.get(a["siswa_id"], baca.PLACEHOLDER_NAMA), "akses_habis": a["akses_habis"]}
+              for a in anggota]
+    return sorted(daftar, key=lambda anak: anak["nama"].casefold())
+
+
 def _halaman_detail(penangan, principal, kelompok_id: str) -> None:
     kini = _kini()
     detail = _baca_admin(lambda kon: baca.detail_kelas(kon, principal.id_akun, kelompok_id, kini), None)
     if detail is None:
         lembaga_http._tidak_ada(penangan)
         return
-    nama = _nama_anak(detail["anggota"])
+    nama = _nama_anak(a["siswa_id"] for a in detail["anggota"])
     tampilan = {
         "nama": detail["nama"],
         "lokasi": detail["lokasi"],
         "kuota": detail["kuota"],
         "terisi": len(detail["anggota"]),
         "sesi": detail["sesi"],
-        "anggota": sorted(nama.get(siswa_id, baca.PLACEHOLDER_NAMA) for siswa_id in detail["anggota"]),
+        "anggota": _tampilan_anggota(detail["anggota"], nama),
     }
     penangan._kirim_privat(halaman.halaman_detail(_ident(principal), tampilan))
 
