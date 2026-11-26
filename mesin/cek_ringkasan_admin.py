@@ -1,4 +1,4 @@
-"""Ringkasan cek kemampuan untuk admin (irisan D1): bahan menulis laporan Peta Kemampuan dalam janji 48 jam.
+"""Ringkasan cek kemampuan untuk admin (irisan D1): bahan laporan Peta Kemampuan yang terbit otomatis.
 
 Pembaca MURNI SELECT (tanpa tulis, tanpa menilai ulang): admin melihat skor, kategori, ringkasan, dan hitungan
 benar/total per materi untuk SATU order lunas, plus kapan data per materi hilang oleh retensi. Bukan laporan

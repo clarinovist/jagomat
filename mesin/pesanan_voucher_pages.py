@@ -29,11 +29,8 @@ COPY_STATUS_VOUCHER = {
     purna.VOUCHER_DITAHAN: "Potongan ditahan sampai pembayaran selesai diperiksa tim.",
 }
 COPY_TERBIT = "Laporan sudah terbit."
-COPY_JANJI = "Laporan lengkap terbit paling lambat "
-COPY_TERLAMBAT = (
-    "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya; "
-    "silakan hubungi tim lewat WhatsApp bila perlu bantuan."
-)
+COPY_JANJI = "Laporan langsung terbit setelah pembayaran terverifikasi."
+COPY_TERLAMBAT = "Laporan belum terbit. Hubungi tim lewat WhatsApp; kami bantu sampai laporan Anda terbit."
 
 
 def _baris(teks: str) -> str:
@@ -41,13 +38,14 @@ def _baris(teks: str) -> str:
 
 
 def teks_janji(k) -> str:
-    """Satu kalimat status laporan: sudah terbit, atau janji terbit (WIB)."""
-    return COPY_TERBIT if k.terbit is not None else COPY_JANJI + waktu_wib(k.janji_terbit)
+    """Satu kalimat status laporan: sudah terbit, atau laporan terbit otomatis setelah pembayaran terverifikasi."""
+    if k.terbit is not None:
+        return COPY_TERBIT
+    return COPY_TERLAMBAT if k.terlambat else COPY_JANJI
 
 
 def _blok_laporan(k) -> str:
-    janji = _baris(teks_janji(k))
-    return janji + (_baris(COPY_TERLAMBAT) if k.terlambat else "")
+    return _baris(teks_janji(k))
 
 
 def kartu_voucher(k) -> str:

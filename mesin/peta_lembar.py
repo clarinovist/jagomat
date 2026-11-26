@@ -3,8 +3,8 @@
 `render_lembar(data, *, contoh)` memberi markup lembar saja; kerangka dokumen
 (`halaman_lembar`) memasang CSS `peta_style_lembar` dan skrip cetak polos. Isi
 mengikuti PANDUAN §3: kop + maskot, kotak data, hasil + posisi + lencana, materi,
-Temuan Guru, resep latihan 7 lingkaran, misi, catatan Guru + paraf "Si Jago" +
-cap "KEPALA SEKOLAH ★ JAGOMAT ★", batas lembar. Istilahnya "hasil cek" dan "temuan Guru".
+Temuan, resep latihan 7 lingkaran, misi, catatan (bila sudah ditinjau) + "Si Jago" +
+cap "KEPALA SEKOLAH ★ JAGOMAT ★", batas lembar. Istilahnya "hasil cek" dan "temuan".
 Angka dari data dan `hitung_posisi`; semua teks di-escape.
 """
 from __future__ import annotations
@@ -35,8 +35,7 @@ COPY_BATAS = (
 )
 COPY_SINTETIS = "Contoh dengan data sintetis, bukan hasil anak sungguhan."
 JUDUL_DOKUMEN = "Lembar Hasil Peta Kemampuan"
-COPY_RINGKASAN_TINJAU = "Ringkasan satu halaman dari cek matematika yang ditinjau Guru."
-COPY_RINGKASAN_BELUM = "Ringkasan satu halaman dari cek matematika. Belum ditinjau Guru."
+COPY_RINGKASAN = "Ringkasan satu halaman dari cek matematika."
 _DOODLE = ((1, 2, 30, -10, "+"), (60, 8, 28, 12, "×"), (82, 1, 26, 0, "÷"), (44, 58, 26, -8, "½"))
 
 
@@ -47,19 +46,18 @@ def _doodle() -> str:
     return '<div class="peta-l-doodle-st" aria-hidden="true">%s</div>' % span
 
 
-def _kop(ditinjau: bool) -> str:
+def _kop() -> str:
     return (
         '<header class="peta-l-kop-st">%s<div><span class="peta-l-logo-kotak-st"><img src="%s" alt="Jagomat" width="249" height="48"></span>'
         '<h1>%s</h1><p>%s</p></div>'
         '<img src="%s" alt="" width="78" height="78"></header>'
-    ) % (_doodle(), JALUR_LOGO, e(JUDUL_DOKUMEN), e(COPY_RINGKASAN_TINJAU if ditinjau else COPY_RINGKASAN_BELUM), JALUR_MASKOT)
+    ) % (_doodle(), JALUR_LOGO, e(JUDUL_DOKUMEN), e(COPY_RINGKASAN), JALUR_MASKOT)
 
 
 def _kotak_data(data) -> str:
     kolom = (
         ("Nama anak", data.nama_anak), ("Kelas", "%d SD" % data.kelas), ("Tanggal cek", tanggal_pendek(data.tanggal_cek)),
         ("Soal", "%d soal" % data.jumlah_soal),
-        ("Ditinjau oleh", data.guru.nama) if data.ditinjau else ("Peninjauan", "Belum ditinjau Guru"),
     )
     isi = "".join("<div><small>%s</small><b>%s</b></div>" % (e(k), e(v)) for k, v in kolom)
     return '<section class="peta-l-data-st" aria-label="Data cek">%s</section>' % isi
@@ -113,7 +111,7 @@ def _temuan(data) -> str:
             % (ubin_materi(pola.materi_tujuan, "m"), e(t.judul), pola.jumlah, data.jumlah_salah, e(pola.contoh)))
     return (
         '<section class="peta-l-kartu-st"><p class="peta-l-ttl-st"><span class="peta-l-nomor-st">3</span>'
-        'Temuan Guru: di langkah mana salahnya</p><ul class="peta-l-temuan-st">%s</ul></section>'
+        'Temuan: di langkah mana salahnya</p><ul class="peta-l-temuan-st">%s</ul></section>'
     ) % "".join(butir)
 
 
@@ -145,21 +143,14 @@ def _cap(data) -> str:
     ) % e(tanggal_cap(data.tanggal_terbit))
 
 
-def _paraf() -> str:
-    return (
-        '<svg class="peta-l-paraf-st" viewBox="0 0 170 46" aria-hidden="true"><text class="peta-l-paraf-t-st" x="6" y="32">Si Jago</text>'
-        '<path class="peta-l-paraf-garis-st" d="M8 40 C 50 34, 92 46, 120 36 S 160 30, 166 22"/></svg>'
-    )
-
-
 def _catatan(data) -> str:
     if not data.ditinjau:
-        return ""  # tanpa tinjauan tidak ada catatan, paraf, atau cap yang menyiratkan pengesahan
+        return ""  # tanpa tinjauan tidak ada catatan atau cap yang menyiratkan pengesahan
     return (
-        '<section class="peta-l-kartu-st peta-l-guru-st"><div><p class="peta-l-ttl-st"><span class="peta-l-nomor-st">5</span>Catatan Guru</p>'
-        '<blockquote>%s</blockquote></div><div class="peta-l-ttd-st"><div class="peta-l-garis-st">%s%s</div>'
+        '<section class="peta-l-kartu-st peta-l-guru-st"><div><p class="peta-l-ttl-st"><span class="peta-l-nomor-st">5</span>Catatan</p>'
+        '<blockquote>%s</blockquote></div><div class="peta-l-ttd-st"><div class="peta-l-garis-st">%s</div>'
         '<b>Si Jago</b>Kepala Sekolah Jagomat</div></section>'
-    ) % (e(data.catatan_guru), _paraf(), _cap(data))
+    ) % (e(data.catatan_guru), _cap(data))
 
 
 def _kaki(data, contoh: bool) -> str:
@@ -176,7 +167,7 @@ def render_lembar(data, *, contoh: bool) -> str:
     posisi = hitung_posisi(data.skor, data.skor_pembanding)
     return (
         '<main class="peta-l-hal-st">%s%s<div class="peta-l-dua-st">%s%s</div>%s%s%s%s%s</main>'
-    ) % (_kop(data.ditinjau), _kotak_data(data), _kartu_hasil(data, posisi), _kartu_materi(data), _temuan(data), _resep(data),
+    ) % (_kop(), _kotak_data(data), _kartu_hasil(data, posisi), _kartu_materi(data), _temuan(data), _resep(data),
          _misi(data), _catatan(data), _kaki(data, contoh))
 
 

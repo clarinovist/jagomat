@@ -269,6 +269,18 @@ def buat(path, principal, klien) -> bool:
     return True
 
 
+def _setelah_lunas(order_id, hasil) -> None:
+    """Pemicu laporan Peta otomatis bila status provider membuat order lunas; dipanggil SESUDAH ledger commit.
+
+    Impor lokal: `peta_otomatis` memuat modul ini (siklus impor). Pemicu tidak pernah melempar ke sini.
+    """
+    if hasil["status"] != pesanan.STATUS_SUDAH_DIBAYAR:
+        return
+    import peta_otomatis
+
+    peta_otomatis.setelah_lunas(order_id)
+
+
 def periksa_status(path, order_id, akun_id, klien) -> HasilPeriksa:
     """Satu pemeriksaan status server-ke-server bila belum lunas dan sudah ada transaksi.
 
@@ -285,10 +297,11 @@ def periksa_status(path, order_id, akun_id, klien) -> HasilPeriksa:
         return HasilPeriksa(dicoba=True, ok=True)
     try:
         with pesanan.buka(path, tulis_data=True) as kon:
-            pesanan.terapkan_hasil_provider(kon, order_id, status.hasil_provider, _sekarang(),
-                                            operasi_status(status.hasil_provider))
+            hasil = pesanan.terapkan_hasil_provider(kon, order_id, status.hasil_provider, _sekarang(),
+                                                    operasi_status(status.hasil_provider))
     except pesanan.PesananError:
         return HasilPeriksa(dicoba=True)
+    _setelah_lunas(order_id, hasil)
     return HasilPeriksa(dicoba=True, ok=True, data=status.hasil_provider)
 
 

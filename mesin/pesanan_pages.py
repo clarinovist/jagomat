@@ -47,7 +47,7 @@ COPY_TUTUP_SUDAH_BAYAR = (
 )
 # Selaras COPY_PEMBATALAN (24 Nov 2026: tanpa uang kembali otomatis; Rp49.000 menjadi deposit).
 COPY_REFUND = (
-    "Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari. Laporan terbit dalam 48 jam setelah pembayaran. Kalau terlambat, "
+    "Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan. Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari. Kalau laporan belum terbit, "
     "hubungi tim lewat WhatsApp. Kami bantu sampai laporan Anda terbit. Tidak ada uang kembali otomatis."
 )
 COPY_KUOTA_HABIS = (
@@ -81,7 +81,7 @@ COPY_STATUS = {
     STATUS_BELUM_BAYAR: ("Menunggu pembayaran",
                          "Pindai kode QRIS dengan aplikasi pembayaran Anda. Status berubah "
                          "setelah pembayaran terverifikasi, bukan saat Anda menekan tombol."),
-    STATUS_SUDAH_DIBAYAR: ("Pembayaran diterima", "Pembayaran diterima. Guru mulai menyusun laporan Anda. Perkiraan terbit menyusul di halaman ini."),
+    STATUS_SUDAH_DIBAYAR: ("Pembayaran diterima", "Pembayaran diterima. Laporan sedang disiapkan."),
     STATUS_PERLU_DIPERIKSA: ("Pembayaran sedang diperiksa",
                              "Pembayaran Anda sedang diperiksa tim. Tidak perlu membayar lagi; "
                              "tim akan menghubungi lewat WhatsApp."),

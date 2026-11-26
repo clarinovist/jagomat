@@ -46,8 +46,8 @@ COPY_KAKI = (
     "Laporan ini membantu memilih latihan yang tepat sasaran. Hasil latihan bisa berbeda pada tiap anak. "
     "Peringkat dihitung dari anak kelas %d yang sudah ikut Cek Jagomat, bukan seluruh anak kelas %d di Indonesia."
 )
-COPY_CHIP_TINJAU = "Ditinjau Guru"
-COPY_CHIP_BELUM_TINJAU = "Belum ditinjau Guru"
+COPY_CHIP_TINJAU = "Laporan otomatis"
+COPY_CHIP_BELUM_TINJAU = "Belum diterbitkan"
 COPY_KAKI_CONTOH = "Contoh dengan data sintetis, bukan hasil anak sungguhan. Laporan sungguhan berbeda untuk tiap anak."
 
 

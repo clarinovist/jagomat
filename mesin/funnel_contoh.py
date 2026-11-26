@@ -67,7 +67,8 @@ def halaman_contoh_peta(dukungan=None, profil=None, *, harga_mini=None) -> bytes
 
     `harga_mini` = harga bulanan Mini Class aktif dari admin; None = harga katalog.
     """
-    blok_laporan = peta_laporan_ortu_pages.blok_peta(CONTOH_PETA_V1)
+    # contoh mewakili laporan terbit otomatis: tanpa lencana dan catatan Guru (kunci `oleh_sistem`)
+    blok_laporan = peta_laporan_ortu_pages.blok_peta({**CONTOH_PETA_V1, "oleh_sistem": True})
     batas = P._kartu_batas()
     program = peta_misi._program(P._cta_utama(P.COPY_CTA), harga_mini=harga_mini)
     isi = f"""{P._topbar(tautan_funnel=True)}

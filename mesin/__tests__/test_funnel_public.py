@@ -94,7 +94,7 @@ def test_paket_coba_memakai_kalimat_disetujui_dan_jujur(server, monkeypatch):
         assert kalimat in isi
     for tebal, sisa in funnel_pages.COPY_PEMBATALAN_BUTIR:
         assert f"<b>{tebal}</b>{sisa}" in isi
-    assert funnel_pages.COPY_PEMBATALAN.startswith("Peta Kemampuan tidak bisa dikembalikan")
+    assert funnel_pages.COPY_PEMBATALAN.startswith("Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan.")
     assert "kamu" not in funnel_pages.COPY_PEMBATALAN.lower().split()
     assert "Biar harapannya pas" in isi
 
@@ -117,12 +117,12 @@ def test_landing_memakai_nama_peta_kemampuan_bukan_paket_coba(server, monkeypatc
 def test_kalimat_deposit_dan_terlambat_draf5_dipakai_harfiah():
     ks = "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari"
     assert funnel_pages.COPY_PAKET_ISI[2] == ks
-    assert funnel_pages.COPY_TIDAK_KEMBALI == "Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari."
+    assert funnel_pages.COPY_TIDAK_KEMBALI == "Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan. Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari."
     assert funnel_pages.COPY_DEPOSIT == "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari."
-    assert funnel_pages.COPY_PEMBATALAN_BUTIR[0] == ("Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. ", "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari.")
+    assert funnel_pages.COPY_PEMBATALAN_BUTIR[0] == ("Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan. ", "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari.")
     assert funnel_pages.COPY_PEMBATALAN_BUTIR[2] == (
-        "Laporan terbit dalam 48 jam setelah pembayaran.",
-        " Kalau terlambat, hubungi tim lewat WhatsApp. Kami bantu sampai laporan Anda terbit.")
+        "Kalau laporan belum terbit, hubungi tim lewat WhatsApp.",
+        " Kami bantu sampai laporan Anda terbit.")
     for kalimat in (funnel_pages.COPY_TIDAK_KEMBALI, funnel_pages.COPY_DEPOSIT, *funnel_pages.COPY_PAKET_ISI,
                     *(a + b for a, b in funnel_pages.COPY_PEMBATALAN_BUTIR)):
         assert "program belajar" not in kalimat and "dicatat oleh tim" not in kalimat
@@ -135,7 +135,7 @@ def test_kalimat_deposit_dan_terlambat_draf5_dipakai_harfiah():
 def test_paket_coba_menyatakan_tidak_dapat_dikembalikan(server, monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     _, isi, _ = server.minta("/paket-coba")
-    assert "tidak bisa dikembalikan" in isi
+    assert "tidak dapat dikembalikan" in isi
     assert "menjadi potongan biaya bulan pertama kelas Jagomat" in isi
     assert "Jadi potongan kelas Jagomat" in isi and "voucher" not in _teks(isi).lower()
 

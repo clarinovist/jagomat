@@ -33,7 +33,10 @@ HASIL_BELUM = {"status": "belum_selesai", "skor": None, "kategori": None,
 # Kontrak "tanpa byte pesan" dijaga eksplisit oleh test_cta_pesan_tidak_meninggalkan_byte_saat_token_none.
 # Diperbarui 24 Nov 2026 (golden sebelumnya di 0ac865e): CSS bersama (gerakan/pose maskot + shell murid)
 # dan satu butir `COPY_KUNCI_BUTIR` ("Analisis kesalahan" -> "Catatan dari guru"); kontrak "tanpa byte pesan" tetap.
-GOLDEN_SELESAI = "abf27d2d4c5792649dd3844b6408bcd3a13c601f5f2aa09f04471003e00b9ab7"
+# Diperbarui 26 Nov 2026 (Peta otomatis, keputusan Pemilik: tanpa penyebutan Guru di jalur Peta): HANYA teks
+# `COPY_LABEL_GAMBARAN`, `COPY_KUNCI_BUTIR[1]`, dan `COPY_KUNCI_CATATAN` di cek_pages (diverifikasi: dengan ketiga
+# konstanta lama dipasang di memori, hash kembali ke nilai sebelumnya); struktur dan CSS tidak berubah.
+GOLDEN_SELESAI = "4b6458efe6236269c8632a8af1fa11befbc6a5805290d5d9097bd1d611a38564"
 GOLDEN_BELUM = "faf2aed98b1ae7588872e7365306a7ab624859b8d73f55241dbd3809b1456844"
 
 

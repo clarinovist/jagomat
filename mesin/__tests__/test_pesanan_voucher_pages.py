@@ -44,8 +44,9 @@ def test_status_deposit_aktif_terpakai_kedaluwarsa_ditahan_batal_tampil_di_kartu
 
 def test_kartu_menampilkan_janji_terbit_dan_kalimat_terlambat_bila_terlambat():
     isi = hv.kartu_voucher(DASAR)
-    assert hv.COPY_JANJI + waktu_wib(DASAR.janji_terbit) in isi
-    assert "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya;" in isi
+    # Terlambat menggantikan janji (bukan menumpuk): janji "langsung terbit" lalu "belum terbit" saling bertentangan.
+    assert "Laporan langsung terbit setelah pembayaran terverifikasi." not in isi and "paling lambat" not in isi
+    assert "Laporan belum terbit. Hubungi tim lewat WhatsApp; kami bantu sampai laporan Anda terbit." in isi
     assert "WhatsApp" in isi
 
 

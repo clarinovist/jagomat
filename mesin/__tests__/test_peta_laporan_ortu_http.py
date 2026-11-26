@@ -20,7 +20,7 @@ import teacher_style
 from pesanan_kit import buat as buat_order, operasi, terapkan as terapkan_bayar
 from test_orang_tua_http import (  # noqa: F401  (dunia = fixture bersama)
     KATA_TERLARANG_ORTU, PIN_A, RUTE, SANDI_A, SANDI_B, NAMA_A, NAMA_B,
-    _buat_order, _buka_tirai, _login, _pasang_pin, _req, _seed_cek, _siapkan_pesanan, _tanpa_gaya, dunia,
+    _buat_order, _buka_tirai, _login, _pasang_pin, _req, _seed_cek, _seed_laporan, _siapkan_pesanan, _tanpa_gaya, dunia,
 )
 import admin_store
 
@@ -81,9 +81,18 @@ def test_urutan_blok_cek_pesanan_peta_laporan(dunia):
     _lunas(dunia)
     _seed_cek(dunia, dunia.a, dunia.akun_a.id_akun, 72, "Cukup baik", ["Pecahan"], ["Pengukuran"])
     _peta(dunia, dunia.a)
+    _seed_laporan(dunia, dunia.a, "Catatan laporan Guru lama, sintetis.")
     isi, _ = _halaman(dunia)
     posisi = [isi.index(f'id="{x}"') for x in ("ortu-hasil-cek", "ortu-pesanan", "ortu-peta", "ortu-laporan")]
     assert posisi == sorted(posisi) and isi.count('id="ortu-peta"') == 1
+
+
+def test_lunas_tanpa_laporan_guru_tidak_menampilkan_kartu_kosong(dunia):
+    _lunas(dunia)
+    _seed_cek(dunia, dunia.a, dunia.akun_a.id_akun, 72, "Cukup baik", ["Pecahan"], ["Pengukuran"])
+    _peta(dunia, dunia.a)
+    isi, _ = _halaman(dunia)
+    assert 'id="ortu-laporan"' not in isi and "Belum ada laporan dari Guru." not in isi
 
 
 def test_draf_tidak_tampil_walau_lunas(dunia):

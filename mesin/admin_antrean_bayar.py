@@ -81,7 +81,7 @@ _ATAU_TRANSFER_LUNAS = " OR EXISTS (SELECT 1 FROM transfer_lunas l WHERE l.order
 
 
 def peta_belum_terbit(path_admin, sekarang_iso: str) -> Tuple[int, int]:
-    """(Peta lunas tanpa laporan terbit, dari itu yang sudah lewat janji 48 jam); galat baca atau purna belum dipasang = (0, 0).
+    """(Peta lunas tanpa laporan terbit, dari itu yang sudah lewat batas tunggu); galat baca atau purna belum dipasang = (0, 0).
 
     Keadaan (lunas, ditahan, direfund, terbit, terlambat) dari domain `purna`, jadi order yang direfund atau pembayarannya perlu
     diperiksa tidak ikut. Hanya angka: tanpa nama anak, akun, atau id.

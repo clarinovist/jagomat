@@ -17,6 +17,7 @@ import peta_laporan_guru_pages as hal  # noqa: E402
 from cek_http_kit import AKUN_A, minta_mentah  # noqa: E402
 from pesanan_http_kit import bayar, jam, keluarga, ledger, server, tertutup  # noqa: E402,F401
 from pesanan_transfer_http_kit import transfer  # noqa: E402,F401
+from peta_otomatis_kit import tanpa_terbit_otomatis  # noqa: E402,F401  (autouse: jalur Guru butuh order lunas tanpa laporan)
 from purna_http_kit import bayar_purna, lunas, potret_efek, transfer_purna  # noqa: E402,F401
 
 CATATAN = "Anak sudah lebih teliti saat berhitung; di rumah cukup latihan sepuluh menit."

@@ -25,7 +25,7 @@ def _jumlah_maskot(isi: str) -> int:
 def test_hero_memuat_harga_klaim_yang_sudah_ada_dan_satu_maskot():
     isi = peta_hero.hero_peta()
     assert "Rp49.000" in isi and "sekali bayar" in isi.lower()
-    assert "Ditinjau Guru" in isi and "Jadi potongan kelas" in isi
+    assert "Laporan otomatis" in isi and "Jadi potongan kelas" in isi
     assert funnel_pages.COPY_JUDUL_PAKET_HALAMAN in isi
     assert 'class="ceria-hero"' in isi and _jumlah_maskot(isi) == 1
 

@@ -12,6 +12,12 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Peta otomatis — KODE LOKAL, BELUM DIRILIS (26 November 2026)
+
+Rilis image-swap tanpa migrasi (tanpa skema baru; `peta_otomatis.py` bukan berkas store/schema/database/migrat). Sidik kontrak lokal tetap `9d204665…` (diverifikasi sebelum commit); `deploy.py` probe tabel `peta_laporan` tetap lulus. Push dan deploy butuh izin eksplisit terpisah; arsipkan `/opt/osn/rollout-approval.json` milik `482e80a` sebelum rilis berikutnya. Setelah rilis, order lunas yang laporannya belum terbit ikut terbit saat halaman orang tuanya dibuka (bila bahan cek masih dalam retensi 30 hari). Rollback = swap image lama; laporan otomatis yang sudah terbit tetap ada dan tampil dengan lencana "Ditinjau Guru" di image lama.
+
+**Koreksi sakelar:** `PAKET_BELAJAR` **AKTIF** sejak 25 Nov 2026 12.26 WIB (diubah admin, sengaja oleh Pemilik); semua catatan "tetap MATI" di bagian bertanggal di bawah ini mencerminkan keadaan saat rilis masing-masing, bukan keadaan sekarang.
+
 ## Jadwal Private oleh orang tua — LIVE 26 November 2026 (482e80a)
 
 **Deploy:** controlled `deploy-v2` memasang **482e80a** (`482e80a00acaccfbd9814f9ba542f68aed042144`, digest `sha256:a7897d0b…2a18`) dengan recovery `d91a1c5` (digest build ulang `sha256:17a20b91…0b77`), selesai 05.25 WIB (situs ditutup ±3 menit), menggantikan f8be3e0. Image-swap: tanpa migrasi (`migrate` = pemeriksaan skema), tanpa pin recovery baru, kontrak tetap `9d20466…` (manifest CI), deployer tetap `7d1ff8a5…`, `visual.conf` tidak disentuh. Approval f8be3e0 diarsipkan lebih dulu (`approval-consumed-f8be3e0.json`); `/opt/osn/rollout-approval.json` kini milik 482e80a. Rehearsal C–B–C hijau, backup terverifikasi dan tersalin lokal, postcheck hijau (`/admin/kelas/private` anonim 404, `paket_belajar_mati` true, healthy), cleanup dan smoke publik lulus. Kit: `docs/plan/deploy-jadwal-private-20261126/` (gitignored, turunan kit jurnal).

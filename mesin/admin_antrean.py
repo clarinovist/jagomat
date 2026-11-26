@@ -28,9 +28,9 @@ JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
 KALIMAT_TINDAK_LANJUT_TUNGGAKAN = "Hubungi orang tua: ajak ikut kelas lagi atau tanyakan umpan balik."
 JALUR_BELUM_BAYAR = "/admin/pembayaran?status=belum_bayar"
 JALUR_PETA_BELUM_TERBIT = "/admin/pembayaran?status=dibayar"
-KALIMAT_PETA_TERLAMBAT = ("%d di antaranya sudah lewat janji terbit 48 jam. Guru perlu menulis dan menerbitkan laporannya; "
-                          "hubungi Guru bila perlu.")
-KALIMAT_PETA_DALAM_JANJI = "Masih dalam janji terbit 48 jam. Guru menulis dan menerbitkan laporan dari halaman Peta anak."
+KALIMAT_PETA_TERLAMBAT = ("%d di antaranya sudah lewat batas tunggu tanpa laporan terbit. Laporan belum terbit otomatis; "
+                          "periksa bahan cek atau terbitkan manual.")
+KALIMAT_PETA_DALAM_JANJI = "Belum lewat batas tunggu. Laporan belum terbit otomatis; periksa bahan cek atau terbitkan manual."
 JALUR_GURU_BARU = "/admin?section=guru&status=belum_lembaga"
 KALIMAT_GURU_BARU = ("Guru ini mendaftar sendiri dan belum dimasukkan ke lembaga mana pun. Buka Akun guru, lalu pakai Tambah ke "
                      "lembaga bila perlu; boleh dibiarkan bila memang tidak bergabung.")
@@ -142,7 +142,7 @@ def _item_pengajuan_private(path_admin, sekarang: float) -> Tuple[ItemAntrean, .
 
 
 def _item_peta_belum_terbit(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
-    """Satu butir bila ada Peta yang sudah dibayar tetapi laporannya belum terbit: penting bila sudah lewat janji 48 jam."""
+    """Satu butir bila ada Peta yang sudah dibayar tetapi laporannya belum terbit: penting bila sudah lewat batas tunggu."""
     menanti, terlambat = admin_antrean_bayar.peta_belum_terbit(path_admin, admin_transfer_menunggu.waktu_iso(sekarang))
     if not menanti:
         return ()

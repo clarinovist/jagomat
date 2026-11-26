@@ -31,11 +31,11 @@ def test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_dan_tautan_deposit
     # Act
     html = halaman._blok_pesanan(pesanan_pages.STATUS_SUDAH_DIBAYAR, True, DASAR)
     # Assert
-    assert hv.teks_janji(DASAR) in html and html.count(hv.COPY_JANJI) == 1
+    assert hv.teks_janji(DASAR) in html and html.count(hv.COPY_TERLAMBAT) == 1 and hv.COPY_JANJI not in html
     assert "<button" not in html and "<form" not in html and "pilih" not in html
     assert f'href="{pesanan_permukaan.RUTE_MURID.status}"' in html
     assert "Lihat potongan &amp; rincian pesanan" in html
-    assert "Perkiraan terbit menyusul di halaman ini." in html
+    assert "Pembayaran diterima. Laporan sedang disiapkan." in html
 
     terbit = halaman._blok_pesanan(
         pesanan_pages.STATUS_SUDAH_DIBAYAR, True, replace(DASAR, terbit="2026-11-19T10:00:00", terlambat=False))

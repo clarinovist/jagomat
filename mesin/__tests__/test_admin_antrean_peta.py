@@ -102,7 +102,7 @@ def test_antrean_lewat_janji_butir_penting_dan_menambah_perlu_keputusan(db_kelas
     antrean = _kumpulkan(db_kelas, LEWAT_JANJI)
     (item,) = _butir(antrean)
     assert item.tingkat == "penting" and item.judul == "2 Peta dibayar, laporan belum terbit"
-    assert "2 di antaranya sudah lewat" in item.deskripsi and "48 jam" in item.deskripsi
+    assert "2 di antaranya sudah lewat" in item.deskripsi and "batas tunggu" in item.deskripsi
     assert antrean.perlu_keputusan == 1 and antrean.mendesak == 0
 
 

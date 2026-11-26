@@ -149,7 +149,7 @@ def test_histogram_ikut_data_pembanding():
 def test_hero_skor_kategori_label_contoh():
     isi = _laporan()
     assert 'aria-label="Skor 73 dari 100"' in isi and ">Cukup baik<" in isi
-    assert "Laporan Aisyah · Kelas 4" in isi and "Ditinjau Guru" in isi
+    assert "Laporan Aisyah · Kelas 4" in isi and "Laporan otomatis" in isi
     assert "30 soal · 1 Nov 2026" in isi
     assert "data sintetis" in isi and "bukan hasil anak sungguhan" in isi
 
@@ -211,22 +211,22 @@ def test_cek_ulang_bagian_kelas_dan_tidak_wajib_dengan_bingkai_baru():
     assert "Minggu 1–3 bisa Anda mulai sendiri" in isi
 
 
-def test_chip_ditinjau_guru_mengikuti_data_bukan_statis():
-    # Audit 21 Nov 2026: chip "Ditinjau Guru" tidak boleh tampil bila tinjauan belum ada di data.
+def test_chip_laporan_mengikuti_data_bukan_statis():
+    # Chip mengikuti data `ditinjau` (copy tanpa kata Guru sejak 26 Nov 2026): tanpa data tinjauan tidak mengklaim terbit.
     belum = dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru="")
     ada = _laporan(DATA_CONTOH)
     tidak = _laporan(belum)
-    assert "Ditinjau Guru</span>" in ada and "Belum ditinjau Guru</span>" not in ada
-    assert "Ditinjau Guru</span>" not in tidak and "Belum ditinjau Guru</span>" in tidak
+    assert "Laporan otomatis</span>" in ada and "Belum diterbitkan</span>" not in ada
+    assert "Laporan otomatis</span>" not in tidak and "Belum diterbitkan</span>" in tidak
 
 
 def test_lembar_tidak_mengklaim_tinjauan_bila_belum_ditinjau():
     belum = dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru="")
     ada = peta_lembar.render_lembar(DATA_CONTOH, contoh=True)
     tidak = peta_lembar.render_lembar(belum, contoh=True)
-    assert "yang ditinjau Guru" in ada and "Ditinjau oleh" in ada
+    assert "Ringkasan satu halaman dari cek matematika." in ada and "Ditinjau oleh" not in ada
     assert "yang ditinjau Guru" not in tidak and "Ditinjau oleh" not in tidak
-    assert "Belum ditinjau Guru" in tidak
+    assert "Belum ditinjau Guru" not in tidak
 
 
 def test_periksa_konsisten_menolak_catatan_guru_tanpa_tinjauan():
@@ -313,9 +313,9 @@ def test_gaya_peta_tanpa_literal_dan_important():
 
 def test_lembar_isi_wajib_panduan():
     isi = peta_lembar.halaman_lembar(DATA_CONTOH, contoh=True).decode()
-    for teks in ("Lembar Hasil Peta Kemampuan", "Temuan Guru", "Resep latihan minggu ini", "Misi berikutnya", "Catatan Guru",
+    for teks in ("Lembar Hasil Peta Kemampuan", "Temuan: di langkah mana salahnya", "Resep latihan minggu ini", "Misi berikutnya", "Catatan",
                  "Si Jago", "KEPALA SEKOLAH ★ JAGOMAT ★", ">JAGO<", "19·11·26", "Batas lembar ini",
-                 "Contoh dengan data sintetis, bukan hasil anak sungguhan", "Ditinjau oleh"):
+                 "Contoh dengan data sintetis, bukan hasil anak sungguhan"):
         assert teks in isi, teks
     posisi = hitung_posisi(DATA_CONTOH.skor, DATA_CONTOH.skor_pembanding)
     assert f"Peringkat {posisi.peringkat} dari {posisi.penyebut}" in isi
@@ -400,11 +400,14 @@ def test_kartu_catatan_dan_identitas_guru_tidak_tampil_bila_belum_ditinjau():
     belum = dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru="")
     nama = DATA_CONTOH.guru.nama
     ada_laporan, ada_lembar = _laporan(DATA_CONTOH), peta_lembar.render_lembar(DATA_CONTOH, contoh=True)
-    assert "Catatan Guru" in ada_laporan and nama in ada_laporan
-    assert "Catatan Guru" in ada_lembar and "Kepala Sekolah Jagomat" in ada_lembar
+    # Contoh publik tidak memajang kartu catatan Guru (copy sistem); laporan sungguhan (contoh=False) tetap memajangnya.
+    sungguhan = _laporan(DATA_CONTOH, contoh=False)
+    assert "Catatan Guru" in sungguhan and nama in sungguhan
+    assert "Catatan Guru" not in ada_laporan and nama not in ada_laporan
+    assert "Catatan</p>" in ada_lembar and "Kepala Sekolah Jagomat" in ada_lembar
     laporan, lembar = _laporan(belum), peta_lembar.render_lembar(belum, contoh=True)
     assert "Catatan Guru" not in laporan and nama not in laporan
-    assert "Catatan Guru" not in lembar and nama not in lembar and "Kepala Sekolah Jagomat" not in lembar
+    assert "Catatan</p>" not in lembar and nama not in lembar and "Kepala Sekolah Jagomat" not in lembar
 
 
 def test_kartu_kelas_kecil_membaca_katalog_mini_class(monkeypatch):

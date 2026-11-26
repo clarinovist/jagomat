@@ -21,7 +21,7 @@ JALUR_MULAI = "#mulai"
 COPY_H1 = ("Sudah les matematika, tapi nilainya ", "masih begitu-begitu saja?")
 COPY_CTA_LANDING = "Mulai tes gratis"
 COPY_GELEMBUNG = "Halo! Aku bantu lihat di materi mana anak masih sering salah."
-COPY_FAKTA = ("Kelas 1–6 SD", "Soal sesuai kelas", "Laporan lengkap dibaca Guru")
+COPY_FAKTA = ("Kelas 1–6 SD", "Soal sesuai kelas", "Laporan lengkap terbit otomatis")
 COPY_ARIA_PANGGUNG = "Contoh hasil, data sintetis"
 
 # Kartu contoh di hero: data sintetis, label contoh selalu tampil.
@@ -75,7 +75,7 @@ COPY_SOLUSI_ISI = (
 
 COPY_DEMO_ALIS = "Coba sebentar"
 COPY_DEMO_JUDUL = "Tebak: di langkah mana salahnya?"
-COPY_DEMO_SUB = "Contoh cara Guru Jagomat melihat kesalahan hitung anak saat meninjau atau membimbing. Contoh sintetis."
+COPY_DEMO_SUB = "Contoh cara melihat kesalahan hitung anak saat meninjau atau membimbing. Contoh sintetis."
 COPY_DEMO_SOAL = "47 × 6 = …"
 COPY_DEMO_JAWABAN = ("Jawaban anak ", "242", ". Seharusnya ", "282", ".")
 # (teks langkah, apakah di sini salahnya)
@@ -93,7 +93,7 @@ COPY_DEMO_TEPAT = (
 COPY_DEMO_LIHAT = "Lihat jawabannya"
 COPY_DEMO_BAWAH = (
     "Di Peta Kemampuan, Bunda melihat penguasaan per materi, urutan materi "
-    "yang paling perlu dilatih dulu, dan catatan dari Guru."
+    "yang paling perlu dilatih dulu, dan di langkah mana salahnya."
 )
 COPY_TAUTAN_MULAI = "Mulai tes gratis ↑"
 
@@ -104,7 +104,7 @@ COPY_PETA_ALIS = "Yang Bunda dapat"
 COPY_PETA_JUDUL = "Hasil gratis, langsung keluar."
 COPY_PETA_LANJUT = (
     "Mau tahu lebih dalam? Setelah hasil keluar, Bunda bisa membuka laporan "
-    "lengkap yang dibaca Guru. Tidak wajib."
+    "lengkap yang terbit otomatis setelah pembayaran. Tidak wajib."
 )
 COPY_GRATIS_NAMA = "Cek Kemampuan"
 COPY_GRATIS_HARGA = ("Gratis", "dengan akun")
@@ -113,14 +113,13 @@ COPY_GRATIS_ISI = (
     "Ringkasan awal: bagian yang kuat dan yang perlu dibantu",
     "Hasil otomatis, keluar begitu anak selesai",
 )
-COPY_GRATIS_CATATAN = 'Hasil gratis berlabel "belum ditinjau Guru".'
+COPY_GRATIS_CATATAN = 'Hasil gratis berlabel "Gambaran awal · hasil otomatis".'
 COPY_FAQ_ALIS = "Tanya jawab"
 COPY_FAQ_JUDUL = "Biar Bunda tenang sebelum mulai."
 COPY_FAQ_BAYAR = (
     "Cek Kemampuan gratis. Pembayaran hanya bila Bunda membuka Peta Kemampuan "
-    "(Rp49.000 sekali bayar) dari halaman hasil. Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. Rp49.000 Bunda menjadi potongan biaya "
-    "bulan pertama kelas Jagomat, bila Bunda daftar dalam 90 hari. Laporan terbit dalam 48 jam "
-    "setelah pembayaran. Kalau terlambat, hubungi tim lewat WhatsApp. Kami bantu sampai laporan "
+    "(Rp49.000 sekali bayar) dari halaman hasil. Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan. Rp49.000 Bunda menjadi potongan biaya "
+    "bulan pertama kelas Jagomat, bila Bunda daftar dalam 90 hari. Kalau laporan belum terbit, hubungi tim lewat WhatsApp. Kami bantu sampai laporan "
     "Bunda terbit. Tidak ada uang kembali otomatis."
 )
 # (ikon, warna, pertanyaan, jawaban teks, atau None bila jawabannya daftar batas hasil)
@@ -213,7 +212,7 @@ def _kartu_lencana() -> str:
     return (
         '<div class="cek-kt-st cek-kt-lencana-st" tabindex="0">'
         f'<div class="cek-medali-st">{_ikon("centang", 34)}</div>'
-        "<b>Ditinjau Guru Jagomat</b><small>Catatan khusus untuk Bunda</small></div>"
+        "<b>Laporan lengkap</b><small>Dibuat otomatis dari hasil cek</small></div>"
     )
 
 

@@ -469,8 +469,9 @@ def test_status_pesanan_tampil_dengan_teks_copy_status(dunia):
     _buat_order(dunia, dunia.a, dunia.akun_a.id_akun, bayar=True)
     token = _login(dunia.server, "raka-m", SANDI_A)
     isi = _req(dunia.server, RUTE, cookie=token)[1]
-    judul, kalimat = pesanan_pages.COPY_STATUS[pesanan_dasar.STATUS_SUDAH_DIBAYAR]
-    assert 'id="ortu-pesanan"' in isi and judul in isi and kalimat in isi
+    judul, _kalimat_pesanan = pesanan_pages.COPY_STATUS[pesanan_dasar.STATUS_SUDAH_DIBAYAR]
+    assert 'id="ortu-pesanan"' in isi and judul in isi
+    assert "Pembayaran diterima. Laporan sedang disiapkan." in isi
     assert 'action="/pesanan' not in isi and "/pesanan/" not in isi
 
 

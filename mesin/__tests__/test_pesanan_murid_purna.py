@@ -24,6 +24,7 @@ from pesanan_http_kit import (  # noqa: F401
 from pesanan_murid_kit import M, NAMA_ANAK_A, NAMA_ANAK_B, buat_murid, sakelar_hidup  # noqa: F401
 from pesanan_transfer_http_kit import minta_multipart, transfer  # noqa: F401
 from pesanan_transfer_pages import rupiah, waktu_wib
+from peta_otomatis_kit import tanpa_terbit_otomatis  # noqa: F401  (autouse: laporan belum terbit di berkas ini)
 from purna_http_kit import bayar_purna, potret_efek, transfer_purna  # noqa: F401
 from purna_http_kit import jadikan_ditahan as jadikan_ditahan_kit
 
@@ -134,7 +135,7 @@ def test_kartu_tampil_untuk_order_lunas_dengan_deposit_tenggat_dan_janji_tanpa_t
     assert "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar." in tampak
     assert "otomatis" not in tampak.lower()
     assert "Berlaku hingga " + waktu_wib(k.berlaku_hingga) in tampak
-    assert "Laporan lengkap terbit paling lambat " + waktu_wib(k.janji_terbit) in tampak
+    assert "Laporan langsung terbit setelah pembayaran terverifikasi." in tampak and "paling lambat" not in tampak
     assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_AKTIF] in tampak
     assert "<form" not in isi and "<button" not in isi and "<input" not in isi
 
@@ -197,7 +198,7 @@ def test_kartu_terlambat_tanpa_tombol_dengan_kalimat_maaf_lalu_terbit_menurut_ke
     siap = lunas_murid
     terlambat(siap, jam)
     isi = kartu(halaman(siap))
-    assert "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya;" in teks_tampak(isi)
+    assert "Laporan belum terbit. Hubungi tim lewat WhatsApp; kami bantu sampai laporan Anda terbit." in teks_tampak(isi)
     assert "WhatsApp" in teks_tampak(isi)
     assert "<form" not in isi and "<button" not in isi and PILIH not in halaman(siap)
     with ledger() as kon:
@@ -298,10 +299,12 @@ def test_halaman_murid_tanpa_kata_terlarang_kontak_atau_id_internal(lunas_murid,
 
 def test_halaman_orang_tua_memuat_satu_baris_janji_tanpa_tombol_dan_beranda_tetap_satu_tautan(lunas_murid, jam):
     siap = lunas_murid
-    k = keadaan(siap)
     terlambat(siap, jam)
     isi = minta_mentah(siap.server, "/murid/orang-tua", siap.murid.akun)[1]
-    assert "Laporan lengkap terbit paling lambat " + waktu_wib(k.janji_terbit) in teks_tampak(isi)
+    # Order terlambat: baris janji diganti kalimat maaf (tidak ada janji "langsung terbit" yang bertentangan).
+    assert "Laporan belum terbit. Hubungi tim lewat WhatsApp" in teks_tampak(isi)
+    assert "Laporan langsung terbit setelah pembayaran terverifikasi." not in teks_tampak(isi)
+    assert "paling lambat" not in teks_tampak(isi)
     assert PILIH not in isi and "<button" not in isi.split('id="ortu-pesanan"')[1].split("</section>")[0]
     beranda = minta_mentah(siap.server, "/murid", siap.murid.akun)[1]
     assert beranda.count('href="/murid/orang-tua"') == 1

@@ -28,6 +28,7 @@ from cek_http_kit import AKUN_ADMIN, SANDI_ADMIN, minta_mentah  # noqa: E402
 from http_test_kit import SANDI_GURU, SANDI_MURID  # noqa: E402
 from pesanan_http_kit import ProviderPalsu, WAKTU_AWAL, bayar, jam, keadaan_ledger, keluarga, ledger, server, tertutup  # noqa: E402,F401
 from pesanan_transfer_http_kit import transfer  # noqa: E402,F401
+from peta_otomatis_kit import tanpa_terbit_otomatis  # noqa: E402,F401  (autouse: laporan belum terbit di berkas ini)
 from purna_http_kit import (  # noqa: E402,F401
     bayar_purna, catat_terbit_ledger, jadikan_ditahan, kosong, lunas, lunas_transfer, potret_efek, transfer_purna,
 )

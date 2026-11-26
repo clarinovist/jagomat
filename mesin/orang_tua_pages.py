@@ -19,7 +19,9 @@ import harian_pages
 import kelas_pages
 import playful_components as C
 import parent_report_page
+import pesanan_dasar
 import pesanan_pages
+import pesanan_transfer_pages
 import pesanan_voucher_pages
 import peta_laporan_ortu_pages
 from funnel_style import GAYA_FUNNEL
@@ -51,8 +53,9 @@ COPY_LAPORAN_JUDUL = "Laporan dari Guru"
 COPY_LAPORAN_KOSONG = "Belum ada laporan dari Guru."
 COPY_PESANAN_JUDUL = "Peta Kemampuan"
 COPY_PESANAN_TAWARAN = (
-    "Laporan lengkap dikerjakan Guru dari hasil cek ini. "
-    "Peta Kemampuan Rp49.000, dibayar sekali tanpa tagihan berulang."
+    "Laporan lengkap langsung terbit setelah pembayaran terverifikasi. "
+    f"Peta Kemampuan {pesanan_transfer_pages.rupiah(pesanan_dasar.RUPIAH_PAKET)}, "
+    "dibayar sekali tanpa tagihan berulang."
 )
 COPY_PESANAN_LANJUT = "Lanjutkan pembayaran atau lihat statusnya di halaman pembayaran."
 COPY_PESANAN_LIHAT_STATUS = "Lihat status pembayaran"
@@ -61,6 +64,7 @@ STATUS_PESANAN_TANPA_TINDAKAN = frozenset((
     pesanan_pages.STATUS_MENUNGGU_VERIFIKASI, pesanan_pages.STATUS_PERLU_DIPERIKSA, pesanan_pages.STATUS_DIREFUND,
 ))
 COPY_PESANAN_TERBIT = "Pembayaran diterima. Laporan Peta Kemampuan sudah tersedia di halaman ini."
+COPY_PESANAN_DISIAPKAN = "Pembayaran diterima. Laporan sedang disiapkan."
 COPY_PESANAN_LIHAT_DEPOSIT = "Lihat potongan & rincian pesanan"
 COPY_PIN_MASUK_JUDUL = "Masukkan PIN"
 COPY_PIN_MASUK_TEKS = "Halaman ini ditutup dengan PIN. Masukkan 4 angka PIN Ayah/Bunda untuk membukanya."
@@ -182,8 +186,27 @@ def _blok_laporan(laporan) -> str:
     return f'<section class="ortu-kartu-st" id="ortu-laporan"><h2>{_e(COPY_LAPORAN_JUDUL)}</h2>{isi}</section>'
 
 
-def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
+def _teks_status(status: str, kalimat: str, purna, laporan_terbit: bool) -> str:
+    """Kalimat utama kartu Peta. Lunas berarti laporan tersedia atau sedang disiapkan (tanpa kata Guru)."""
+    if status == pesanan_pages.STATUS_SUDAH_DIBAYAR:
+        sudah_terbit = laporan_terbit or (purna is not None and purna.terbit is not None)
+        return COPY_PESANAN_TERBIT if sudah_terbit else COPY_PESANAN_DISIAPKAN
+    if status in STATUS_PESANAN_TANPA_TINDAKAN:
+        return kalimat
+    return COPY_PESANAN_LANJUT
+
+
+def _blok_laporan_lama(laporan, status_pesanan) -> str:
+    """Laporan Guru jalur lama. Kartu kosong tidak tampil bagi pesanan lunas (laporan Peta tanpa Guru)."""
+    if laporan is None and status_pesanan == pesanan_pages.STATUS_SUDAH_DIBAYAR:
+        return ""
+    return _blok_laporan(laporan)
+
+
+def _blok_pesanan(status, cek_selesai: bool, purna=None, laporan_terbit: bool = False) -> str:
     """Status Peta Kemampuan (lencana teks) + satu pintu ke halaman pembayaran/pesanan akun anak (F2c).
+
+    `laporan_terbit`: True bila laporan Peta anak sudah terbit (`data.peta` ada); teks lunas memakai "tersedia".
 
     `purna` (`KeadaanPurna` atau None): bila ada, SATU baris janji terbit / status laporan serta tautan
     ke `/murid/pesanan` untuk melihat kartu deposit & rincian pesanan (tanpa tombol form).
@@ -195,8 +218,7 @@ def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
         judul, kalimat = pesanan_pages.COPY_STATUS[status]
         sudah = status == pesanan_pages.STATUS_SUDAH_DIBAYAR
         tanpa_tindakan = status in STATUS_PESANAN_TANPA_TINDAKAN
-        teks = (COPY_PESANAN_TERBIT if sudah and purna is not None and purna.terbit is not None
-                else kalimat if sudah or tanpa_tindakan else COPY_PESANAN_LANJUT)
+        teks = _teks_status(status, kalimat, purna, laporan_terbit)
         isi = C.lencana(judul, "hijau" if sudah else "kuning") + f'<p>{_e(teks)}</p>'
         tombol = "" if sudah else _tautan_bayar(
             COPY_PESANAN_LIHAT_STATUS if tanpa_tindakan else "Buka halaman pembayaran")
@@ -288,11 +310,12 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan
         + banner_paket
         + _hero_ringkasan(data.nama_anak, data.harian)
         + _blok_cek(data.hasil_cek, data.nama_anak)
-        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna,
+                        data.peta is not None)
         + peta_laporan_ortu_pages.blok_peta(data.peta)
         + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + (kelas_pages.kartu_orang_tua() if tautan_paket else "")
-        + _blok_laporan(data.laporan)
+        + _blok_laporan_lama(data.laporan, data.status_pesanan)
         + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
     return _dokumen(badan, ceria=True)

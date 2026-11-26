@@ -1,8 +1,10 @@
-"""Data halaman orang tua di akun murid (baca-saja): hasil cek, laporan Guru terbit terbaru, status pesanan.
+"""Data halaman orang tua di akun murid: hasil cek, laporan Guru terbit terbaru, laporan Peta terbit (Guru atau sistem),
+status pesanan.
 
 Semua kunci datang dari sesi server (`id_akun`, `siswa_id`), tidak pernah dari URL/form. Modul ini tidak
 membaca kunci jawaban, malrule, kode diagnosis, atau kontak. Status pesanan dibaca dari ledger pesanan lewat
-koneksi read-only (tanpa transaksi tulis, tanpa menghubungi penyedia pembayaran).
+koneksi read-only (tanpa transaksi tulis, tanpa menghubungi penyedia pembayaran). Pengecualian: bila order sudah lunas,
+`kumpulkan` memicu penerbitan laporan Peta otomatis (`peta_otomatis`, best-effort) sebelum membaca hasilnya.
 """
 from __future__ import annotations
 
@@ -20,6 +22,7 @@ import harian_langganan_ringkas
 import parent_report_store
 import pesanan_dasar
 import peta_laporan_store
+import peta_otomatis
 import pesanan_status
 import pesanan_voucher_baca
 
@@ -88,11 +91,17 @@ def keadaan_purna(id_akun: str, siswa_id: int, status: Optional[str], sekarang: 
 
 
 def peta_terbit(kon, siswa_id: int, status: Optional[str]) -> Optional[dict]:
-    """Laporan Peta TERBIT anak ini, hanya bila status pesanannya sudah_dibayar; selain itu None.
+    """Laporan Peta TERBIT anak ini (Guru atau sistem), hanya bila status pesanannya sudah_dibayar; selain itu None.
 
     Belum lunas, ditahan, atau dikembalikan tidak membaca laporan sama sekali. Isi rusak atau penyimpanan tak
-    terbaca menyembunyikan blok (dicatat tanpa data), bukan membuat halaman gagal.
+    terbaca menyembunyikan blok (dicatat tanpa data), bukan membuat halaman gagal. `oleh_sistem` = True bila laporan
+    terbit oleh sistem; tidak memuat nama atau akun Guru.
     """
+    return _tandai_sumber_peta(kon, siswa_id, _baca_peta_terbit(kon, siswa_id, status))
+
+
+def _baca_peta_terbit(kon, siswa_id: int, status: Optional[str]) -> Optional[dict]:
+    """Isi laporan TERBIT dari penyimpanan tanpa penanda sumber; status selain sudah_dibayar tidak membaca apa pun."""
     if status != pesanan_dasar.STATUS_SUDAH_DIBAYAR:
         return None
     try:
@@ -100,6 +109,13 @@ def peta_terbit(kon, siswa_id: int, status: Optional[str]) -> Optional[dict]:
     except (ValueError, sqlite3.Error) as galat:
         _LOG.warning("laporan peta halaman orang tua tidak terbaca: %s", type(galat).__name__)
         return None
+
+
+def _tandai_sumber_peta(kon, siswa_id: int, hasil: Optional[dict]) -> Optional[dict]:
+    """Salinan hasil dengan kunci `oleh_sistem` (True bila terbit oleh sistem); None tetap None. Tanpa akun Guru."""
+    if hasil is None:
+        return None
+    return {**hasil, "oleh_sistem": peta_otomatis.oleh_sistem(kon, siswa_id)}
 
 
 def langganan(kon, siswa_id: int, sekarang: str) -> Optional[harian_langganan_ringkas.Ringkasan]:
@@ -127,14 +143,37 @@ def _nilai_bila_sudah_kumpul(kon, id_akun: str, siswa_id: int, sekarang: Optiona
             kon.rollback()
 
 
+def _commit_bila_menggantung(kon) -> None:
+    """Commit penilaian cek yang masih menggantung sebelum pemicu Peta (pemicu butuh koneksi tanpa transaksi).
+
+    Galat commit dicatat tanpa data; koneksi tetap dalam transaksi, jadi pemicu melewati diri dengan hasil GAGAL.
+    """
+    if not kon.in_transaction:
+        return
+    try:
+        kon.commit()
+    except sqlite3.Error as galat:
+        _LOG.warning("commit penilaian cek halaman orang tua gagal: %s", type(galat).__name__)
+
+
+def _terbitkan_bila_lunas(kon, id_akun: str, siswa_id: int, status: Optional[str], sekarang: Optional[str]) -> None:
+    """Pemicu Peta jalur halaman orang tua: hanya untuk order sudah_dibayar; best-effort, tanpa efek lain."""
+    if status != pesanan_dasar.STATUS_SUDAH_DIBAYAR:
+        return
+    _commit_bila_menggantung(kon)
+    peta_otomatis.pastikan_untuk_siswa(kon, id_akun, siswa_id, sekarang)
+
+
 def kumpulkan(kon, id_akun: str, siswa_id: int, sekarang: Optional[str] = None) -> DataOrangTua:
     """Isi halaman untuk anak sesi ini; `kon` ber-row_factory Row (database.buka).
 
-    `kon` harus koneksi tulis: cek yang sudah dikumpulkan tetapi belum bernilai dinilai dulu.
+    `kon` harus koneksi tulis: cek yang sudah dikumpulkan tetapi belum bernilai dinilai dulu. Order sudah lunas
+    memicu penerbitan laporan Peta otomatis sebelum laporan dan purna dibaca.
     """
     import harian_http  # F4: ringkasan Latihan Harian; None bila sakelar LATIHAN_HARIAN mati
     _nilai_bila_sudah_kumpul(kon, id_akun, siswa_id, sekarang)
     status = status_pesanan(id_akun, siswa_id, sekarang)
+    _terbitkan_bila_lunas(kon, id_akun, siswa_id, status, sekarang)
     return DataOrangTua(
         nama_anak=_nama_anak(kon, siswa_id),
         hasil_cek=cek_gratis.hasil_siswa(kon, id_akun, siswa_id),

@@ -1,9 +1,9 @@
 """Hero penawaran Peta Kemampuan: bagian atas yang ramai untuk halaman produk dan halaman bayar (butir QA #9 dan #10).
 
 Peta adalah lead magnet, jadi bagian penawarannya harus menarik mata (maskot, stiker, harga). Blok instruksi bayar
-di bawahnya tetap tenang (kebijakan "halaman uang = tenang"). Tanpa klaim baru: harga, "ditinjau Guru", dan "jadi
-potongan kelas" semuanya sudah dinyatakan di halaman produk (`funnel_pages.COPY_PAKET_ISI`). Satu maskot per layar;
-pemanggil memuat `playful_style.GAYA_CERIA`.
+di bawahnya tetap tenang (kebijakan "halaman uang = tenang"). Stiker "Laporan otomatis" menyatakan laporan terbit
+tanpa tinjauan Guru; halaman produk (`funnel_pages.COPY_PAKET_ISI`) perlu diselaraskan
+terpisah. Satu maskot per layar; pemanggil memuat `playful_style.GAYA_CERIA`.
 """
 from __future__ import annotations
 
@@ -39,5 +39,5 @@ def hero_peta(*, tingkat: int = 2, id_judul: str = "", tanpa_gaya_inline: bool =
         + f'<p class="ceria-alis-hero">{ALIS_PETA}</p>'
         + judul
         + f"<p>{C.sorot('Rp49.000')} sekali bayar, bukan langganan.</p>"
-        + C.stiker("Ditinjau Guru") + C.stiker("Jadi potongan kelas", "kanan"),
+        + C.stiker("Laporan otomatis") + C.stiker("Jadi potongan kelas", "kanan"),
         konfeti=True)

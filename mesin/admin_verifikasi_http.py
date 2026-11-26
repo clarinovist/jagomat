@@ -33,6 +33,7 @@ import pesanan
 import pesanan_admin_transfer as pat
 import pesanan_alur as alur
 import pesanan_transfer
+import peta_otomatis
 from schema_transfer import BATAS_UKURAN_BUKTI, MIME_BUKTI
 
 RUTE_VERIFIKASI = ui.RUTE_VERIFIKASI
@@ -210,6 +211,8 @@ def _putuskan(penangan, principal, jalur: str) -> None:
         else:
             pesanan_transfer.tolak(kon, order_id, principal.id_akun, data["alasan"], alur.waktu_sekarang(),
                                    bukti_terakhir_id=dilihat)
+    if setuju:
+        peta_otomatis.setelah_lunas(order_id)  # ledger sudah commit; galat pemicu tidak menggagalkan persetujuan
     h._redirect(penangan, _tujuan_setelah_putusan(order_id, HASIL_SETUJU if setuju else HASIL_TOLAK))
 
 

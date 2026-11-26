@@ -300,7 +300,7 @@ def test_settlement_cocok_dari_status_provider_menjadi_sudah_dibayar(bayar):
     order, trx = _siapkan_order(bayar)
     bayar.provider.status_data = lambda oid: settlement(oid, trx)
     isi = _halaman(bayar)
-    assert "Pembayaran diterima. Guru mulai menyusun laporan Anda. Perkiraan terbit menyusul di halaman ini." in teks_tampak(isi)
+    assert "Pembayaran diterima. Laporan sedang disiapkan." in teks_tampak(isi)
     assert f'src="{QR}"' not in isi and "<form" not in isi.split("</header>", 1)[1]
     (receipt,) = _receipt()
     assert (receipt["hasil"], receipt["alasan_kode"], receipt["rupiah"]) == ("lunas", "ok", 49000)
@@ -558,11 +558,11 @@ def test_ledger_belum_dimigrasikan_halaman_jujur_503_tanpa_efek(keluarga, monkey
 
 def test_copy_refund_selaras_keputusan_deposit_tanpa_uang_kembali_otomatis():
     rp = pesanan_pages.COPY_REFUND
-    assert "tidak bisa dikembalikan" in rp and "potongan" in rp
+    assert "tidak dapat dikembalikan" in rp and "potongan" in rp
     assert "sebelum guru mulai meninjau" not in rp
-    # DRAF 5 (potongan, KS): potongan biaya bulan pertama 90 hari, janji 48 jam, hubungi tim bila terlambat.
+    # DRAF 5 (potongan, KS): potongan biaya bulan pertama 90 hari, laporan langsung terbit, hubungi tim bila belum terbit.
     assert "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari" in rp
-    assert "48 jam" in rp
+    assert "48 jam" not in rp and "langsung terbit setelah pembayaran terverifikasi" in rp
     assert "Tidak ada uang kembali otomatis" in rp and "hubungi tim lewat WhatsApp" in rp
     for lama in ("voucher", "3×24", "memilih", "halaman pesanan", "program belajar", "otomatis memotong", "deposit"):
         assert lama not in rp, lama

@@ -29,15 +29,15 @@ COPY_HARGA = f"{NAMA_PAKET} Rp49.000, sekali bayar. {COPY_BUKAN_LANGGANAN}"
 
 # DRAF 5 (24 Nov 2026, deposit; menunggu persetujuan Pemilik di tempat rilis): tidak dapat dikembalikan, jadi deposit.
 COPY_TIDAK_KEMBALI = (
-    "Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari."
+    "Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan. Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari."
 )
 # DRAF 5 (24 Nov 2026, deposit; menunggu persetujuan Pemilik di tempat rilis): ketentuan laporan terlambat dan program kelas.
 COPY_PEMBATALAN_BUTIR = (
-    ("Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. ",
+    ("Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan. ",
      "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari."),
     ("Program belajar (kelas)", " punya ketentuan pengembalian tersendiri."),
-    ("Laporan terbit dalam 48 jam setelah pembayaran.",
-     " Kalau terlambat, hubungi tim lewat WhatsApp. Kami bantu sampai laporan Anda terbit."),
+    ("Kalau laporan belum terbit, hubungi tim lewat WhatsApp.",
+     " Kami bantu sampai laporan Anda terbit."),
     ("Tidak bisa hadir di jadwal konsultasi:",
      " kabari kami, kita cari waktu lain, tidak hangus."),
 )
@@ -74,11 +74,11 @@ COPY_PAKET_SUB = (
 )
 COPY_JUDUL_PAKET_HALAMAN = peta_hero.JUDUL_PETA
 COPY_PENGANTAR_PAKET = (
-    "Guru kami membaca hasil cek anak Anda, menulis laporannya, lalu ngobrol 20 menit "
+    "Laporan Peta Kemampuan terbit otomatis dari hasil cek anak Anda, lalu ngobrol 20 menit "
     "supaya hasilnya jadi langkah yang bisa dilakukan di rumah."
 )
 COPY_PAKET_ISI = (
-    "Laporan lengkap yang ditinjau Guru: penguasaan per materi, materi tempat anak paling sering salah, catatan dari Guru, dan urutan belajar yang paling perlu dulu",
+    "Laporan lengkap: penguasaan per materi, materi tempat anak paling sering salah, di langkah mana salahnya, dan urutan belajar yang paling perlu dulu",
     "Ngobrol 20 menit dengan Guru tentang cara berpikir anak dan apa yang bisa dilatih",
     "Rp49.000 Anda menjadi potongan biaya bulan pertama kelas Jagomat, bila Anda daftar dalam 90 hari",
 )

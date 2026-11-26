@@ -163,15 +163,16 @@ def kartu_misi_utama(data) -> str:
 def kartu_lembar_ajak() -> str:
     return (
         '<div class="peta-kartu-st peta-lembar-ajak-st">%s<div><h3 class="peta-judul-bagian-st">Lembar ringkasan 1 halaman</h3>'
-        '<p class="peta-bantuan-st">Inti laporan dalam satu lembar A4: skor, materi, temuan Guru, dan resep latihan. '
+        '<p class="peta-bantuan-st">Inti laporan dalam satu lembar A4: skor, materi, temuan utama, dan resep latihan. '
         'Bisa dicetak, disimpan sebagai PDF, atau dikirim lewat WhatsApp.</p></div>'
         '<a class="peta-tombol-st" href="%s">Buka lembar</a></div>'
     ) % (ubin("lembar", "amber", "l"), JALUR_LEMBAR_CONTOH)
 
 
-def kartu_catatan_guru(data) -> str:
-    if not data.ditinjau:
-        return ""  # tanpa tinjauan tidak ada catatan, nama, atau latar Guru yang dipajang
+def kartu_catatan_guru(data, contoh: bool) -> str:
+    """Kartu catatan Guru hanya untuk laporan sungguhan yang ditinjau Guru dan punya catatan; contoh publik tidak memajangnya."""
+    if contoh or not data.ditinjau or not data.catatan_guru.strip():
+        return ""  # tanpa tinjauan atau catatan sungguhan, tidak ada nama atau latar Guru yang dipajang
     guru = data.guru
     return (
         '<div class="peta-kartu-st peta-catatan-st"><h3 class="peta-judul-bagian-st">Catatan Guru</h3>'
@@ -187,4 +188,4 @@ def panel_ringkasan(data, posisi, contoh: bool) -> str:
     return (
         '<section class="peta-panel-st" id="ringkasan" data-peta-panel aria-labelledby="h-ringkasan">%s%s%s%s%s%s%s</section>'
     ) % (kepala, kartu_posisi(data, posisi, contoh), kartu_lencana(data, contoh), kartu_jago_dan_perkuat(data),
-         kartu_misi_utama(data), lembar, kartu_catatan_guru(data))
+         kartu_misi_utama(data), lembar, kartu_catatan_guru(data, contoh))

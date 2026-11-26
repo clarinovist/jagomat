@@ -41,7 +41,7 @@ COPY_NOTICE = (
     "Bahan mentah (soal dan jawaban anak) dihapus 30 hari setelah cek selesai.",
     "Ringkasan hasil (skor, kategori, dan ringkasan awal) tetap tersimpan selama akun Anda aktif.",
     "Data ini tidak dibagikan ke pihak lain.",
-    "Hasil dibuat otomatis dan belum ditinjau guru.",
+    "Hasil dibuat otomatis.",
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_SETUJU = (
@@ -53,7 +53,7 @@ COPY_TOMBOL_MULAI = "Mulai cek"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_TOMBOL_TAUTAN = "Buat tautan untuk anak"
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_LABEL_GAMBARAN = "Gambaran awal · belum ditinjau guru"
+COPY_LABEL_GAMBARAN = "Gambaran awal · hasil otomatis"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_BELUM_SELESAI = (
     "Anak belum menyelesaikan cek ini. Hasil muncul di halaman ini setelah anak "
@@ -68,12 +68,12 @@ COPY_KUNCI_JUDUL = "Ada di laporan lengkap"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_KUNCI_BUTIR = (
     "Penguasaan per materi",
-    "Catatan dari guru",
+    "Di langkah mana salahnya",
     "Urutan belajar prioritas",
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_KUNCI_CATATAN = (
-    "Bagian ini terkunci dan baru terbuka di laporan lengkap yang diperiksa guru."
+    "Bagian ini terkunci dan baru terbuka di laporan lengkap."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_CTA_PAKET = "Lihat Peta Kemampuan"
