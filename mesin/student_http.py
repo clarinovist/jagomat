@@ -91,12 +91,14 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
         import contest_gate
         import contest_http
         import harian_http
+        import jadwal_anak_kartu
         kartu_cek, sembunyikan_sesi = cek_murid.untuk_beranda(kon, _id_akun(kredensial[0]), siswa_id)
+        kartu_jadwal = jadwal_anak_kartu.kartu_beranda_untuk(_id_akun(kredensial[0]), siswa_id)
         penangan._kirim(student_pages.halaman_daftar_sesi_baru(
             kon, siswa_id, kredensial[0], sesi_selesai, lomba_aktif=contest_gate.aktif_untuk(kon, siswa_id),
             sekarang=contest_http._sekarang(), orang_tua=orang_tua_http.tersedia(),
             kartu_cek=kartu_cek, sembunyikan_sesi=sembunyikan_sesi,
-            kartu_harian=harian_http.kartu_beranda_untuk(kon, siswa_id),
+            kartu_harian=harian_http.kartu_beranda_untuk(kon, siswa_id), kartu_jadwal=kartu_jadwal,
         ))
         return
 
