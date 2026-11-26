@@ -118,6 +118,9 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/lembar/", "guru"),
     ("/akun", "guru"),
     ("/akun/kontak", "guru"),  # hanya peran guru; admin 404 identik rute tak dikenal
+    ("/guru/jadwal", "guru"),  # Jadwal saya (exact, baca-saja): hanya peran guru; admin 404 identik rute tak dikenal
+    ("/guru/kelas", "guru"),  # Kelas saya (exact, baca-saja): hanya peran guru; admin 404 identik rute tak dikenal
+    ("/guru/kelas/", "guru"),  # detail kelompok `/guru/kelas/<klp_id>`: id cacat/tak ada/milik lain = 404 identik
     # Funnel Fase 2b (setelah palang sandi). `/cek-kemampuan` exact di atas tetap publik;
     # dua rute ini exact, bukan prefix. Sakelar mati: 200 "belum dibuka" (GET).
     ("/cek-kemampuan/mulai", "guru"),
@@ -817,6 +820,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import lembaga_http
         if lembaga_http.tangani_get(self, jalur):
+            return
+        import guru_jadwal_http  # Jadwal dan Kelas saya (baca-saja, peran guru); selain guru = 404 identik
+        if guru_jadwal_http.tangani_get(self, jalur):
             return
         if parent_report_http.tangani_guru_get(self, jalur):
             return

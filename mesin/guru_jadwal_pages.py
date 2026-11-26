@@ -1,0 +1,135 @@
+"""Render halaman guru `Jadwal saya` dan `Kelas saya` (baca-saja): murni render, tanpa DB, HTTP, atau berkas.
+
+View-model hanya berisi teks dan `id` kelompok milik guru yang sedang dilihat (untuk href detail). Tidak ada
+siswa_id, order_id, guru_id, atau kontak. Semua teks di-escape; waktu tampil WIB lewat `waktu_wib`. Tanpa JS.
+"""
+from __future__ import annotations
+
+import html
+from typing import Sequence
+
+import design_tokens as T
+from kelas_pages import _baris_lokasi
+from pesanan_transfer_pages import waktu_wib
+from teacher_shell import _halaman_stitch
+
+RUTE_KELAS = "/guru/kelas"
+KELAS_BUNGKUS_JADWAL = "jadwal-guru-st"      # menandai item "Jadwal saya" di topbar
+KELAS_BUNGKUS_KELAS = "kelas-guru-st"        # menandai item "Kelas saya" di topbar
+KELAS_BUNGKUS_DETAIL = "kelas-detail-guru-st"  # halaman turunan: tidak menandai item induk
+COPY_KOSONG_JADWAL = "Belum ada jadwal."
+COPY_KOSONG_KELAS = "Belum ada kelas untuk Anda."
+COPY_KOSONG_ANAK = "Belum ada anak di kelas ini."
+COPY_DIBATALKAN = "Dibatalkan"
+COPY_TIDAK_ADA_BERIKUT = "Tidak ada pertemuan mendatang."
+
+GAYA = f"""<style>
+.jadwal-st {{ display: grid; gap: {T.SP_4}; }}
+.jadwal-st h1 {{ margin: 0 0 {T.SP_2}; }}
+.jadwal-alis-st {{ color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_LABEL}; letter-spacing: .04em; margin: 0; }}
+.jadwal-kartu-st {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_4}; display: grid; gap: {T.SP_3}; }}
+.jadwal-kartu-st h2 {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
+.jadwal-daftar-st {{ list-style: none; margin: 0; padding: 0; display: grid; gap: {T.SP_3}; }}
+.jadwal-daftar-st li {{ border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-bottom: {T.SP_2}; }}
+.jadwal-meta-st {{ color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_LABEL}; margin: 0; }}
+.jadwal-tautan-st {{ color: {T.AKSEN_TEAL_TUA}; }}
+.jadwal-tautan-st:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 2px; }}
+</style>"""
+
+
+def _e(nilai) -> str:
+    return html.escape(str(nilai), quote=True)
+
+
+def _p(teks: str, kelas: str = "") -> str:
+    atribut = f' class="{kelas}"' if kelas else ""
+    return f"<p{atribut}>{_e(teks)}</p>"
+
+
+def _daftar_atau_kosong(baris: Sequence[str], kosong: str) -> str:
+    if not baris:
+        return _p(kosong, "jadwal-meta-st")
+    return '<ol class="jadwal-daftar-st">' + "".join(baris) + "</ol>"
+
+
+def _keterangan_sesi(sesi: dict) -> str:
+    """'Pertemuan N · <waktu WIB>' (+ ' · Dibatalkan'); status selalu teks, bukan hanya warna."""
+    teks = f"Pertemuan {int(sesi['ke'])} · {waktu_wib(sesi['mulai'])}"
+    return teks + (f" · {COPY_DIBATALKAN}" if sesi["dibatalkan"] else "")
+
+
+def _baris_pertemuan(pertemuan: dict) -> str:
+    keterangan = _e(_keterangan_sesi(pertemuan))
+    tautan = ""
+    if pertemuan.get("kelas_id"):
+        tautan = (f' <a class="jadwal-tautan-st" href="{RUTE_KELAS}/{_e(pertemuan["kelas_id"])}">'
+                  "Buka kelas</a>")
+    return (f"<li><strong>{_e(pertemuan['judul'])}</strong>"
+            f'<p class="jadwal-meta-st">{keterangan}{tautan}</p></li>')
+
+
+def _baris_kelas(kelas: dict) -> str:
+    berikut = kelas["berikut"]
+    info_berikut = f"Pertemuan berikut: {waktu_wib(berikut)}" if berikut else COPY_TIDAK_ADA_BERIKUT
+    terisi = f"Terisi {int(kelas['terisi'])} dari {int(kelas['kuota'])} anak · {info_berikut}"
+    return (f"<li><strong>{_e(kelas['nama'])}</strong>"
+            f'<p class="jadwal-meta-st">{_e(terisi)}</p>'
+            f'<p><a class="jadwal-tautan-st" href="{RUTE_KELAS}/{_e(kelas["id"])}">Buka kelas</a></p></li>')
+
+
+def _baris_sesi(sesi: dict) -> str:
+    return f"<li>{_e(_keterangan_sesi(sesi))}</li>"
+
+
+def _daftar_anak(nama_anak: Sequence[str]) -> str:
+    if not nama_anak:
+        return _p(COPY_KOSONG_ANAK, "jadwal-meta-st")
+    return '<ul class="jadwal-daftar-st">' + "".join(f"<li>{_e(nama)}</li>" for nama in nama_anak) + "</ul>"
+
+
+def halaman_jadwal(ident, pertemuan: Sequence[dict]) -> bytes:
+    """Pertemuan mendatang milik guru. Tiap item: `judul`, `ke`, `mulai`, `dibatalkan`, `kelas_id` (atau None)."""
+    daftar = _daftar_atau_kosong([_baris_pertemuan(p) for p in pertemuan], COPY_KOSONG_JADWAL)
+    isi = ('<main aria-labelledby="judul-jadwal" class="jadwal-st">'
+           '<header><p class="jadwal-alis-st">RUANG GURU</p>'
+           '<h1 id="judul-jadwal">Jadwal saya</h1>'
+           "<p>Pertemuan mendatang untuk kelas dan anak yang Anda ajar. Jadwal diatur tim; "
+           "halaman ini hanya menampilkan.</p></header>"
+           '<section class="jadwal-kartu-st" aria-label="Pertemuan mendatang">'
+           f"<h2>Pertemuan mendatang</h2>{daftar}</section>"
+           '<p><a class="jadwal-tautan-st" href="/guru">Kembali ke ruang guru</a></p></main>')
+    return _halaman_stitch("Jadwal saya", GAYA + isi, ident=ident,
+                           kelas_bungkus=KELAS_BUNGKUS_JADWAL, privat=True)
+
+
+def halaman_kelas(ident, kelas: Sequence[dict]) -> bytes:
+    """Kelompok Mini Class milik guru. Tiap item: `id` (untuk href), `nama`, `kuota`, `terisi`, `berikut` (atau None)."""
+    daftar = _daftar_atau_kosong([_baris_kelas(k) for k in kelas], COPY_KOSONG_KELAS)
+    isi = ('<main aria-labelledby="judul-kelas" class="jadwal-st">'
+           '<header><p class="jadwal-alis-st">RUANG GURU</p>'
+           '<h1 id="judul-kelas">Kelas saya</h1>'
+           "<p>Mini Class yang Anda ajar. Daftar anak dan pertemuan ada di tiap kelas.</p></header>"
+           '<section class="jadwal-kartu-st" aria-label="Daftar kelas">'
+           f"<h2>Mini Class</h2>{daftar}</section>"
+           '<p><a class="jadwal-tautan-st" href="/guru">Kembali ke ruang guru</a></p></main>')
+    return _halaman_stitch("Kelas saya", GAYA + isi, ident=ident,
+                           kelas_bungkus=KELAS_BUNGKUS_KELAS, privat=True)
+
+
+def halaman_detail(ident, kelas: dict) -> bytes:
+    """Satu kelompok: `nama`, `lokasi`, `kuota`, `terisi`, `anggota` (nama saja), `sesi` (8 pertemuan)."""
+    sesi = _daftar_atau_kosong([_baris_sesi(s) for s in kelas["sesi"]], COPY_KOSONG_JADWAL)
+    isi = ('<main aria-labelledby="judul-kelas" class="jadwal-st">'
+           '<header><p class="jadwal-alis-st">MINI CLASS</p>'
+           f'<h1 id="judul-kelas">{_e(kelas["nama"])}</h1></header>'
+           '<section class="jadwal-kartu-st" aria-label="Ringkasan kelas"><h2>Ringkasan</h2>'
+           f'<p class="jadwal-meta-st">Terisi {int(kelas["terisi"])} dari {int(kelas["kuota"])} anak.</p>'
+           f"{_baris_lokasi(kelas['lokasi'])}</section>"
+           '<section class="jadwal-kartu-st" aria-label="Anak di kelas"><h2>Anak</h2>'
+           f"{_daftar_anak(kelas['anggota'])}</section>"
+           '<section class="jadwal-kartu-st" aria-label="Pertemuan"><h2>Pertemuan</h2>'
+           f"{sesi}</section>"
+           f'<p><a class="jadwal-tautan-st" href="{RUTE_KELAS}">Kembali ke Kelas saya</a></p></main>')
+    return _halaman_stitch("Kelas saya", GAYA + isi, ident=ident,
+                           kelas_bungkus=KELAS_BUNGKUS_DETAIL, privat=True)

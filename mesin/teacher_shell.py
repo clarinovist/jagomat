@@ -63,6 +63,10 @@ def kelas_shell(kelas_bungkus: str = "") -> str:
 def _tautan_aktif(kelas_bungkus: str) -> str:
     """Tujuan menu akun yang sedang dibuka (hanya halaman induknya, bukan turunan)."""
     kelas = set(kelas_bungkus.split())
+    if "jadwal-guru-st" in kelas:
+        return "/guru/jadwal"
+    if "kelas-guru-st" in kelas:
+        return "/guru/kelas"
     if "guru-beranda-st" in kelas:
         return "/guru"
     if "akun-editorial-st" in kelas and "akun-sempit-st" not in kelas:
@@ -92,7 +96,12 @@ def _topbar_stitch(
         )
     else:
         brand_href = "/guru"
-        item = _item_menu("/guru", "Ruang guru", aktif) + _item_menu("/akun", "Akun &amp; Siswa", aktif)
+        item = (
+            _item_menu("/guru", "Ruang guru", aktif)
+            + _item_menu("/guru/jadwal", "Jadwal saya", aktif)
+            + _item_menu("/guru/kelas", "Kelas saya", aktif)
+            + _item_menu("/akun", "Akun &amp; Siswa", aktif)
+        )
     siapa = html.escape(nama_akun(pengguna)) if pengguna and pengguna.strip() else ""
     ringkasan_akun = (
         '<summary><span class="identitas-akun-st">'

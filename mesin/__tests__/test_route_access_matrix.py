@@ -84,6 +84,9 @@ _PROBE_GET = {
     "/murid/paket/tagihan": "/murid/paket/tagihan?kode=mini",
     "/murid/paket/hapus": "/murid/paket/hapus?kode=mini",
     "/lembaga": "/lembaga",
+    "/guru/jadwal": "/guru/jadwal",
+    "/guru/kelas": "/guru/kelas",
+    "/guru/kelas/": "/guru/kelas/klp_" + "0" * 32,
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
     "/lembar/": "/lembar/1",
@@ -178,6 +181,7 @@ _HARAPAN_ANONIM_POST = {
 RUTE_PERMUKAAN_GURU = (
     "/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1",
     "/cek-kemampuan/mulai", "/cek-kemampuan/hasil", "/pesanan", "/pesanan/qr", "/paket-coba/pesan",
+    "/guru/jadwal", "/guru/kelas", "/guru/kelas/klp_" + "0" * 32,
 )
 
 
