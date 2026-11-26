@@ -30,6 +30,13 @@ class PilihanKelompok:
     sisa: int           # kursi yang masih kosong
 
 
+PESAN_BUKAN_MILIK_GURU = "kelompok sudah dipindah ke guru lain sejak permintaan diajukan"
+
+
+class KelompokBukanMilikGuru(jd.JadwalKonflik):
+    """`guru_diharapkan` tidak sama dengan guru kelompok di dalam transaksi tempatkan (kelompok dipindah guru)."""
+
+
 def _penempatan_lain_menghalangi(kon, order_id: str, kini: str) -> bool:
     """Anak masih punya penempatan lama yang belum boleh dipensiunkan (aturan sama dengan `js._pensiunkan_penempatan_lama`)."""
     lama = [b["order_id"] for b in kon.execute(
@@ -92,8 +99,12 @@ def pilihan_untuk(kon, akun_id, siswa_id, sekarang) -> Tuple[PilihanKelompok, ..
     return tuple(sorted(hasil, key=lambda p: (p.mulai, p.nama, p.kelompok_id)))
 
 
-def pilih_kelompok(kon, akun_id, siswa_id, kelompok_id, sekarang) -> None:
-    """Tempatkan order Mini aktif anak ke `kelompok_id`. Syarat tidak terpenuhi: galat domain tanpa tulis apa pun."""
+def pilih_kelompok(kon, akun_id, siswa_id, kelompok_id, sekarang, *, guru_diharapkan=None) -> None:
+    """Tempatkan order Mini aktif anak ke `kelompok_id`. Syarat tidak terpenuhi: galat domain tanpa tulis apa pun.
+
+    `guru_diharapkan` (None = tidak diperiksa, perilaku lama) memastikan kelompok masih milik guru itu DI DALAM transaksi;
+    guru lain (termasuk None) = `KelompokBukanMilikGuru`.
+    """
     d.periksa_koneksi(kon)
     d.periksa_akun_id(akun_id)
     dasar.periksa_siswa_id(siswa_id)
@@ -107,6 +118,8 @@ def pilih_kelompok(kon, akun_id, siswa_id, kelompok_id, sekarang) -> None:
         kelompok = js._group(kon, kid)
         if kelompok is None:
             raise jd.JadwalTidakDitemukan()
+        if guru_diharapkan is not None and kelompok["guru_id"] != guru_diharapkan:
+            raise KelompokBukanMilikGuru(PESAN_BUKAN_MILIK_GURU)
         if js._pertemuan_mendatang(kon, kid, kini) is None:
             raise jd.JadwalKonflik("kelompok sudah selesai")
         if js._jumlah_sudah_mulai(kon, kid, kini) >= js.TUTUP_SETELAH_PERTEMUAN_MULAI:

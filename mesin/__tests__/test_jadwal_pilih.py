@@ -16,6 +16,7 @@ from pesanan_kit import AKUN_A, AKUN_B
 
 ADMIN = "admin_sintetis"
 GURU = "akun_" + "9" * 32
+GURU_LAIN = "akun_" + "8" * 32
 LOKASI = "https://meet.google.com/abc-defg-hij"
 KINI = "2026-11-25T03:00:00"        # akses lunas kelas_kit: 20 Nov 09.30 sampai 20 Des 09.30 (UTC naif)
 
@@ -155,4 +156,26 @@ def test_pilih_kelompok_yang_ditutup_ditolak(kon):
     kid = kelompok(kon, **TANGGAL_LAMPAU)
     with pytest.raises(d.PesananKonflik):
         jp.pilih_kelompok(kon, AKUN_A, 7, kid, KINI)
+    assert jumlah_penempatan(kon) == 0
+
+
+def test_pilih_tanpa_guru_diharapkan_tidak_memeriksa_guru_kelompok(kon):
+    kelas_kit.lunas(kon, siswa=7)
+    kid = kelompok(kon)
+    jp.pilih_kelompok(kon, AKUN_A, 7, kid, KINI)
+    assert jumlah_penempatan(kon) == 1
+
+
+def test_pilih_dengan_guru_diharapkan_sama_menempatkan(kon):
+    kelas_kit.lunas(kon, siswa=7)
+    kid = kelompok(kon)
+    jp.pilih_kelompok(kon, AKUN_A, 7, kid, KINI, guru_diharapkan=GURU)
+    assert jumlah_penempatan(kon) == 1
+
+
+def test_pilih_guru_diharapkan_beda_ditolak_tanpa_penempatan(kon):
+    kelas_kit.lunas(kon, siswa=7)
+    kid = kelompok(kon)
+    with pytest.raises(jp.KelompokBukanMilikGuru):
+        jp.pilih_kelompok(kon, AKUN_A, 7, kid, KINI, guru_diharapkan=GURU_LAIN)
     assert jumlah_penempatan(kon) == 0

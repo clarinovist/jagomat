@@ -501,13 +501,36 @@ def _menunggu_milik_anak(bentuk: Dict[str, object], akun_id: str, siswa_id: int)
     return milik and bentuk["status"] == aturan.STATUS_MENUNGGU
 
 
-def _aksi_putusan(kon: sqlite3.Connection, permintaan_id: int, akun_id: str, siswa_id: int,
-                  hasil: str, oleh: str, pada: str) -> None:
+def _pastikan_menunggu_milik(kon: sqlite3.Connection, permintaan_id: int, akun_id: str, siswa_id: int,
+                             pada: str) -> None:
     """Hanya permintaan MILIK anak itu yang masih menunggu. Selain itu PutusanTakBisa tanpa tulis."""
     baris = _satu_permintaan(kon, permintaan_id)
     if baris is None or not _menunggu_milik_anak(_bentuk_permintaan(baris, pada), akun_id, siswa_id):
         raise PutusanTakBisa(_PESAN_TAK_BISA)
+
+
+def _aksi_putusan(kon: sqlite3.Connection, permintaan_id: int, akun_id: str, siswa_id: int,
+                  hasil: str, oleh: str, pada: str) -> None:
+    _pastikan_menunggu_milik(kon, permintaan_id, akun_id, siswa_id, pada)
     _sisipkan_putusan(kon, permintaan_id, hasil, oleh, pada)
+
+
+class _GalatPenempatan(Exception):
+    """Galat sqlite/OS dari `tempatkan()` dibawa keluar dari `_tulis` apa adanya, lalu dibuka lagi tanpa dibungkus."""
+
+    def __init__(self, asli: BaseException) -> None:
+        super().__init__("penempatan gagal")
+        self.asli = asli
+
+
+def _aksi_setuju_dengan_tempat(kon: sqlite3.Connection, permintaan_id: int, akun_id: str, siswa_id: int,
+                               oleh: str, pada: str, tempatkan: Callable[[], Any]) -> None:
+    _pastikan_menunggu_milik(kon, permintaan_id, akun_id, siswa_id, pada)
+    try:
+        tempatkan()
+    except (OSError, sqlite3.Error) as galat:
+        raise _GalatPenempatan(galat) from galat
+    _sisipkan_putusan(kon, permintaan_id, aturan.HASIL_SETUJU, oleh, pada)
 
 
 def _aksi_gagal(kon: sqlite3.Connection, guru_id: str, pada: str) -> None:
@@ -587,6 +610,29 @@ def putusan(*, permintaan_id: int, akun_id: str, siswa_id: int, hasil: str, oleh
     _periksa_waktu(pada)
     _tulis(_path_db(path), lambda kon: _aksi_putusan(
         kon, permintaan_id, akun_id, siswa_id, hasil, oleh, pada))
+
+
+def putusan_dengan_tempat(*, permintaan_id: int, akun_id: str, siswa_id: int, oleh: str, pada: str,
+                          tempatkan: Callable[[], Any], path=None) -> None:
+    """Setujui permintaan MILIK anak sambil menempatkannya, dalam SATU transaksi tautan (BEGIN IMMEDIATE).
+
+    Urutan: verifikasi milik dan menunggu -> `tempatkan()` (tanpa argumen; transaksinya sendiri di luar tautan) ->
+    sisip putusan `setuju` -> commit. Galat dari `tempatkan()` membatalkan tautan dan TANPA putusan. Galat domain
+    dilempar apa adanya; galat sqlite/OS dari `tempatkan()` juga dilempar apa adanya (tidak dibungkus GalatTautan),
+    supaya galat berkas admin tidak berlabel galat tautan. Galat sqlite saat menyisip putusan tetap GalatTautan.
+    Permintaan yang tidak menunggu atau bukan milik anak itu = PutusanTakBisa tanpa memanggil `tempatkan()`.
+    """
+    _periksa_id(permintaan_id, "ID permintaan")
+    _periksa_anak(akun_id, siswa_id)
+    _periksa_akun(oleh, "ID pencatat")
+    _periksa_waktu(pada)
+    if not callable(tempatkan):
+        raise ValueError("Penempatan tidak sah.")
+    try:
+        _tulis(_path_db(path), lambda kon: _aksi_setuju_dengan_tempat(
+            kon, permintaan_id, akun_id, siswa_id, oleh, pada, tempatkan))
+    except _GalatPenempatan as bawa:
+        raise bawa.asli from None
 
 
 def catat_gagal(*, guru_id: str, pada: str, path=None) -> None:
