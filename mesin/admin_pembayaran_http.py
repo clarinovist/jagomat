@@ -10,6 +10,7 @@ import admin_http as h
 import admin_pembayaran_pages as ui
 import admin_pembayaran_semua as semua
 import admin_transfer_menunggu as menunggu
+import auth
 import pesanan_alur as alur
 
 RUTE = ui.RUTE
@@ -45,6 +46,6 @@ def tangani_get(penangan, jalur) -> bool:
     if len(gagal) == 3:
         _kirim(penangan, principal, ui.halaman_tidak_siap(), 503)
         return True
-    _kirim(penangan, principal, ui.halaman(semua.saring(baris, saring), saring=saring,
-                                           hitungan=semua.hitung(baris), gagal=gagal))
+    tampil = semua.lengkapi_anak_akun(semua.saring(baris, saring), auth.BERKAS_SANDI)
+    _kirim(penangan, principal, ui.halaman(tampil, saring=saring, hitungan=semua.hitung(baris), gagal=gagal))
     return True

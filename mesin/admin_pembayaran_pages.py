@@ -1,7 +1,8 @@
 """Renderer murni halaman admin "Semua pembayaran": satu daftar read-only untuk tiga jalur pembayaran.
 
-Tanpa I/O, tanpa form, tanpa JS. Hanya order, nominal, waktu, status, dan tautan ke halaman ACC; tanpa nama anak,
-kontak, atau akun. Semua nilai dinamis di-escape; waktu ledger (UTC naif) ditampilkan dalam WIB.
+Tanpa I/O, tanpa form, tanpa JS. Hanya order, nominal, waktu, status, tautan ke halaman ACC, serta nama anak dan akun
+login murid (keputusan Pemilik 26 Nov 2026; diisi `lengkapi_anak_akun`, "-" bila tidak ada). Tanpa kontak (nomor
+WhatsApp) dan tanpa sandi. Semua nilai dinamis di-escape; waktu ledger (UTC naif) ditampilkan dalam WIB.
 """
 from __future__ import annotations
 
@@ -16,7 +17,8 @@ from pesanan_transfer_pages import rupiah
 RUTE = "/admin/pembayaran"
 JUDUL = "Semua pembayaran"
 SUBJUDUL = "Peta Kemampuan, Latihan Harian, dan Paket Belajar dalam satu daftar. Baca-saja; ACC lewat halaman masing-masing."
-_KOLOM = ("Jenis", "Order", "Nominal", "Dibuat", "Status", "Aksi")
+_KOLOM = ("Jenis", "Order", "Anak", "Akun", "Nominal", "Dibuat", "Status", "Aksi")
+COPY_TANPA_NILAI = "-"  # nama anak/akun tidak ada, ambigu, atau galat baca
 
 COPY_JENIS = {S.JENIS_PETA: "Peta Kemampuan", S.JENIS_HARIAN: "Latihan Harian", S.JENIS_KELAS: "Paket Belajar"}
 COPY_STATUS = {
@@ -71,6 +73,7 @@ def _baris(item: S.BarisBayar) -> str:
     nominal = rupiah(item.nominal) if item.nominal else "—"
     cta = COPY_PERIKSA_BUKTI if item.status == S.S_MENUNGGU else COPY_DETAIL
     sel = (e(COPY_JENIS.get(item.jenis, item.jenis)), L.referensi_pendek(item.order_id),
+           e(item.nama_anak or COPY_TANPA_NILAI), e(item.akun or COPY_TANPA_NILAI),
            e(nominal), e(L.tanggal(item.dibuat + "Z")), status,
            '<a class="admin-tautan" href="%s">%s</a>' % (e(item.jalur), e(cta)))
     return "<tr>" + "".join("<td>%s</td>" % s for s in sel) + "</tr>"
