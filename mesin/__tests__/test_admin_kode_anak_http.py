@@ -555,3 +555,17 @@ def test_anak_tak_aktif_dengan_kode_hanya_tombol_cabut_dan_cabut_tetap_jalan(dun
     assert kode_status == 200
     assert _sql(dunia.berkas, SQL_CABUT_TERAKHIR) == (dunia.admin, aturan.PERAN_ADMIN)
     assert kode.kode_aktif(dunia.kondisi.murid_id, dunia.kondisi.siswa_id) is None
+
+
+def test_galat_baca_status_anak_tampil_tak_terbaca_bukan_tak_aktif(dunia, monkeypatch):
+    assert _buat(dunia)[0] == 200
+    assert _tindakan_tersedia(_isi_detail(dunia)) == {"ganti", "cabut"}  # kontrol positif
+
+    def _rusak(_path):
+        raise OSError("berkas tidak bisa dibuka")
+
+    monkeypatch.setattr(akh.guru_tautan_anak, "_baca_akun", _rusak)
+    isi = _isi_detail(dunia)
+
+    assert akp.COPY_TAK_TERBACA in isi
+    assert akp.COPY_ANAK_TAK_AKTIF not in isi and _tindakan_tersedia(isi) == set()

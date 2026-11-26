@@ -172,3 +172,31 @@ def test_hapus_keluarga_lewat_jalur_nyata_membuat_anak_tak_ada(server):
     with server.buka() as kon:
         nama = kon.execute("SELECT nama FROM siswa WHERE id=?", (siswa,)).fetchone()[0]
     assert nama.startswith("Dihapus-")
+
+
+def test_status_anak_membedakan_tidak_ada_dari_tidak_diketahui(tmp_path, monkeypatch):
+    berkas = _berkas_auth(tmp_path)
+    db, siswa = _siswa(tmp_path)
+    akun_id = _murid(berkas, siswa)
+
+    assert anak.status_anak(akun_id, siswa, path_auth=berkas, path_belajar=db) == anak.ANAK_ADA
+    assert anak.status_anak("akun_" + "b" * 32, siswa, path_auth=berkas, path_belajar=db) == anak.ANAK_TIDAK_ADA
+    with sqlite3.connect(db) as kon:
+        kon.execute("DELETE FROM siswa WHERE id=?", (siswa,))
+    assert anak.status_anak(akun_id, siswa, path_auth=berkas, path_belajar=db) == anak.ANAK_TIDAK_ADA
+
+    def _rusak(_path):
+        raise OSError("berkas tidak bisa dibuka")
+
+    monkeypatch.setattr(anak, "_baca_akun", _rusak)
+    assert anak.status_anak(akun_id, siswa, path_auth=berkas, path_belajar=db) == anak.ANAK_TIDAK_DIKETAHUI
+    assert anak.anak_masih_ada(akun_id, siswa, path_auth=berkas, path_belajar=db) is False
+
+
+def test_status_anak_db_latihan_tak_terbaca_tidak_diketahui_dan_tidak_dibuat(tmp_path):
+    berkas = _berkas_auth(tmp_path)
+    akun_id = _murid(berkas, 1)
+    db = tmp_path / "tidak-ada.db"
+
+    assert anak.status_anak(akun_id, 1, path_auth=berkas, path_belajar=db) == anak.ANAK_TIDAK_DIKETAHUI
+    assert not db.exists()

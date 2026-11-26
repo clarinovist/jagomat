@@ -156,7 +156,10 @@ def blok_html(penangan, principal, order_id: str) -> str:
         if anak is None:
             return ""
         aktif = kode.kode_aktif(anak[0], anak[1])
-        if not guru_tautan_anak.anak_masih_ada(anak[0], anak[1]):
+        status = guru_tautan_anak.status_anak(anak[0], anak[1])
+        if status == guru_tautan_anak.ANAK_TIDAK_DIKETAHUI:
+            return halaman.blok_tak_terbaca()
+        if status != guru_tautan_anak.ANAK_ADA:
             return _blok_anak_tak_aktif(penangan, principal, order_id, aktif)
         tokens = _tokens(penangan, principal, order_id, _tindakan_tampil(aktif))
     except _GALAT_BACA as galat:

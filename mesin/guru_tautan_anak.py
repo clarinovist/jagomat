@@ -25,6 +25,9 @@ _log = logging.getLogger(__name__)
 
 PERAN_MURID = "murid"
 AWALAN_DIHAPUS = "Dihapus-"
+ANAK_ADA = "ada"
+ANAK_TIDAK_ADA = "tidak_ada"
+ANAK_TIDAK_DIKETAHUI = "tidak_diketahui"
 
 
 def _baca_akun(path_auth: Optional[Path]) -> list:
@@ -69,13 +72,21 @@ def _nama_belum_dianonimkan(siswa_id, path_belajar: Optional[Path]) -> bool:
     return baris is not None and not str(baris[0]).startswith(AWALAN_DIHAPUS)
 
 
+def status_anak(akun_id, siswa_id, *, path_auth: Optional[Path] = None,
+                path_belajar: Optional[Path] = None) -> str:
+    """`ANAK_ADA`, `ANAK_TIDAK_ADA` (terbaca dan memang tidak aktif), atau `ANAK_TIDAK_DIKETAHUI` (galat baca).
+    Tidak pernah raise. Pemanggil yang butuh keputusan aman memperlakukan selain `ANAK_ADA` sebagai tidak ada."""
+    try:
+        if akun_murid_aktif(akun_id, siswa_id, path_auth=path_auth) is None:
+            return ANAK_TIDAK_ADA
+        ada = _nama_belum_dianonimkan(siswa_id, path_belajar)
+    except Exception as galat:  # galat baca: bukan "tidak ada"; pemanggil memutuskan tampilan, tetap tertutup
+        _log.warning("kepastian anak tidak bisa dibaca: %s", type(galat).__name__)
+        return ANAK_TIDAK_DIKETAHUI
+    return ANAK_ADA if ada else ANAK_TIDAK_ADA
+
+
 def anak_masih_ada(akun_id, siswa_id, *, path_auth: Optional[Path] = None,
                    path_belajar: Optional[Path] = None) -> bool:
     """True bila akun murid pemilik order masih aktif DAN baris siswa belum dianonimkan. Gagal tertutup."""
-    try:
-        if akun_murid_aktif(akun_id, siswa_id, path_auth=path_auth) is None:
-            return False
-        return _nama_belum_dianonimkan(siswa_id, path_belajar)
-    except Exception as galat:  # gagal tertutup: galat apa pun berarti anak tidak dianggap ada
-        _log.warning("kepastian anak tidak bisa dibaca: %s", type(galat).__name__)
-        return False
+    return status_anak(akun_id, siswa_id, path_auth=path_auth, path_belajar=path_belajar) == ANAK_ADA
