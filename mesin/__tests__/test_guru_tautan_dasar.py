@@ -136,7 +136,8 @@ def _ajukan(path, *, kode_id, guru=ID_GURU, klp=KLP, pada=PADA):
 
 
 def _tolak(path, permintaan_id, *, pada=PADA):
-    return T.putusan(permintaan_id=permintaan_id, hasil="tolak", oleh=ID_ORTU, pada=pada, path=path)
+    return T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="tolak", oleh=ID_ORTU,
+                     pada=pada, path=path)
 
 
 def _isi_lengkap(path):
@@ -315,12 +316,16 @@ def test_ajukan_menolak_argumen_tidak_sah_sebelum_berkas_dibuat(berkas, ubah):
     [
         pytest.param(T.catat_gagal, {"guru_id": "bukan-akun", "pada": PADA}, id="catat-guru-tidak-sah"),
         pytest.param(T.catat_gagal, {"guru_id": ID_GURU, "pada": "2026-11-10 10:00:00"}, id="catat-pada-tidak-sah"),
-        pytest.param(T.putusan, {"permintaan_id": 0, "hasil": "setuju", "oleh": ID_ORTU, "pada": PADA},
-                     id="putusan-id-nol"),
-        pytest.param(T.putusan, {"permintaan_id": 1, "hasil": "ya", "oleh": ID_ORTU, "pada": PADA},
-                     id="putusan-hasil-tidak-dikenal"),
-        pytest.param(T.putusan, {"permintaan_id": 1, "hasil": "tolak", "oleh": "bukan-akun", "pada": PADA},
-                     id="putusan-oleh-tidak-sah"),
+        pytest.param(T.putusan, {"permintaan_id": 0, "akun_id": ID_ANAK, "siswa_id": SISWA, "hasil": "setuju",
+                                 "oleh": ID_ORTU, "pada": PADA}, id="putusan-id-nol"),
+        pytest.param(T.putusan, {"permintaan_id": 1, "akun_id": ID_ANAK, "siswa_id": SISWA, "hasil": "ya",
+                                 "oleh": ID_ORTU, "pada": PADA}, id="putusan-hasil-tidak-dikenal"),
+        pytest.param(T.putusan, {"permintaan_id": 1, "akun_id": ID_ANAK, "siswa_id": SISWA, "hasil": "tolak",
+                                 "oleh": "bukan-akun", "pada": PADA}, id="putusan-oleh-tidak-sah"),
+        pytest.param(T.putusan, {"permintaan_id": 1, "akun_id": "bukan-akun", "siswa_id": SISWA, "hasil": "tolak",
+                                 "oleh": ID_ORTU, "pada": PADA}, id="putusan-akun-anak-tidak-sah"),
+        pytest.param(T.putusan, {"permintaan_id": 1, "akun_id": ID_ANAK, "siswa_id": 0, "hasil": "tolak",
+                                 "oleh": ID_ORTU, "pada": PADA}, id="putusan-siswa-nol"),
         pytest.param(T.cabut_semua, {"akun_id": ID_ANAK, "siswa_id": 0, "oleh": ID_ORTU,
                                      "peran": "orang_tua", "pada": PADA}, id="cabut-semua-siswa-nol"),
         pytest.param(T.cabut_semua, {"akun_id": ID_ANAK, "siswa_id": SISWA, "oleh": ID_ORTU,
@@ -346,9 +351,33 @@ def test_panggilan_argumen_tidak_sah_ditolak_sebelum_berkas_dibuat(berkas, fungs
     assert not berkas.exists()
 
 
-def test_cari_kode_aktif_menolak_hash_tidak_sah_sebelum_berkas_dibuat(berkas):
-    with pytest.raises(ValueError):
-        T.cari_kode_aktif("pendek", path=berkas)
+@pytest.mark.parametrize(
+    "kode_hash",
+    [
+        pytest.param(None, id="none"),
+        pytest.param(123, id="int"),
+        pytest.param(b"x" * 64, id="bytes"),
+        pytest.param("", id="kosong"),
+        pytest.param("x" * 100, id="seratus-karakter"),
+        pytest.param("pendek", id="pendek"),
+        pytest.param(HASH_1.upper(), id="hex-huruf-besar"),
+        pytest.param("g" * 64, id="bukan-hex"),
+        pytest.param(HASH_1 + "0", id="enam-puluh-lima-karakter"),
+    ],
+)
+def test_cari_kode_aktif_hash_tidak_sah_dijawab_none_tanpa_menyentuh_berkas(berkas, monkeypatch, kode_hash):
+    """Gagal tertutup: hash berformat salah tidak pernah sampai ke pembacaan DB dan tidak pernah raise."""
+    _buat(berkas)
+
+    def tanpa_baca(*args, **kwargs):
+        pytest.fail("cari_kode_aktif tidak boleh membaca berkas untuk hash yang tidak sah")
+
+    monkeypatch.setattr(T, "_baca_berkas", tanpa_baca)
+    assert T.cari_kode_aktif(kode_hash, path=berkas) is None
+
+
+def test_cari_kode_aktif_hash_tidak_sah_tanpa_berkas_tidak_membuat_berkas(berkas):
+    assert T.cari_kode_aktif(None, path=berkas) is None
     assert not berkas.exists()
 
 
@@ -477,6 +506,50 @@ def test_gagal_pada_berkas_kosong_buatan_pihak_lain_tidak_dihapus(berkas, monkey
     with pytest.raises(T.GalatTautan):
         _buat(berkas)
     assert berkas.exists()
+
+
+def test_gagal_pada_tulis_pertama_tanpa_penulis_lain_tidak_menyisakan_berkas_apa_pun(berkas, monkeypatch, tmp_path):
+    monkeypatch.setattr(T, "_sisipkan_kode", _gagal_sisipkan)
+    with pytest.raises(T.GalatTautan):
+        _buat(berkas)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_bisa_dibuang_hanya_berkas_kosong_yang_tidak_dipegang_dan_tidak_membuat_berkas(berkas):
+    assert T._bisa_dibuang(berkas) is False
+    assert not berkas.exists()
+    berkas.touch(mode=0o600)
+    assert T._bisa_dibuang(berkas) is True
+    _buat(berkas)
+    assert T._bisa_dibuang(berkas) is False
+
+
+def test_berkas_kosong_yang_dipegang_penulis_lain_tidak_dibuang(berkas, monkeypatch):
+    """Penulis lain sudah BEGIN IMMEDIATE pada berkas 0 byte yang baru dibuat: pembersihan harus melewatinya."""
+    penulis = []
+    siapkan_asli = T._siapkan_berkas
+
+    def siapkan_lalu_tahan(tujuan):
+        dibuat = siapkan_asli(tujuan)
+        kon = sqlite3.connect(str(tujuan), timeout=0)
+        kon.execute("BEGIN IMMEDIATE")
+        penulis.append(kon)
+        return dibuat
+
+    monkeypatch.setattr(T, "_siapkan_berkas", siapkan_lalu_tahan)
+    monkeypatch.setattr(T, "TIMEOUT_DETIK", 0.0)
+    try:
+        with pytest.raises(T.GalatTautan):
+            _buat(berkas)
+        assert berkas.exists()
+        T._pastikan_skema(penulis[0])
+        kode_id = T._sisipkan_kode(penulis[0], ID_ANAK, SISWA, HASH_1, ID_ORTU, "orang_tua", PADA)
+        penulis[0].commit()
+    finally:
+        penulis[0].close()
+
+    assert kode_id == 1
+    assert T.kode_aktif(ID_ANAK, SISWA, path=berkas)["id"] == 1
 
 
 # --- permintaan (ajukan) ----------------------------------------------------------------
@@ -609,7 +682,8 @@ def test_foreign_key_menolak_permintaan_ke_kode_yang_tidak_ada(berkas, monkeypat
 @pytest.mark.parametrize("hasil", ["setuju", "tolak"])
 def test_putusan_dari_menunggu_tercatat(berkas, hasil):
     permintaan_id = _ajukan(berkas, kode_id=_buat(berkas))
-    T.putusan(permintaan_id=permintaan_id, hasil=hasil, oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+    T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil=hasil, oleh=ID_ORTU,
+              pada=PADA_LAIN, path=berkas)
     baca = T.permintaan_dengan_status(permintaan_id, PADA_LAIN, path=berkas)
     assert (baca["status"], baca["pada_putusan"]) == (hasil, PADA_LAIN)
 
@@ -617,7 +691,8 @@ def test_putusan_dari_menunggu_tercatat(berkas, hasil):
 def test_putusan_pada_permintaan_kedaluwarsa_ditolak_tanpa_tulis(berkas):
     permintaan_id = _ajukan(berkas, kode_id=_buat(berkas))
     with pytest.raises(T.PutusanTakBisa):
-        T.putusan(permintaan_id=permintaan_id, hasil="setuju", oleh=ID_ORTU, pada=KEDALUWARSA, path=berkas)
+        T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju", oleh=ID_ORTU,
+                  pada=KEDALUWARSA, path=berkas)
     assert _jumlah(berkas, "putusan") == 0
 
 
@@ -626,7 +701,8 @@ def test_putusan_pada_permintaan_yang_kodenya_dicabut_ditolak(berkas):
     permintaan_id = _ajukan(berkas, kode_id=kode_id)
     _cabut(berkas, kode_id)
     with pytest.raises(T.PutusanTakBisa):
-        T.putusan(permintaan_id=permintaan_id, hasil="setuju", oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+        T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju", oleh=ID_ORTU,
+                  pada=PADA_LAIN, path=berkas)
     assert _jumlah(berkas, "putusan") == 0
 
 
@@ -634,13 +710,15 @@ def test_putusan_kedua_pada_permintaan_yang_sama_ditolak(berkas):
     permintaan_id = _ajukan(berkas, kode_id=_buat(berkas))
     _tolak(berkas, permintaan_id, pada=PADA_LAIN)
     with pytest.raises(T.PutusanTakBisa):
-        T.putusan(permintaan_id=permintaan_id, hasil="setuju", oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+        T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju", oleh=ID_ORTU,
+                  pada=PADA_LAIN, path=berkas)
     assert _jumlah(berkas, "putusan") == 1
 
 
 def test_putusan_pada_permintaan_yang_tidak_ada_ditolak_tanpa_berkas(berkas):
     with pytest.raises(T.PutusanTakBisa):
-        T.putusan(permintaan_id=1, hasil="setuju", oleh=ID_ORTU, pada=PADA, path=berkas)
+        T.putusan(permintaan_id=1, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju", oleh=ID_ORTU, pada=PADA,
+                  path=berkas)
     assert not berkas.exists()
 
 
@@ -648,8 +726,38 @@ def test_putusan_gagal_di_tengah_tidak_meninggalkan_baris(berkas, monkeypatch):
     permintaan_id = _ajukan(berkas, kode_id=_buat(berkas))
     monkeypatch.setattr(T, "_sisipkan_putusan", _gagal_sisipkan)
     with pytest.raises(T.GalatTautan):
-        T.putusan(permintaan_id=permintaan_id, hasil="setuju", oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+        T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju", oleh=ID_ORTU,
+                  pada=PADA_LAIN, path=berkas)
     assert _jumlah(berkas, "putusan") == 0
+    assert T.permintaan_dengan_status(permintaan_id, PADA_LAIN, path=berkas)["status"] == "menunggu"
+
+
+@pytest.mark.parametrize(
+    ("akun", "siswa"),
+    [
+        pytest.param(ID_ANAK_LAIN, SISWA_LAIN, id="anak-dan-siswa-lain"),
+        pytest.param(ID_ANAK, SISWA_LAIN, id="akun-sama-siswa-lain"),
+        pytest.param(ID_ANAK_LAIN, SISWA, id="akun-lain-siswa-sama"),
+    ],
+)
+def test_putusan_untuk_permintaan_anak_lain_ditolak_tanpa_tulis(berkas, akun, siswa):
+    """Permintaan milik anak lain = PutusanTakBisa yang identik dengan id tak ada; berkas tidak berubah."""
+    # Arrange
+    permintaan_id = _ajukan(berkas, kode_id=_buat(berkas))
+    sebelum = hashlib.sha256(berkas.read_bytes()).hexdigest()
+
+    # Act
+    with pytest.raises(T.PutusanTakBisa) as milik_lain:
+        T.putusan(permintaan_id=permintaan_id, akun_id=akun, siswa_id=siswa, hasil="setuju",
+                  oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+    with pytest.raises(T.PutusanTakBisa) as tak_ada:
+        T.putusan(permintaan_id=99, akun_id=akun, siswa_id=siswa, hasil="setuju",
+                  oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+
+    # Assert
+    assert str(milik_lain.value) == str(tak_ada.value)
+    assert _jumlah(berkas, "putusan") == 0
+    assert hashlib.sha256(berkas.read_bytes()).hexdigest() == sebelum
     assert T.permintaan_dengan_status(permintaan_id, PADA_LAIN, path=berkas)["status"] == "menunggu"
 
 
@@ -673,7 +781,8 @@ def test_status_kedaluwarsa_tepat_saat_kini_mencapai_batas_tujuh_hari(berkas):
 
 def test_putusan_setuju_tetap_terbaca_setelah_kedaluwarsa(berkas):
     permintaan_id = _ajukan(berkas, kode_id=_buat(berkas))
-    T.putusan(permintaan_id=permintaan_id, hasil="setuju", oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+    T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju", oleh=ID_ORTU,
+                  pada=PADA_LAIN, path=berkas)
     assert T.permintaan_dengan_status(permintaan_id, "2026-12-01T00:00:00", path=berkas)["status"] == "setuju"
 
 
@@ -700,6 +809,47 @@ def test_daftar_untuk_anak_hanya_permintaan_kode_anak_itu_termasuk_yang_dicabut(
     T.cabut_semua(akun_id=ID_ANAK, siswa_id=SISWA, oleh=ID_ORTU, peran="orang_tua", pada=PADA_LAIN, path=berkas)
     daftar = T.daftar_untuk_anak(ID_ANAK, SISWA, PADA_LAIN, path=berkas)
     assert [(item["id"], item["status"]) for item in daftar] == [(p1, "batal")]
+
+
+def _permintaan_berstatus(berkas, status):
+    """Satu permintaan anak yang sudah berada di `status` (menunggu, tolak, kedaluwarsa, batal, setuju)."""
+    kode_id = _buat(berkas)
+    permintaan_id = _ajukan(berkas, kode_id=kode_id)
+    if status == "tolak":
+        _tolak(berkas, permintaan_id, pada=PADA_LAIN)
+    elif status == "setuju":
+        T.putusan(permintaan_id=permintaan_id, akun_id=ID_ANAK, siswa_id=SISWA, hasil="setuju",
+                  oleh=ID_ORTU, pada=PADA_LAIN, path=berkas)
+    elif status == "batal":
+        _cabut(berkas, kode_id, pada=PADA_LAIN)
+    return permintaan_id
+
+
+@pytest.mark.parametrize(
+    ("status", "kini"),
+    [
+        pytest.param("menunggu", PADA_LAIN, id="menunggu"),
+        pytest.param("tolak", PADA_LAIN, id="tolak"),
+        pytest.param("kedaluwarsa", KEDALUWARSA, id="kedaluwarsa"),
+        pytest.param("batal", PADA_LAIN, id="batal"),
+        pytest.param("setuju", PADA_LAIN, id="setuju"),
+    ],
+)
+def test_daftar_untuk_guru_hanya_membuka_identitas_anak_setelah_setuju(berkas, status, kini):
+    # Arrange
+    permintaan_id = _permintaan_berstatus(berkas, status)
+
+    # Act
+    [untuk_guru] = T.daftar_untuk_guru(ID_GURU, kini, path=berkas)
+    [untuk_anak] = T.daftar_untuk_anak(ID_ANAK, SISWA, kini, path=berkas)
+    penuh = T.permintaan_dengan_status(permintaan_id, kini, path=berkas)
+
+    # Assert
+    diharapkan_guru = (ID_ANAK, SISWA) if status == "setuju" else (None, None)
+    assert (untuk_guru["id"], untuk_guru["status"]) == (permintaan_id, status)
+    assert (untuk_guru["akun_id"], untuk_guru["siswa_id"]) == diharapkan_guru
+    assert (untuk_anak["akun_id"], untuk_anak["siswa_id"]) == (ID_ANAK, SISWA)
+    assert (penuh["akun_id"], penuh["siswa_id"]) == (ID_ANAK, SISWA)
 
 
 def test_pembaca_tidak_pernah_memuat_kode_hash(berkas):

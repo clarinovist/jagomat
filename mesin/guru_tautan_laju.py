@@ -3,6 +3,10 @@
 Pola `laju_masuk`, dengan dua perbedaan: jendela dan batas dikirim pemanggil (bukan konstanta modul), dan plafon
 kunci (`BATAS_KUNCI`) beserta riwayatnya sendiri, sehingga tidak berbagi state dengan login atau PIN. IP tidak
 pernah disimpan ke disk. Aman dipakai beberapa thread lewat satu Lock.
+
+Batas per-IP BUKAN satu-satunya pagar: batas gagal per guru di DB (`percobaan_gagal`, lihat `guru_tautan_dasar`)
+tetap menahan. Penyerang yang memakai banyak IP dapat menggusur kunci IP lain lewat plafon `BATAS_KUNCI`; akibatnya
+dibatasi oleh pagar per guru, bukan oleh modul ini.
 """
 
 from __future__ import annotations

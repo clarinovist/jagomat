@@ -1,6 +1,6 @@
 """Aturan murni tautan kode anak guru: tanpa I/O, tanpa DB.
 
-Kode anak 12 karakter Crockford base32 (60 bit) yang tampil `XXXX-XXXX-XXXX`. Yang disimpan hanya hash SHA-256
+Kode anak 16 karakter Crockford base32 (80 bit) yang tampil `XXXX-XXXX-XXXX-XXXX`. Yang disimpan hanya hash SHA-256
 dari bentuk kanonik kode. Waktu berupa string baku UTC naif `YYYY-MM-DDTHH:MM:SS`, sama dengan
 `guru_pertemuan_aturan`. Semua batas waktu dan batas laju berupa konstanta bernama di sini.
 """
@@ -21,7 +21,7 @@ PERMINTAAN_PER_KODE = 10
 JENDELA_KODE = timedelta(days=1)
 GAGAL_PER_IP = 20
 JENDELA_IP_DETIK = 3600
-PANJANG_KODE = 12
+PANJANG_KODE = 16
 PANJANG_BLOK_TAMPIL = 4
 PANJANG_MENTAH_MAKS = 64
 ALFABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -47,12 +47,12 @@ _POLA_WAKTU = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}
 # --- kode -------------------------------------------------------------------------------
 
 def buat_kode() -> str:
-    """12 karakter acak dari `secrets` (60 bit), bentuk kanonik tanpa pemisah."""
+    """16 karakter acak dari `secrets` (80 bit), bentuk kanonik tanpa pemisah."""
     return "".join(secrets.choice(ALFABET) for _ in range(PANJANG_KODE))
 
 
 def tampilkan(kode: str) -> str:
-    """Bentuk tampil `XXXX-XXXX-XXXX`. Masukan yang bukan kode kanonik ditolak."""
+    """Bentuk tampil `XXXX-XXXX-XXXX-XXXX`. Masukan yang bukan kode kanonik ditolak."""
     if type(kode) is not str or normalkan(kode) != kode:
         raise ValueError("Kode tidak kanonik.")
     blok = [kode[i:i + PANJANG_BLOK_TAMPIL] for i in range(0, PANJANG_KODE, PANJANG_BLOK_TAMPIL)]
@@ -60,7 +60,7 @@ def tampilkan(kode: str) -> str:
 
 
 def normalkan(kode: Any) -> Optional[str]:
-    """Bentuk kanonik 12 karakter, atau None bila masukan bukan kode sah. Untuk masukan apa pun tidak pernah raise."""
+    """Bentuk kanonik 16 karakter, atau None bila masukan bukan kode sah. Untuk masukan apa pun tidak pernah raise."""
     if type(kode) is not str:
         return None
     mentah = kode.strip()
@@ -126,7 +126,11 @@ def dalam_jeda_tolak(pada_tolak: str, kini: str) -> bool:
 # --- status dan batas -------------------------------------------------------------------
 
 def status_permintaan(*, kedaluwarsa: str, hasil_putusan: Optional[str], kode_dicabut: bool, kini: str) -> str:
-    """Status turunan. Urutan: putusan, lalu batal (kode dicabut/diganti), lalu kedaluwarsa (kini >= batas), lalu menunggu."""
+    """Status turunan. Urutan: putusan, lalu batal (kode dicabut/diganti), lalu kedaluwarsa (kini >= batas), lalu menunggu.
+
+    `batal` mengalahkan `kedaluwarsa` secara retroaktif: kode yang dicabut SETELAH batas kedaluwarsa tampil batal,
+    bukan kedaluwarsa. Ini status turunan saat dibaca, BUKAN fakta audit; jejak waktu asli ada di `kode_cabut`.
+    """
     if hasil_putusan is not None and hasil_putusan not in HASIL_SAH:
         raise ValueError("Hasil putusan tidak sah.")
     if type(kode_dicabut) is not bool:

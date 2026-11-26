@@ -303,6 +303,53 @@ def test_gagal_pada_tulis_pertama_tidak_meninggalkan_berkas_kosong(berkas, monke
     assert D.terkini(KUNCI, MULAI, path=berkas) == {"topik": None, "hadir": {}}
 
 
+def test_gagal_pada_tulis_pertama_tanpa_penulis_lain_tidak_menyisakan_berkas_apa_pun(berkas, monkeypatch, tmp_path):
+    def gagal_sisipkan_jurnal(kon, catatan):
+        raise sqlite3.OperationalError("gangguan uji")
+
+    monkeypatch.setattr(D, "_sisipkan_jurnal", gagal_sisipkan_jurnal)
+
+    with pytest.raises(D.GalatCatatan):
+        _catat(berkas)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_bisa_dibuang_hanya_berkas_kosong_yang_tidak_dipegang_dan_tidak_membuat_berkas(berkas):
+    assert D._bisa_dibuang(berkas) is False
+    assert not berkas.exists()
+    berkas.touch(mode=0o600)
+    assert D._bisa_dibuang(berkas) is True
+    _catat(berkas)
+    assert D._bisa_dibuang(berkas) is False
+
+
+def test_berkas_kosong_yang_dipegang_penulis_lain_tidak_dibuang(berkas, monkeypatch):
+    """Penulis lain sudah BEGIN IMMEDIATE pada berkas 0 byte yang baru dibuat catat(): pembersihan harus melewatinya."""
+    penulis = []
+    siapkan_asli = D._siapkan_berkas
+
+    def siapkan_lalu_tahan(tujuan):
+        dibuat = siapkan_asli(tujuan)
+        kon = sqlite3.connect(str(tujuan), timeout=0)
+        kon.execute("BEGIN IMMEDIATE")
+        penulis.append(kon)
+        return dibuat
+
+    monkeypatch.setattr(D, "_siapkan_berkas", siapkan_lalu_tahan)
+    monkeypatch.setattr(D, "TIMEOUT_DETIK", 0.0)
+    try:
+        with pytest.raises(D.GalatCatatan):
+            _catat(berkas)
+        assert berkas.exists()
+        D._pastikan_skema(penulis[0])
+        penulis[0].commit()
+    finally:
+        penulis[0].close()
+
+    assert _versi(berkas) == D.VERSI_SKEMA
+    assert {"pertemuan_jurnal", "pertemuan_hadir"} <= _tabel(berkas)
+
+
 def test_gagal_pada_berkas_yang_sudah_ada_tidak_menghapusnya(berkas, monkeypatch):
     # Arrange: berkas sah sudah ada, lalu penulisan berikutnya gagal
     _catat(berkas)

@@ -27,6 +27,7 @@ BERKAS_BAWAAN = "/data/" + NAMA_BERKAS
 ID_MIN = 1
 IZIN_BERKAS = 0o600
 TIMEOUT_DETIK = 5.0
+TIMEOUT_KUNCI_UJI_DETIK = 0.0
 ALASAN_MENUNGGU_ADA = "menunggu_ada"
 ALASAN_JEDA_TOLAK = "jeda_tolak"
 ALASAN_KODE_PENUH = "kode_penuh"
@@ -106,8 +107,12 @@ def _periksa_pencatat(oleh: Any, peran: Any, pada: Any) -> None:
     _periksa_waktu(pada)
 
 
+def _hash_sah(kode_hash: Any) -> bool:
+    return type(kode_hash) is str and _POLA_HASH.fullmatch(kode_hash) is not None
+
+
 def _periksa_hash(kode_hash: Any) -> None:
-    if type(kode_hash) is not str or _POLA_HASH.fullmatch(kode_hash) is None:
+    if not _hash_sah(kode_hash):
         raise ValueError("Hash kode tidak sah.")
 
 
@@ -217,13 +222,33 @@ def _siapkan_berkas(tujuan: Path) -> bool:
     return True
 
 
+def _bisa_dibuang(tujuan: Path) -> bool:
+    """True bila berkas masih 0 byte dan tak ada penulis lain yang memegangnya. Tidak pernah membuat berkas.
+
+    Probe `BEGIN EXCLUSIVE` tanpa menunggu (mode=rw, timeout nol). Ukuran dicek DI BAWAH kunci itu, lalu rollback
+    sebelum berkas dibuang. Galat apa pun dianggap "jangan buang", supaya galat tulis asli yang dilaporkan.
+    """
+    try:
+        with closing(sqlite3.connect(tujuan.resolve().as_uri() + "?mode=rw", uri=True,
+                                     timeout=TIMEOUT_KUNCI_UJI_DETIK)) as kon:
+            kon.execute("BEGIN EXCLUSIVE")
+            kosong = tujuan.stat().st_size == 0
+            kon.execute("ROLLBACK")
+    except (OSError, sqlite3.Error):
+        _log.warning("berkas tautan kosong tidak diperiksa; dibiarkan")
+        return False
+    return kosong
+
+
 def _hapus_bila_kosong(tujuan: Path, dibuat_di_sini: bool) -> None:
-    """Buang berkas 0 byte yang baru dibuat tulis ini bila gagal. Berkas lain tidak pernah disentuh."""
-    if not dibuat_di_sini:
+    """Buang berkas 0 byte yang baru dibuat tulis ini bila gagal. Berkas lain tidak pernah disentuh.
+
+    Berkas yang sedang dipegang penulis lain (transaksi terbuka) dibiarkan: menghapusnya membuang data penulis itu.
+    """
+    if not dibuat_di_sini or not _bisa_dibuang(tujuan):
         return
     try:
-        if tujuan.stat().st_size == 0:
-            tujuan.unlink()
+        tujuan.unlink()
     except OSError:
         _log.warning("berkas tautan kosong tidak bisa dibersihkan")
 
@@ -471,9 +496,16 @@ def _aksi_ajukan(kon: sqlite3.Connection, guru_id: str, kelompok_id: str, kode_i
     return _sisipkan_permintaan(kon, guru_id, kelompok_id, kode_id, pada)
 
 
-def _aksi_putusan(kon: sqlite3.Connection, permintaan_id: int, hasil: str, oleh: str, pada: str) -> None:
+def _menunggu_milik_anak(bentuk: Dict[str, object], akun_id: str, siswa_id: int) -> bool:
+    milik = (bentuk["akun_id"], bentuk["siswa_id"]) == (akun_id, siswa_id)
+    return milik and bentuk["status"] == aturan.STATUS_MENUNGGU
+
+
+def _aksi_putusan(kon: sqlite3.Connection, permintaan_id: int, akun_id: str, siswa_id: int,
+                  hasil: str, oleh: str, pada: str) -> None:
+    """Hanya permintaan MILIK anak itu yang masih menunggu. Selain itu PutusanTakBisa tanpa tulis."""
     baris = _satu_permintaan(kon, permintaan_id)
-    if baris is None or _bentuk_permintaan(baris, pada)["status"] != aturan.STATUS_MENUNGGU:
+    if baris is None or not _menunggu_milik_anak(_bentuk_permintaan(baris, pada), akun_id, siswa_id):
         raise PutusanTakBisa(_PESAN_TAK_BISA)
     _sisipkan_putusan(kon, permintaan_id, hasil, oleh, pada)
 
@@ -531,6 +563,9 @@ def ajukan(*, guru_id: str, kelompok_id: str, kode_id: int, pada: str, path=None
 
     Ditolak `KodeTakAktif` bila kode tidak aktif, dan `PermintaanDitolakAturan` bila melanggar aturan
     (menunggu_ada, jeda_tolak, kode_penuh).
+
+    TIDAK memeriksa bahwa guru pemilik `kelompok_id` dan bahwa anak masih ada (`anak_masih_ada`). Kedua pemeriksaan
+    itu lapisan 3b-2 yang WAJIB ada sebelum fungsi ini dipanggil dari HTTP.
     """
     _periksa_akun(guru_id, "ID guru")
     _periksa_kelompok(kelompok_id)
@@ -539,13 +574,19 @@ def ajukan(*, guru_id: str, kelompok_id: str, kode_id: int, pada: str, path=None
     return _tulis(_path_db(path), lambda kon: _aksi_ajukan(kon, guru_id, kelompok_id, kode_id, pada))
 
 
-def putusan(*, permintaan_id: int, hasil: str, oleh: str, pada: str, path=None) -> None:
-    """Putusan orang tua/admin atas permintaan yang masih menunggu. Selain itu `PutusanTakBisa` tanpa tulis."""
+def putusan(*, permintaan_id: int, akun_id: str, siswa_id: int, hasil: str, oleh: str, pada: str,
+            path=None) -> None:
+    """Putusan atas permintaan yang MILIK anak (`akun_id`, `siswa_id`) dan masih menunggu.
+
+    Selain itu (anak lain, id tak ada, sudah diputus/kedaluwarsa/batal) `PutusanTakBisa` tanpa tulis.
+    """
     _periksa_id(permintaan_id, "ID permintaan")
+    _periksa_anak(akun_id, siswa_id)
     _periksa_hasil(hasil)
     _periksa_akun(oleh, "ID pencatat")
     _periksa_waktu(pada)
-    _tulis(_path_db(path), lambda kon: _aksi_putusan(kon, permintaan_id, hasil, oleh, pada))
+    _tulis(_path_db(path), lambda kon: _aksi_putusan(
+        kon, permintaan_id, akun_id, siswa_id, hasil, oleh, pada))
 
 
 def catat_gagal(*, guru_id: str, pada: str, path=None) -> None:
@@ -563,12 +604,13 @@ def kode_aktif(akun_id: str, siswa_id: int, *, path=None) -> Optional[Dict[str, 
     return _baca_berkas(_path_db(path), None, lambda kon: _kode_aktif_kon(kon, akun_id, siswa_id))
 
 
-def cari_kode_aktif(kode_hash: str, *, path=None) -> Optional[Dict[str, object]]:
+def cari_kode_aktif(kode_hash: Any, *, path=None) -> Optional[Dict[str, object]]:
     """{"id", "akun_id", "siswa_id"} bila hash itu kode yang masih aktif, selain itu None.
 
-    Pemanggil wajib memeriksa hash dari `hash_kode` dulu: hash None ditolak sebagai ValueError.
+    Hash yang bukan 64 heks kecil (termasuk None) dijawab None tanpa menyentuh berkas dan tanpa raise: gagal tertutup.
     """
-    _periksa_hash(kode_hash)
+    if not _hash_sah(kode_hash):
+        return None
     return _baca_berkas(_path_db(path), None, lambda kon: _cari_aktif_kon(kon, kode_hash))
 
 
@@ -588,11 +630,20 @@ def _daftar(kon: sqlite3.Connection, where: str, parameter: tuple, kini: str) ->
     return [_bentuk_permintaan(baris, kini) for baris in _query_permintaan(kon, where, parameter)]
 
 
+def _untuk_guru(bentuk: Dict[str, object]) -> Dict[str, object]:
+    """Identitas anak (akun_id, siswa_id) terbuka untuk guru hanya bila status `setuju` (anak sudah anggota)."""
+    if bentuk["status"] == aturan.STATUS_SETUJU:
+        return bentuk
+    return {**bentuk, "akun_id": None, "siswa_id": None}
+
+
 def daftar_untuk_guru(guru_id: str, kini: str, *, path=None) -> List[Dict[str, object]]:
-    """Permintaan milik guru itu saja, terbaru dulu."""
+    """Permintaan milik guru itu saja, terbaru dulu. Identitas anak disamarkan kecuali status `setuju`."""
     _periksa_akun(guru_id, "ID guru")
     _periksa_waktu(kini)
-    return _baca_berkas(_path_db(path), [], lambda kon: _daftar(kon, "r.guru_id = ?", (guru_id,), kini))
+    return _baca_berkas(_path_db(path), [], lambda kon: [
+        _untuk_guru(bentuk) for bentuk in _daftar(kon, "r.guru_id = ?", (guru_id,), kini)
+    ])
 
 
 def daftar_untuk_anak(akun_id: str, siswa_id: int, kini: str, *, path=None) -> List[Dict[str, object]]:

@@ -9,10 +9,12 @@ import pytest
 import guru_tautan_aturan as A
 
 ALFABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
-POLA_TAMPIL = re.compile(r"[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}")
+POLA_TAMPIL = re.compile(r"[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}")
 POLA_HASH = re.compile(r"[0-9a-f]{64}")
-KODE_CONTOH = "ABCDEFGHJKMN"
-TAMPIL_CONTOH = "ABCD-EFGH-JKMN"
+KODE_CONTOH = "ABCDEFGHJKMNPQRS"
+TAMPIL_CONTOH = "ABCD-EFGH-JKMN-PQRS"
+KODE_LAMA = "ABCDEFGHJKMN"
+TAMPIL_LAMA = "ABCD-EFGH-JKMN"
 DIBUAT = "2026-11-10T10:00:00"
 KEDALUWARSA = "2026-11-17T10:00:00"
 PADA_TOLAK = "2026-11-10T10:00:00"
@@ -29,7 +31,7 @@ def test_konstanta_sesuai_rancangan_batas_dan_status():
     assert A.JENDELA_KODE == timedelta(days=1)
     assert A.GAGAL_PER_IP == 20
     assert A.JENDELA_IP_DETIK == 3600
-    assert A.PANJANG_KODE == 12
+    assert A.PANJANG_KODE == 16
     assert A.ALFABET == ALFABET
     assert (A.STATUS_MENUNGGU, A.STATUS_SETUJU, A.STATUS_TOLAK, A.STATUS_KEDALUWARSA, A.STATUS_BATAL) == (
         "menunggu", "setuju", "tolak", "kedaluwarsa", "batal",
@@ -39,12 +41,12 @@ def test_konstanta_sesuai_rancangan_batas_dan_status():
 
 # --- kode acak dan tampilan -------------------------------------------------------------
 
-def test_buat_kode_dua_belas_karakter_dari_alfabet_crockford():
+def test_buat_kode_enam_belas_karakter_dari_alfabet_crockford():
     # Arrange / Act
     kode = A.buat_kode()
 
     # Assert
-    assert len(kode) == 12
+    assert len(kode) == 16
     assert set(kode) <= set(ALFABET)
 
 
@@ -60,11 +62,14 @@ def test_tampilkan_membentuk_blok_empat_karakter_dengan_tanda_hubung():
     assert A.tampilkan(KODE_CONTOH) == TAMPIL_CONTOH
 
 
-def test_tampilan_kode_acak_cocok_pola_xxxx_xxxx_xxxx():
+def test_tampilan_kode_acak_cocok_pola_xxxx_xxxx_xxxx_xxxx():
     assert POLA_TAMPIL.fullmatch(A.tampilkan(A.buat_kode()))
 
 
-@pytest.mark.parametrize("kode", [None, "ABCD-EFGH", "abcd-efgh-jkmu", 123])
+@pytest.mark.parametrize(
+    "kode",
+    [None, "ABCD-EFGH", "abcd-efgh-jkmn-pqrs", TAMPIL_LAMA, 123],
+)
 def test_tampilkan_menolak_kode_tidak_kanonik(kode):
     with pytest.raises(ValueError):
         A.tampilkan(kode)
@@ -75,11 +80,11 @@ def test_tampilkan_menolak_kode_tidak_kanonik(kode):
 @pytest.mark.parametrize(
     "masukan",
     [
-        pytest.param("ABCD-EFGH-JKMN", id="tampil-kanonik"),
-        pytest.param("abcd-efgh-jkmn", id="huruf-kecil"),
-        pytest.param("ABCD EFGH JKMN", id="spasi"),
-        pytest.param("  abcd efgh-jkmn\t", id="spasi-tepi-dan-campur"),
-        pytest.param("ABCDEFGHJKMN", id="tanpa-pemisah"),
+        pytest.param("ABCD-EFGH-JKMN-PQRS", id="tampil-kanonik"),
+        pytest.param("abcd-efgh-jkmn-pqrs", id="huruf-kecil"),
+        pytest.param("ABCD EFGH JKMN PQRS", id="spasi"),
+        pytest.param("  abcd efgh-jkmn\tpqrs  ", id="spasi-tepi-dan-campur"),
+        pytest.param("ABCDEFGHJKMNPQRS", id="tanpa-pemisah"),
     ],
 )
 def test_normalkan_menerima_penulisan_yang_setara(masukan):
@@ -87,7 +92,7 @@ def test_normalkan_menerima_penulisan_yang_setara(masukan):
 
 
 def test_normalkan_memetakan_i_dan_l_ke_satu_serta_o_ke_nol():
-    assert A.normalkan("ILOO-ILOO-ILOO") == "110011001100"
+    assert A.normalkan("ILOO-ILOO-ILOO-ILOO") == "1100110011001100"
 
 
 @pytest.mark.parametrize(
@@ -95,20 +100,22 @@ def test_normalkan_memetakan_i_dan_l_ke_satu_serta_o_ke_nol():
     [
         pytest.param(None, id="none"),
         pytest.param(123456789012, id="int"),
-        pytest.param(b"ABCDEFGHJKMN", id="bytes"),
-        pytest.param(["ABCDEFGHJKMN"], id="daftar"),
+        pytest.param(b"ABCDEFGHJKMNPQRS", id="bytes"),
+        pytest.param(["ABCDEFGHJKMNPQRS"], id="daftar"),
         pytest.param("", id="kosong"),
         pytest.param("   ", id="hanya-spasi"),
-        pytest.param("ABCD-EFGH-JKM", id="sebelas-karakter"),
-        pytest.param("ABCD-EFGH-JKMNP", id="tiga-belas-karakter"),
-        pytest.param("ABCD-EFGH-JKMU", id="u-tidak-ada-di-alfabet"),
-        pytest.param("ABCD-EFGH-JKM!", id="karakter-asing"),
-        pytest.param("ABCD-EFGH-JKM\x00", id="karakter-nul"),
-        pytest.param("ABCDEFGHJKMé", id="latin-diakritik"),
-        pytest.param("ABCDEFGHJKM\U0001F600", id="emoji"),
-        pytest.param("ABCDEFGHJKM٣", id="digit-arab"),
-        pytest.param("ABCDEFGHJKMı", id="i-tanpa-titik-naik-ke-I"),
-        pytest.param("ABCDEFGHJKMſ", id="s-panjang-naik-ke-S"),
+        pytest.param(KODE_LAMA, id="dua-belas-karakter-format-lama"),
+        pytest.param(TAMPIL_LAMA, id="tampil-dua-belas-karakter-format-lama"),
+        pytest.param("ABCD-EFGH-JKMN-PQR", id="lima-belas-karakter"),
+        pytest.param("ABCD-EFGH-JKMN-PQRST", id="tujuh-belas-karakter"),
+        pytest.param("ABCD-EFGH-JKMN-PQRU", id="u-tidak-ada-di-alfabet"),
+        pytest.param("ABCD-EFGH-JKMN-PQR!", id="karakter-asing"),
+        pytest.param("ABCD-EFGH-JKMN-PQR\x00", id="karakter-nul"),
+        pytest.param("ABCDEFGHJKMNPQRé", id="latin-diakritik"),
+        pytest.param("ABCDEFGHJKMNPQR\U0001F600", id="emoji"),
+        pytest.param("ABCDEFGHJKMNPQR٣", id="digit-arab"),
+        pytest.param("ABCDEFGHJKMNPQRı", id="i-tanpa-titik-naik-ke-I"),
+        pytest.param("ABCDEFGHJKMNPQRſ", id="s-panjang-naik-ke-S"),
         pytest.param("A" * 65, id="melebihi-64-karakter"),
         pytest.param("ABCD-" * 40, id="sangat-panjang-setelah-strip"),
     ],
@@ -123,6 +130,18 @@ def test_normalkan_dan_hash_kode_tidak_pernah_raise_untuk_masukan_apa_pun(masuka
     assert A.hash_kode(masukan) is None
 
 
+@pytest.mark.parametrize("panjang", [12, 15, 17])
+def test_panjang_selain_enam_belas_ditolak_normalkan_hash_dan_tampilkan(panjang):
+    # Arrange: karakter sah semua, hanya panjangnya yang salah
+    kode = (KODE_CONTOH * 2)[:panjang]
+
+    # Act / Assert
+    assert A.normalkan(kode) is None
+    assert A.hash_kode(kode) is None
+    with pytest.raises(ValueError):
+        A.tampilkan(kode)
+
+
 # --- hash -------------------------------------------------------------------------------
 
 def test_hash_kode_adalah_sha256_dari_bentuk_kanonik():
@@ -134,11 +153,22 @@ def test_hash_kode_adalah_sha256_dari_bentuk_kanonik():
 
 
 def test_hash_kode_sama_untuk_penulisan_yang_setara():
-    assert A.hash_kode("abcd-efgh-jkmn") == A.hash_kode("ABCD EFGH JKMN") == A.hash_kode(KODE_CONTOH)
+    assert A.hash_kode(KODE_CONTOH) is not None
+    assert A.hash_kode("abcd-efgh-jkmn-pqrs") == A.hash_kode("ABCD EFGH JKMN PQRS") == A.hash_kode(KODE_CONTOH)
 
 
 def test_hash_kode_beda_untuk_kode_yang_berbeda():
-    assert A.hash_kode(KODE_CONTOH) != A.hash_kode("ABCDEFGHJKM1")
+    # Arrange
+    kode_lain = "ABCDEFGHJKMNPQR1"
+
+    # Act / Assert
+    assert A.hash_kode(kode_lain) is not None
+    assert A.hash_kode(KODE_CONTOH) != A.hash_kode(kode_lain)
+
+
+def test_kode_format_lama_dua_belas_karakter_tidak_menghasilkan_hash():
+    assert A.hash_kode(KODE_LAMA) is None
+    assert A.hash_kode(TAMPIL_LAMA) is None
 
 
 def test_hash_kode_berbentuk_hex_enam_puluh_empat_karakter():

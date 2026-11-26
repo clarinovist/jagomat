@@ -30,6 +30,7 @@ PERTEMUAN_ID_MIN = 1
 PANJANG_POTONGAN_PASANGAN = 400
 IZIN_BERKAS = 0o600
 TIMEOUT_DETIK = 5.0
+TIMEOUT_KUNCI_UJI_DETIK = 0.0
 _PESAN_TOLAK_UBAH = "catatan pertemuan hanya boleh ditambah"
 _PESAN_TULIS = "Catatan pertemuan tidak bisa ditulis."
 _PESAN_BACA = "Catatan pertemuan tidak bisa dibaca."
@@ -186,17 +187,35 @@ def _siapkan_berkas(tujuan: Path) -> bool:
     return True
 
 
+def _bisa_dibuang(tujuan: Path) -> bool:
+    """True bila berkas masih 0 byte dan tak ada penulis lain yang memegangnya. Tidak pernah membuat berkas.
+
+    Probe `BEGIN EXCLUSIVE` tanpa menunggu (mode=rw, timeout nol). Ukuran dicek DI BAWAH kunci itu, lalu rollback
+    sebelum berkas dibuang. Galat apa pun dianggap "jangan buang", supaya galat tulis asli yang dilaporkan.
+    """
+    try:
+        with closing(sqlite3.connect(tujuan.resolve().as_uri() + "?mode=rw", uri=True,
+                                     timeout=TIMEOUT_KUNCI_UJI_DETIK)) as kon:
+            kon.execute("BEGIN EXCLUSIVE")
+            kosong = tujuan.stat().st_size == 0
+            kon.execute("ROLLBACK")
+    except (OSError, sqlite3.Error):
+        _log.warning("berkas catatan kosong tidak diperiksa; dibiarkan")
+        return False
+    return kosong
+
+
 def _hapus_bila_kosong(tujuan: Path, dibuat_di_sini: bool) -> None:
     """Bersihkan berkas 0 byte yang baru dibuat `catat` bila penulisan pertama gagal.
 
     Berkas 0 byte tidak punya header SQLite: `sqlite_copy` backup operasional menolaknya sehingga seluruh backup
-    gagal. Berkas yang sudah ada sebelumnya atau sudah berisi tidak pernah disentuh.
+    gagal. Berkas yang sudah ada sebelumnya atau sudah berisi tidak pernah disentuh. Berkas yang sedang dipegang
+    penulis lain (transaksi terbuka) dibiarkan: menghapusnya membuang data penulis itu.
     """
-    if not dibuat_di_sini:
+    if not dibuat_di_sini or not _bisa_dibuang(tujuan):
         return
     try:
-        if tujuan.stat().st_size == 0:
-            tujuan.unlink()
+        tujuan.unlink()
     except OSError:
         _log.warning("berkas catatan kosong tidak bisa dibersihkan")
 
