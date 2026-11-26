@@ -19,7 +19,7 @@ def test_judul_dan_baris_deposit_memakai_nominal_dari_rupiah_paket():
 
 def test_baris_potongan_dan_berlaku_hingga_dalam_wib():
     isi = hv.kartu_voucher(DASAR)
-    assert "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar." in isi
+    assert "Memotong tagihan bulan pertama kelas Jagomat bila Anda mendaftar." in isi
     assert "otomatis" not in isi.lower()
     assert "Berlaku hingga " + waktu_wib(DASAR.berlaku_hingga) in isi
 

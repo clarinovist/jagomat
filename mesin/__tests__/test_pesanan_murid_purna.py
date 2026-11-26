@@ -132,7 +132,7 @@ def test_kartu_tampil_untuk_order_lunas_dengan_deposit_tenggat_dan_janji_tanpa_t
     tampak = teks_tampak(isi)
     assert "Potongan dan laporan" in tampak
     assert "Potongan " + rupiah(pesanan_dasar.RUPIAH_PAKET) in tampak
-    assert "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar." in tampak
+    assert "Memotong tagihan bulan pertama kelas Jagomat bila Anda mendaftar." in tampak
     assert "otomatis" not in tampak.lower()
     assert "Berlaku hingga " + waktu_wib(k.berlaku_hingga) in tampak
     assert "Laporan langsung terbit setelah pembayaran terverifikasi." in tampak and "paling lambat" not in tampak

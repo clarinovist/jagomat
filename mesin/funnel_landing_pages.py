@@ -131,7 +131,7 @@ COPY_FAQ = (
      "Kelas 1–6 SD. Soal mengikuti kelas yang Bunda pilih saat daftar."),
     ("kunci", "navy", "Bagaimana dengan data anak?",
      "Kami hanya menyimpan data yang Bunda isi sendiri saat daftar, ditambah jawaban "
-     "cek anak. Hasil anak hanya terlihat di akun Bunda dan oleh Guru peninjau."),
+     "cek anak. Hasil anak hanya terlihat di akun Bunda dan tim Jagomat."),
     ("uang", "koral", "Kapan saya harus membayar?", COPY_FAQ_BAYAR),
     ("target", "mint", "Biar harapannya pas: batas hasil", None),
 )

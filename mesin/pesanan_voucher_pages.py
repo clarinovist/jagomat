@@ -18,7 +18,7 @@ from pesanan_transfer_pages import rupiah, waktu_wib
 ID_KARTU = "kartu-voucher"
 COPY_JUDUL = "Potongan dan laporan"
 COPY_DEPOSIT = "Potongan "
-COPY_POTONGAN = "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar."
+COPY_POTONGAN = "Memotong tagihan bulan pertama kelas Jagomat bila Anda mendaftar."
 COPY_BERLAKU = "Berlaku hingga "
 COPY_STATUS_VOUCHER = {
     purna.VOUCHER_BELUM_LUNAS: "Potongan aktif setelah pembayaran diterima.",
