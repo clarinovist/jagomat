@@ -16,15 +16,12 @@ di sini (bukan di halaman):
 """
 from __future__ import annotations
 
-import hashlib
-import hmac
-import json
-import time
+import time  # dipertahankan: tes memonkeypatch kontak_http.time
 import urllib.parse
 from datetime import datetime, timezone
 
-import auth
 import database
+import form_token
 import kontak_akun
 import kontak_pages
 import registration_contact
@@ -38,7 +35,6 @@ KUNCI_FORM = frozenset({"token", "wa"})
 UMUR_TOKEN_DETIK = 900
 _AKSI_TOKEN = "kontak"
 _DOMAIN_TOKEN = b"kontak-form-v1:"
-_BATAS_TOKEN = 256
 
 
 def _tidak_ada(penangan) -> None:
@@ -61,41 +57,16 @@ def _principal_guru(penangan):
     return principal
 
 
-def _mac(principal, sesi, kedaluwarsa: int):
-    akun = auth.cari_akun(principal.pengguna)
-    if akun is None:
-        return None
-    badan = json.dumps(
-        [
-            principal.id_akun,
-            principal.revisi_auth,
-            hashlib.sha256((sesi or "").encode()).hexdigest(),
-            _AKSI_TOKEN,
-            kedaluwarsa,
-        ],
-        separators=(",", ":"),
-    ).encode()
-    return hmac.new(bytes.fromhex(akun["kunci"]), _DOMAIN_TOKEN + badan, hashlib.sha256).hexdigest()
-
-
 def buat_token(principal, sesi) -> str:
     """Token form berumur pendek, terikat ke akun dan sesi pemegangnya."""
-    kedaluwarsa = int(time.time()) + UMUR_TOKEN_DETIK
-    return f"{kedaluwarsa}.{_mac(principal, sesi, kedaluwarsa)}"
+    return form_token.buat_token(
+        principal, sesi, domain=_DOMAIN_TOKEN, aksi=_AKSI_TOKEN, umur=UMUR_TOKEN_DETIK,
+    )
 
 
 def token_sah(principal, sesi, token) -> bool:
     """True hanya untuk token utuh, belum kedaluwarsa, dan cocok dengan akun+sesi ini."""
-    if type(token) is not str or not 0 < len(token) <= _BATAS_TOKEN:
-        return False
-    awal, titik, tanda = token.partition(".")
-    if not titik or not awal.isascii() or not awal.isdigit():
-        return False
-    kedaluwarsa = int(awal)
-    if int(time.time()) >= kedaluwarsa:
-        return False
-    harap = _mac(principal, sesi, kedaluwarsa)
-    return harap is not None and hmac.compare_digest(tanda, harap)
+    return form_token.token_sah(principal, sesi, token, domain=_DOMAIN_TOKEN, aksi=_AKSI_TOKEN)
 
 
 def _kode_pesan(jalur_penuh: str) -> str:
