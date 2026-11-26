@@ -23,6 +23,14 @@ COPY_KOSONG_ANAK = "Belum ada anak di kelas ini."
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_TIDAK_ADA_BERIKUT = "Tidak ada pertemuan mendatang."
 COPY_AKSES_HABIS = "Akses habis"
+COPY_BERLANGSUNG = "Sudah berlangsung"
+COPY_KETERANGAN_BERLANGSUNG = ("Catat atau ubah kehadiran dan jurnal. "
+                               "Bisa diubah sampai 7 hari setelah pertemuan selesai.")
+COPY_BELUM_DICATAT = "Belum dicatat"
+COPY_SUDAH_DICATAT = "Sudah dicatat"
+COPY_CATAT = "Catat"
+COPY_UBAH_CATATAN = "Ubah catatan"
+RUTE_PERTEMUAN = "/guru/pertemuan/"
 
 GAYA = f"""<style>
 .jadwal-st {{ display: grid; gap: {T.SP_4}; }}
@@ -54,10 +62,22 @@ def _daftar_atau_kosong(baris: Sequence[str], kosong: str) -> str:
     return '<ol class="jadwal-daftar-st">' + "".join(baris) + "</ol>"
 
 
+def _teks_pertemuan(ke, mulai: str) -> str:
+    return f"Pertemuan {int(ke)} · {waktu_wib(mulai)}"
+
+
 def _keterangan_sesi(sesi: dict) -> str:
     """'Pertemuan N · <waktu WIB>' (+ ' · Dibatalkan'); status selalu teks, bukan hanya warna."""
-    teks = f"Pertemuan {int(sesi['ke'])} · {waktu_wib(sesi['mulai'])}"
+    teks = _teks_pertemuan(sesi["ke"], sesi["mulai"])
     return teks + (f" · {COPY_DIBATALKAN}" if sesi["dibatalkan"] else "")
+
+
+def _status_dan_tautan(id_pertemuan, tercatat: bool) -> str:
+    """Status teks ('Sudah dicatat' / 'Belum dicatat') dan tautan ke form catat. Hanya id integer yang masuk href."""
+    status = COPY_SUDAH_DICATAT if tercatat else COPY_BELUM_DICATAT
+    label = COPY_UBAH_CATATAN if tercatat else COPY_CATAT
+    href = _e(f"{RUTE_PERTEMUAN}{int(id_pertemuan)}")
+    return f'{status} · <a class="jadwal-tautan-st" href="{href}">{label}</a>'
 
 
 def _baris_pertemuan(pertemuan: dict) -> str:
@@ -79,8 +99,30 @@ def _baris_kelas(kelas: dict) -> str:
             f'<p><a class="jadwal-tautan-st" href="{RUTE_KELAS}/{_e(kelas["id"])}">Buka kelas</a></p></li>')
 
 
+def _baris_berlangsung(pertemuan: dict) -> str:
+    teks = _e(_teks_pertemuan(pertemuan["ke"], pertemuan["mulai"]))
+    return (f"<li><strong>{_e(pertemuan['judul'])}</strong>"
+            f'<p class="jadwal-meta-st">{teks} · '
+            f"{_status_dan_tautan(pertemuan['id_pertemuan'], pertemuan['tercatat'])}</p></li>")
+
+
+def _bagian_berlangsung(berlangsung: Sequence[dict]) -> str:
+    """Bagian 'Sudah berlangsung'. Kosong bila tidak ada pertemuan, agar halaman tanpa isi tetap sama."""
+    if not berlangsung:
+        return ""
+    baris = "".join(_baris_berlangsung(p) for p in berlangsung)
+    return ('<section class="jadwal-kartu-st" aria-label="Sudah berlangsung">'
+            f"<h2>{COPY_BERLANGSUNG}</h2>"
+            f'<p class="jadwal-meta-st">{_e(COPY_KETERANGAN_BERLANGSUNG)}</p>'
+            f'<ol class="jadwal-daftar-st">{baris}</ol></section>')
+
+
 def _baris_sesi(sesi: dict) -> str:
-    return f"<li>{_e(_keterangan_sesi(sesi))}</li>"
+    keterangan = _e(_keterangan_sesi(sesi))
+    aksi = sesi.get("aksi")
+    if aksi is None:
+        return f"<li>{keterangan}</li>"
+    return f"<li>{keterangan} · {_status_dan_tautan(aksi['id_pertemuan'], aksi['tercatat'])}</li>"
 
 
 def _baris_anak(anak: dict) -> str:
@@ -95,14 +137,19 @@ def _daftar_anak(anak: Sequence[dict]) -> str:
     return '<ul class="jadwal-daftar-st">' + "".join(_baris_anak(a) for a in anak) + "</ul>"
 
 
-def halaman_jadwal(ident, pertemuan: Sequence[dict]) -> bytes:
-    """Pertemuan mendatang milik guru. Tiap item: `judul`, `ke`, `mulai`, `dibatalkan`, `kelas_id` (atau None)."""
+def halaman_jadwal(ident, pertemuan: Sequence[dict], berlangsung: Sequence[dict] = ()) -> bytes:
+    """Pertemuan mendatang milik guru, dan pertemuan yang sudah berlangsung dalam jendela catat (bila ada).
+
+    `pertemuan` tiap item: `judul`, `ke`, `mulai`, `dibatalkan`, `kelas_id` (atau None).
+    `berlangsung` tiap item: `judul`, `ke`, `mulai`, `tercatat` (bool), `id_pertemuan` (int).
+    """
     daftar = _daftar_atau_kosong([_baris_pertemuan(p) for p in pertemuan], COPY_KOSONG_JADWAL)
     isi = ('<main aria-labelledby="judul-jadwal" class="jadwal-st">'
            '<header><p class="jadwal-alis-st">RUANG GURU</p>'
            '<h1 id="judul-jadwal">Jadwal saya</h1>'
            "<p>Pertemuan mendatang untuk kelas dan anak yang Anda ajar. Jadwal diatur tim; "
            "halaman ini hanya menampilkan.</p></header>"
+           f"{_bagian_berlangsung(berlangsung)}"
            '<section class="jadwal-kartu-st" aria-label="Pertemuan mendatang">'
            f"<h2>Pertemuan mendatang</h2>{daftar}</section>"
            '<p><a class="jadwal-tautan-st" href="/guru">Kembali ke ruang guru</a></p></main>')

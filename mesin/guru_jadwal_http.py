@@ -11,12 +11,15 @@ import logging
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
+from typing import List, Set, Tuple
 
 import admin_store
 import admin_store_core
 import database
 import guru_jadwal_baca as baca
 import guru_jadwal_pages as halaman
+import guru_pertemuan_aturan as aturan
+import guru_pertemuan_dasar as catatan
 import jadwal_store as js
 import kelas_dasar as dasar
 import lembaga_http
@@ -28,6 +31,7 @@ RUTE_JADWAL = "/guru/jadwal"
 RUTE_KELAS = "/guru/kelas"
 PREFIX_KELAS = RUTE_KELAS + "/"
 _GALAT_BACA = (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError)
+_GALAT_CATATAN = (catatan.GalatCatatan, OSError, sqlite3.Error)
 
 
 def _principal_guru(penangan):
@@ -80,22 +84,44 @@ def _nama_anak(ids) -> dict:
         return {siswa_id: baca.PLACEHOLDER_NAMA for siswa_id in unik}
 
 
+def _judul(pertemuan: dict, nama: dict) -> str:
+    if pertemuan["jenis"] == "kelompok":
+        return "Mini Class: " + (pertemuan["nama_kelompok"] or "")
+    return "Private: " + nama.get(pertemuan["siswa_id"], baca.PLACEHOLDER_NAMA)
+
+
 def _tampilan_pertemuan(pertemuan: dict, nama: dict) -> dict:
     """View-model tanpa siswa_id/order_id: hanya teks dan `kelas_id` (kelompok milik guru, untuk href)."""
-    if pertemuan["jenis"] == "kelompok":
-        judul = "Mini Class: " + (pertemuan["nama_kelompok"] or "")
-    else:
-        judul = "Private: " + nama.get(pertemuan["siswa_id"], baca.PLACEHOLDER_NAMA)
-    return {"judul": judul, "ke": pertemuan["ke"], "mulai": pertemuan["mulai"],
+    return {"judul": _judul(pertemuan, nama), "ke": pertemuan["ke"], "mulai": pertemuan["mulai"],
             "dibatalkan": pertemuan["dibatalkan"], "kelas_id": pertemuan["kelompok_id"]}
+
+
+def _sudah_dicatat(pasangan: List[Tuple[str, str]]) -> Set[Tuple[str, str]]:
+    """Pasangan (kunci, mulai) yang sudah punya jurnal. Galat baca = belum ada catatan; log hanya memuat tipe galat."""
+    if not pasangan:
+        return set()
+    try:
+        return catatan.punya_jurnal(pasangan)
+    except _GALAT_CATATAN as galat:
+        _log.warning("catatan pertemuan tidak terbaca: %s", type(galat).__name__)
+        return set()
+
+
+def _tampilan_berlangsung(pertemuan: dict, nama: dict, sudah: Set[Tuple[str, str]]) -> dict:
+    """View-model 'Sudah berlangsung': tanpa siswa_id, order_id, dan kunci."""
+    return {"judul": _judul(pertemuan, nama), "ke": pertemuan["ke"], "mulai": pertemuan["mulai"],
+            "tercatat": (pertemuan["kunci"], pertemuan["mulai"]) in sudah, "id_pertemuan": pertemuan["id"]}
 
 
 def _halaman_jadwal(penangan, principal) -> None:
     kini = _kini()
     pertemuan = _baca_admin(lambda kon: baca.pertemuan_mendatang(kon, principal.id_akun, kini), [])
-    nama = _nama_anak(p["siswa_id"] for p in pertemuan if p["siswa_id"] is not None)
+    berlangsung = _baca_admin(lambda kon: baca.pertemuan_dalam_jendela(kon, principal.id_akun, kini), [])
+    nama = _nama_anak(p["siswa_id"] for p in pertemuan + berlangsung if p["siswa_id"] is not None)
+    sudah = _sudah_dicatat([(p["kunci"], p["mulai"]) for p in berlangsung])
     tampilan = [_tampilan_pertemuan(p, nama) for p in pertemuan]
-    penangan._kirim_privat(halaman.halaman_jadwal(_ident(principal), tampilan))
+    tampilan_berlangsung = [_tampilan_berlangsung(p, nama, sudah) for p in berlangsung]
+    penangan._kirim_privat(halaman.halaman_jadwal(_ident(principal), tampilan, tampilan_berlangsung))
 
 
 def _halaman_kelas(penangan, principal) -> None:
@@ -123,10 +149,31 @@ def _halaman_detail(penangan, principal, kelompok_id: str) -> None:
         "lokasi": detail["lokasi"],
         "kuota": detail["kuota"],
         "terisi": len(detail["anggota"]),
-        "sesi": detail["sesi"],
+        "sesi": _sesi_tampilan(detail["sesi"], kini),
         "anggota": _tampilan_anggota(detail["anggota"], nama),
     }
     penangan._kirim_privat(halaman.halaman_detail(_ident(principal), tampilan))
+
+
+def _boleh_isi(sesi: dict, kini: str) -> bool:
+    """Sesi boleh dicatat bila masih dalam jendela (R1/R2) dan punya >= 1 anggota (R4), sama dengan form pertemuan."""
+    jendela = aturan.boleh_catat(sesi["mulai"], sesi["menit"], sesi["dibatalkan"], kini) is None
+    return jendela and sesi["anggota_n"] > 0
+
+
+def _sesi_view(sesi: dict, boleh: bool, sudah: Set[Tuple[str, str]]) -> dict:
+    aksi = None
+    if boleh:
+        aksi = {"id_pertemuan": sesi["id"], "tercatat": (sesi["kunci"], sesi["mulai"]) in sudah}
+    return {"ke": sesi["ke"], "mulai": sesi["mulai"], "menit": sesi["menit"],
+            "dibatalkan": sesi["dibatalkan"], "aksi": aksi}
+
+
+def _sesi_tampilan(sesi: List[dict], kini: str) -> List[dict]:
+    """View-model sesi: `aksi` None bila tak boleh dicatat, atau {id_pertemuan, tercatat}; tanpa kunci."""
+    bisa = [_boleh_isi(s, kini) for s in sesi]
+    sudah = _sudah_dicatat([(s["kunci"], s["mulai"]) for s, boleh in zip(sesi, bisa) if boleh])
+    return [_sesi_view(s, boleh, sudah) for s, boleh in zip(sesi, bisa)]
 
 
 def tangani_get(penangan, jalur: str) -> bool:

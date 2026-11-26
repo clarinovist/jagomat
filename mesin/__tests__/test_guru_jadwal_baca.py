@@ -12,6 +12,7 @@ import pytest
 
 import admin_store_core
 import guru_jadwal_baca as gb
+import guru_pertemuan_aturan as aturan
 import jadwal_store as js
 import kelas_batal
 import kelas_dasar
@@ -40,9 +41,9 @@ def db(tmp_path):
     return path
 
 
-def _mini(kon, nama, guru):
+def _mini(kon, nama, guru, jam="09:00"):
     return js.buat_kelompok(kon, ADMIN, nama=nama, lokasi="Ruang 1", guru_id=guru, kuota=5,
-                            tanggal="2026-11-21", jam="09:00", sekarang=kelas_kit.KINI)
+                            tanggal="2026-11-21", jam=jam, sekarang=kelas_kit.KINI)
 
 
 def _tempatkan_mini(kon, kelompok_id, siswa, n):
@@ -93,11 +94,11 @@ def _isi_contoh(kon):
     kid_a = _mini(kon, "Mini Alfa", GURU_A)
     kid_b = _mini(kon, "Mini Beta", GURU_B)
     _tempatkan_mini(kon, kid_a, siswa=1, n=1)
-    _tempatkan_privat(kon, GURU_A, siswa=2, n=2, tanggal="2026-11-23")
+    ord_a = _tempatkan_privat(kon, GURU_A, siswa=2, n=2, tanggal="2026-11-23")
     _tempatkan_mini(kon, kid_b, siswa=3, n=3)
-    _tempatkan_privat(kon, GURU_B, siswa=4, n=4, tanggal="2026-11-24", jam="10:00")
+    ord_b = _tempatkan_privat(kon, GURU_B, siswa=4, n=4, tanggal="2026-11-24", jam="10:00")
     kon.commit()
-    return {"kid_a": kid_a, "kid_b": kid_b}
+    return {"kid_a": kid_a, "kid_b": kid_b, "ord_a": ord_a, "ord_b": ord_b}
 
 
 @pytest.fixture()
@@ -297,3 +298,194 @@ def test_nama_siswa_memakai_placeholder_untuk_id_yang_hilang(tmp_path):
         assert gb.nama_siswa(kon, []) == {}
     finally:
         kon.close()
+
+
+# --- B6: pertemuan dalam jendela catat ("Sudah berlangsung", Fase 2a-2) ------------------------
+
+GURU_D = "akun_" + "d" * 32                 # guru dengan kelompok tanpa anggota sah (uji R4 dan order tak aktif)
+KINI_21_NOV_SORE = "2026-11-21T06:00:00"    # sesi Mini 21 Nov (02.00 dan 04.00 UTC) sudah mulai
+KINI_24_NOV_SIANG = "2026-11-24T12:00:00"   # privat B (24 Nov 03.00 UTC) sudah mulai
+KINI_25_NOV_SIANG = "2026-11-25T12:00:00"   # Mini A dan privat A sudah mulai
+KUNCI_BERLANGSUNG = {"id", "jenis", "nama_kelompok", "siswa_id", "kunci", "ke", "mulai", "menit"}
+KUNCI_SESI_LAMA = {"ke", "mulai", "menit", "dibatalkan"}
+
+
+def _tambah(waktu: str, **selisih) -> str:
+    return (datetime.strptime(waktu, FORMAT_WAKTU) + timedelta(**selisih)).strftime(FORMAT_WAKTU)
+
+
+def _ids(hasil) -> set:
+    return {p["id"] for p in hasil}
+
+
+def _berlangsung(db, guru, kini):
+    with _ro(db) as kon:
+        return gb.pertemuan_dalam_jendela(kon, guru, kini)
+
+
+def _sesi_kelompok(kon, kelompok_id, ke):
+    return kon.execute("SELECT id, mulai, menit, dibatalkan FROM jadwal_pertemuan WHERE kelompok_id=? AND ke=?",
+                       (kelompok_id, ke)).fetchone()
+
+
+def _sesi_privat(kon, order_id, ke):
+    return kon.execute("SELECT id, mulai, menit, dibatalkan FROM jadwal_pertemuan WHERE order_id=? AND ke=?",
+                       (order_id, ke)).fetchone()
+
+
+def _id_milik(kon, kelompok_id, order_id) -> set:
+    return {baris[0] for baris in kon.execute(
+        "SELECT id FROM jadwal_pertemuan WHERE kelompok_id=? OR order_id=?", (kelompok_id, order_id)).fetchall()}
+
+
+def _sisip_penempatan_pada(kon, order_id, kelompok_id, dibuat):
+    """Penempatan Mini lewat SQL dengan `dibuat` diatur (anggota masuk terlambat atau order tak aktif)."""
+    kon.execute("INSERT INTO jadwal_penempatan(order_id,kelompok_id,guru_id,lokasi,dibuat,diubah,dibuat_oleh,"
+                "diubah_oleh) VALUES(?,?,NULL,NULL,?,?,?,?)", (order_id, kelompok_id, dibuat, dibuat, ADMIN, ADMIN))
+    kon.commit()
+
+
+def test_pertemuan_mini_dan_privat_dalam_jendela_muncul(db, contoh):
+    with _ro(db) as kon:
+        mini = _sesi_kelompok(kon, contoh["kid_a"], 1)
+        privat = _sesi_privat(kon, contoh["ord_a"], 1)
+    hasil = _berlangsung(db, GURU_A, _tambah(privat["mulai"], hours=1))
+    per_jenis = {p["jenis"]: p for p in hasil}
+    assert _ids(hasil) == {mini["id"], privat["id"]}
+    assert set(per_jenis["kelompok"]) == KUNCI_BERLANGSUNG
+    assert per_jenis["kelompok"]["kunci"] == aturan.kunci_pertemuan(contoh["kid_a"], 1)
+    assert per_jenis["kelompok"]["nama_kelompok"] == "Mini Alfa"
+    assert per_jenis["kelompok"]["siswa_id"] is None
+    assert (per_jenis["kelompok"]["ke"], per_jenis["kelompok"]["mulai"], per_jenis["kelompok"]["menit"]) == (
+        1, mini["mulai"], mini["menit"])
+    assert per_jenis["privat"]["kunci"] == aturan.kunci_pertemuan(contoh["ord_a"], 1)
+    assert per_jenis["privat"]["siswa_id"] == 2
+    assert per_jenis["privat"]["nama_kelompok"] is None
+
+
+def test_belum_mulai_tidak_muncul_dan_tepat_saat_mulai_muncul(db, contoh):
+    with _ro(db) as kon:
+        mini = _sesi_kelompok(kon, contoh["kid_a"], 1)
+    assert _berlangsung(db, GURU_A, _tambah(mini["mulai"], seconds=-1)) == []
+    assert mini["id"] in _ids(_berlangsung(db, GURU_A, mini["mulai"]))
+
+
+def test_pertemuan_dibatalkan_tidak_muncul(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        mini = _sesi_kelompok(kon, contoh["kid_a"], 1)
+        privat = _sesi_privat(kon, contoh["ord_a"], 1)
+        js.batalkan_pertemuan(kon, ADMIN, mini["id"], batal=True, sekarang=kelas_kit.KINI)
+        kon.commit()
+    hasil = _berlangsung(db, GURU_A, _tambah(privat["mulai"], hours=1))
+    assert _ids(hasil) == {privat["id"]}
+
+
+def test_jendela_koreksi_7_hari_terkunci_tepat_di_batas(db, contoh):
+    with _ro(db) as kon:
+        mini = _sesi_kelompok(kon, contoh["kid_a"], 1)
+    batas = _tambah(aturan.selesai(mini["mulai"], mini["menit"]), days=7)
+    assert mini["id"] in _ids(_berlangsung(db, GURU_A, _tambah(batas, seconds=-1)))
+    assert mini["id"] not in _ids(_berlangsung(db, GURU_A, batas))
+
+
+def test_kelompok_tanpa_anggota_aktif_tidak_muncul(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        _mini(kon, "Mini Kosong", GURU_D)
+        tak_aktif = _mini(kon, "Mini Tak Aktif", GURU_D, jam="11:00")
+        menunggu = kelas_kit.menunggu(kon, 5, "mini", n=5)[0].order_id
+        _sisip_penempatan_pada(kon, menunggu, tak_aktif, dibuat=kelas_kit.KINI)
+    assert _berlangsung(db, GURU_D, KINI_21_NOV_SORE) == []
+
+
+def test_privat_order_tak_aktif_tidak_muncul(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        belum_bayar = kelas_kit.tagih(kon, 6, "private").order_id
+        _sisip_privat_mentah(kon, belum_bayar, GURU_D)
+    with _ro(db) as kon:
+        kini = _tambah(_sesi_privat(kon, belum_bayar, 1)["mulai"], hours=1)
+        status = ks.status_dari(ks.baris_order(kon, belum_bayar), ks.fakta_order(kon, belum_bayar), kini)
+    assert status != kelas_dasar.STATUS_AKTIF  # uji ini bermakna hanya bila order memang belum aktif
+    assert _berlangsung(db, GURU_D, kini) == []
+
+
+def test_anggota_yang_masuk_sesudah_mulai_tidak_ikut_sesi_itu(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        telat = _mini(kon, "Mini Telat", GURU_D, jam="13:00")
+        tagihan = kelas_kit.lunas(kon, 12, "mini", n=12)  # n menentukan sha bukti: harus unik per DB
+        _sisip_penempatan_pada(kon, tagihan.order_id, telat, dibuat="2026-11-22T10:00:00")
+    with _ro(db) as kon:
+        s1 = _sesi_kelompok(kon, telat, 1)
+        s2 = _sesi_kelompok(kon, telat, 2)
+        detail = gb.detail_kelas(kon, GURU_D, telat, KINI_24_NOV_SIANG)
+    assert s1["id"] not in _ids(_berlangsung(db, GURU_D, _tambah(s1["mulai"], hours=1)))
+    hasil = _ids(_berlangsung(db, GURU_D, _tambah(s2["mulai"], hours=1)))
+    assert s2["id"] in hasil and s1["id"] not in hasil
+    assert [sesi["anggota_n"] for sesi in detail["sesi"][:2]] == [0, 1]
+
+
+def test_urut_mulai_terbaru_dulu_lalu_id_naik(db, contoh):
+    with js.buka(db, tulis_data=True) as kon:
+        seri_a = _mini(kon, "Mini Seri A", GURU_D)
+        seri_b = _mini(kon, "Mini Seri B", GURU_D)
+        for kelompok, siswa in ((seri_a, 13), (seri_b, 14)):
+            tagihan = kelas_kit.lunas(kon, siswa, "mini", n=siswa)
+            _sisip_penempatan_pada(kon, tagihan.order_id, kelompok, dibuat=kelas_kit.KINI)
+    with _ro(db) as kon:
+        sesi_a = _sesi_kelompok(kon, seri_a, 1)["id"]
+        sesi_b = _sesi_kelompok(kon, seri_b, 1)["id"]
+    hasil = _berlangsung(db, GURU_D, KINI_21_NOV_SORE)
+    assert [p["id"] for p in hasil] == [sesi_a, sesi_b]
+
+
+def test_urut_berdasarkan_mulai_menurun_untuk_dua_jenis(db, contoh):
+    hasil = _berlangsung(db, GURU_A, KINI_25_NOV_SIANG)
+    mulai = [p["mulai"] for p in hasil]
+    assert {p["jenis"] for p in hasil} == {"kelompok", "privat"}
+    assert mulai == sorted(mulai, reverse=True)
+
+
+def test_guru_tanpa_jadwal_mendapat_daftar_berlangsung_kosong(db, contoh):
+    assert _berlangsung(db, GURU_KOSONG, KINI_25_NOV_SIANG) == []
+
+
+def test_pertemuan_berlangsung_hanya_milik_guru_pemilik(db, contoh):
+    with _ro(db) as kon:
+        milik_a = _id_milik(kon, contoh["kid_a"], contoh["ord_a"])
+        milik_b = _id_milik(kon, contoh["kid_b"], contoh["ord_b"])
+        mini_a1 = _sesi_kelompok(kon, contoh["kid_a"], 1)["id"]
+        privat_a1 = _sesi_privat(kon, contoh["ord_a"], 1)["id"]
+        mini_b1 = _sesi_kelompok(kon, contoh["kid_b"], 1)["id"]
+        privat_b1 = _sesi_privat(kon, contoh["ord_b"], 1)["id"]
+    ids_a = _ids(_berlangsung(db, GURU_A, KINI_24_NOV_SIANG))
+    ids_b = _ids(_berlangsung(db, GURU_B, KINI_24_NOV_SIANG))
+    assert {mini_a1, privat_a1} <= ids_a and {mini_b1, privat_b1} <= ids_b
+    assert ids_a <= milik_a and ids_b <= milik_b
+    assert ids_a.isdisjoint(ids_b)
+
+
+def test_pembacaan_berlangsung_tidak_menulis_sql(db, contoh):
+    sebelum = Path(db).read_bytes()
+    sql = []
+    with _ro(db) as kon:
+        kon.set_trace_callback(sql.append)
+        gb.pertemuan_dalam_jendela(kon, GURU_A, KINI_25_NOV_SIANG)
+        kon.set_trace_callback(None)
+    assert Path(db).read_bytes() == sebelum
+    assert sql, "tidak ada kueri yang tercatat"
+    assert not [s for s in sql if s.lstrip().upper().startswith(SQL_TULIS)]
+
+
+def test_batas_durasi_sama_dengan_skema_jadwal():
+    assert gb.DURASI_MAKS_MENIT == schema_jadwal.MENIT_MAKS
+
+
+def test_detail_kelas_sesi_memuat_id_kunci_dan_jumlah_anggota(db, contoh):
+    with _ro(db) as kon:
+        detail = gb.detail_kelas(kon, GURU_A, contoh["kid_a"], KINI_25_NOV_SIANG)
+        mini = _sesi_kelompok(kon, contoh["kid_a"], 1)
+    sesi1 = detail["sesi"][0]
+    assert set(sesi1) == KUNCI_SESI_LAMA | {"id", "kunci", "anggota_n"}
+    assert sesi1["id"] == mini["id"]
+    assert sesi1["kunci"] == aturan.kunci_pertemuan(contoh["kid_a"], 1)
+    assert sesi1["anggota_n"] == 1
+    assert detail["anggota"] == [{"siswa_id": 1, "akses_habis": False}]

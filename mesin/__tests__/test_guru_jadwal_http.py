@@ -7,6 +7,9 @@ from __future__ import annotations
 
 import hashlib
 import re
+import sqlite3
+from contextlib import closing
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -14,6 +17,9 @@ import pytest
 import admin_store
 import auth
 import database
+import guru_jadwal_pages as halaman
+import guru_pertemuan_aturan as aturan
+import guru_pertemuan_dasar as dasar
 import jadwal_store as js
 import kelas_kit
 import schema_jadwal
@@ -34,12 +40,14 @@ PERLU_MASUK = "perlu masuk"
 def _tempatkan_mini(kon, kelompok_id, siswa, n):
     tagihan = kelas_kit.lunas(kon, siswa, "mini", n=n)
     js.tempatkan(kon, ADMIN, tagihan.order_id, kelompok_id=kelompok_id, sekarang=kelas_kit.SESUDAH_UPLOAD)
+    return tagihan.order_id
 
 
 def _tempatkan_privat(kon, guru, siswa, n, tanggal, jam="16:30"):
     tagihan = kelas_kit.lunas(kon, siswa, "private", n=n)
     js.tempatkan(kon, ADMIN, tagihan.order_id, guru_id=guru, tanggal=tanggal, jam=jam,
                  sekarang=kelas_kit.SESUDAH_UPLOAD)
+    return tagihan.order_id
 
 
 def _lunas_mini_akses_lewat(kon, siswa, n):
@@ -72,12 +80,12 @@ def _isi_contoh(server):
                                  tanggal="2026-11-21", jam="09:00", sekarang=kelas_kit.KINI)
         kid_b = js.buat_kelompok(kon, ADMIN, nama="Mini Beta", lokasi=LOKASI_ZOOM, guru_id=guru_b, kuota=5,
                                  tanggal="2026-11-21", jam="09:00", sekarang=kelas_kit.KINI)
-        _tempatkan_mini(kon, kid_a, anak["alfa"], n=1)
-        _tempatkan_privat(kon, guru_a, anak["beta"], n=2, tanggal="2026-11-25")
+        ord_alfa = _tempatkan_mini(kon, kid_a, anak["alfa"], n=1)
+        ord_beta = _tempatkan_privat(kon, guru_a, anak["beta"], n=2, tanggal="2026-11-25")
         _tempatkan_mini(kon, kid_b, anak["gamma"], n=3)
-        _tempatkan_privat(kon, guru_b, anak["delta"], n=4, tanggal="2026-11-26", jam="10:00")
+        ord_delta = _tempatkan_privat(kon, guru_b, anak["delta"], n=4, tanggal="2026-11-26", jam="10:00")
         kon.commit()
-    return {"kid_a": kid_a, "kid_b": kid_b}
+    return {"kid_a": kid_a, "kid_b": kid_b, "ord_alfa": ord_alfa, "ord_beta": ord_beta, "ord_delta": ord_delta}
 
 
 @pytest.fixture()
@@ -86,6 +94,14 @@ def jadwal(server, jam):
     schema_jadwal.migrasikan(admin_store.BAWAAN)
     schema_tagihan_catatan.migrasikan(admin_store.BAWAAN)
     return _isi_contoh(server)
+
+
+@pytest.fixture(autouse=True)
+def berkas_catatan(tmp_path, monkeypatch):
+    """Catatan pertemuan dialihkan ke tmp_path agar tes ini tidak pernah menyentuh /data. Belum dibuat."""
+    berkas = tmp_path / "guru-pertemuan-uji.db"
+    monkeypatch.setenv(dasar.ENV_DB, str(berkas))
+    return berkas
 
 
 def _hash(path) -> str:
@@ -99,7 +115,7 @@ def test_guru_pemilik_melihat_jadwal_dan_kelas_sendiri(server, jadwal):
     assert kode == 200
     assert "Mini Alfa" in isi and "Anak Sintetis Beta" in isi
     assert "24 November 2026 pukul 09.00 WIB" in isi
-    assert "21 November 2026" not in isi
+    assert "21 November 2026" not in _bagian_mendatang(isi)
     assert "Mini Beta" not in isi and "Anak Sintetis Gamma" not in isi and "Anak Sintetis Delta" not in isi
 
     kode, isi, _ = server.minta("/guru/kelas", auth=AKUN_A)
@@ -263,3 +279,277 @@ def test_latihan_tak_terbaca_nama_anak_memakai_placeholder(server, jadwal, monke
     kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
     assert kode == 200
     assert "Private: Anak" in isi and "Anak Sintetis Beta" not in isi
+
+
+# --- J: "Sudah berlangsung" dan tautan catat (Fase 2a-2) ----------------------------------------
+
+RUTE_PERTEMUAN = "/guru/pertemuan/"
+PETA_KUNCI_BOCOR = re.compile(r"(klp|kor)_[0-9a-f]{32}:")
+POLA_ID_TAUTAN = re.compile(r'href="/guru/pertemuan/([0-9]+)"')
+POLA_FORM_TOKEN = re.compile(r'name="token"')
+TEKS_CATAT = ">Catat</a>"
+TEKS_UBAH = ">Ubah catatan</a>"
+LOKASI_RENDER = "https://meet.google.com/abc-defg-hij"
+JAM_PRIVAT_SUDAH_MULAI = "2026-11-27T00:00:00"   # privat A (25 Nov) dan B (26 Nov) sudah mulai
+JAM_BELUM_ADA_BERLANGSUNG = "2026-11-01T00:00:00"  # semua sesi masih di masa depan
+
+
+def _bagian_mendatang(isi: str) -> str:
+    """Isi dari penanda 'Pertemuan mendatang' ke akhir halaman; bagian 'Sudah berlangsung' tidak ikut."""
+    return isi.split('aria-label="Pertemuan mendatang"', 1)[1]
+
+
+def _sesi_kelompok(kelompok_id, ke):
+    with js.buka(admin_store.BAWAAN) as kon:
+        return kon.execute("SELECT id, mulai, menit, dibatalkan FROM jadwal_pertemuan WHERE kelompok_id=? AND ke=?",
+                           (kelompok_id, ke)).fetchone()
+
+
+def _sesi_privat(order_id, ke):
+    with js.buka(admin_store.BAWAAN) as kon:
+        return kon.execute("SELECT id, mulai, menit, dibatalkan FROM jadwal_pertemuan WHERE order_id=? AND ke=?",
+                           (order_id, ke)).fetchone()
+
+
+def _geser(waktu: str, **selisih) -> str:
+    return (datetime.strptime(waktu, aturan.FORMAT_WAKTU) + timedelta(**selisih)).strftime(aturan.FORMAT_WAKTU)
+
+
+def _catat(kunci: str, sesi, order_id: str, berkas) -> None:
+    """Catatan sintetis lewat penyimpanan langsung (tanpa form), dengan id akun guru A sebagai pencatat."""
+    dasar.catat(kunci=kunci, pertemuan_id=sesi["id"], mulai=sesi["mulai"], topik=aturan.daftar_topik_jurnal()[0],
+                hadir={order_id: "hadir"}, oleh=id_akun(AKUN_A), peran="guru", pada="2026-11-27T01:00:00",
+                path=berkas)
+
+
+def _pasang_versi_asing(berkas) -> None:
+    with closing(sqlite3.connect(str(berkas))) as kon:
+        kon.execute("PRAGMA user_version=7")
+        kon.commit()
+
+
+def _ringkasan_sesi(ke: int, aksi) -> dict:
+    return {"ke": ke, "mulai": "2026-11-2%dT02:00:00" % ke, "menit": 60, "dibatalkan": False, "aksi": aksi}
+
+
+def test_jadwal_tampilkan_sudah_berlangsung_dengan_tautan_catat(server, jadwal):
+    sesi = _sesi_kelompok(jadwal["kid_a"], 1)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    assert "Sudah berlangsung" in isi and "Belum dicatat" in isi
+    assert "21 November 2026 pukul 09.00 WIB" in isi
+    assert f'href="{RUTE_PERTEMUAN}{sesi["id"]}">Catat</a>' in isi
+
+
+def test_setelah_dicatat_tampil_sudah_dicatat_dan_ubah_catatan(server, jadwal, berkas_catatan):
+    sesi = _sesi_kelompok(jadwal["kid_a"], 1)
+    _catat(aturan.kunci_pertemuan(jadwal["kid_a"], 1), sesi, jadwal["ord_alfa"], berkas_catatan)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    assert "Sudah dicatat" in isi and "Belum dicatat" not in isi
+    assert f'href="{RUTE_PERTEMUAN}{sesi["id"]}">Ubah catatan</a>' in isi
+
+
+def test_tanpa_berkas_catatan_tetap_catat_dan_tidak_membuat_berkas(server, jadwal, berkas_catatan):
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200 and TEKS_CATAT in isi
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200 and TEKS_CATAT in isi
+    assert not berkas_catatan.exists()
+
+
+def test_versi_skema_asing_tetap_200_dan_tampil_catat(server, jadwal, berkas_catatan):
+    _pasang_versi_asing(berkas_catatan)
+    sebelum = _hash(berkas_catatan)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200 and TEKS_CATAT in isi
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200 and TEKS_CATAT in isi
+    assert _hash(berkas_catatan) == sebelum
+
+
+def test_berkas_catatan_rusak_dianggap_belum_dicatat(server, jadwal, berkas_catatan):
+    berkas_catatan.write_bytes(b"bukan basis data " * 64)
+    sebelum = _hash(berkas_catatan)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200 and TEKS_CATAT in isi
+    assert _hash(berkas_catatan) == sebelum
+
+
+def test_guru_b_tidak_melihat_pertemuan_guru_a(server, jadwal):
+    sesi_alfa = _sesi_kelompok(jadwal["kid_a"], 1)
+    sesi_gamma = _sesi_kelompok(jadwal["kid_b"], 1)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_B)
+    assert kode == 200
+    assert f'href="{RUTE_PERTEMUAN}{sesi_gamma["id"]}">Catat</a>' in isi
+    assert f'href="{RUTE_PERTEMUAN}{sesi_alfa["id"]}"' not in isi
+    assert "Mini Alfa" not in isi
+
+
+def test_tanpa_pertemuan_berlangsung_tidak_memuat_bagian(server, jadwal, jam):
+    jam.nilai = JAM_BELUM_ADA_BERLANGSUNG
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    assert "Sudah berlangsung" not in isi and "Pertemuan mendatang" in isi
+    assert RUTE_PERTEMUAN not in isi
+
+
+def test_detail_tautan_hanya_sesi_yang_boleh_dicatat(server, jadwal):
+    sesi1 = _sesi_kelompok(jadwal["kid_a"], 1)
+    sesi2 = _sesi_kelompok(jadwal["kid_a"], 2)
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    assert POLA_ID_TAUTAN.findall(isi) == [str(sesi1["id"])]
+    assert isi.count("Belum dicatat") == 1
+    assert f'href="{RUTE_PERTEMUAN}{sesi2["id"]}"' not in isi
+
+
+def test_detail_setelah_dicatat_tampil_ubah_catatan(server, jadwal, berkas_catatan):
+    sesi = _sesi_kelompok(jadwal["kid_a"], 1)
+    _catat(aturan.kunci_pertemuan(jadwal["kid_a"], 1), sesi, jadwal["ord_alfa"], berkas_catatan)
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    assert isi.count("Sudah dicatat") == 1 and TEKS_UBAH in isi
+
+
+def _ubah_admin(sql: str, parameter) -> None:
+    """UPDATE langsung pada DB admin sintetis (menggeser jadwal atau penempatan seperti tindakan admin)."""
+    with js.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        kon.execute(sql, parameter)
+        kon.commit()
+
+
+def test_jadwal_pertemuan_digeser_sesudah_dicatat_tampil_belum_dicatat(server, jadwal, berkas_catatan):
+    """Catatan menempel pada (kunci, mulai): slot yang digeser admin tidak mewarisi 'Sudah dicatat'."""
+    sesi = _sesi_kelompok(jadwal["kid_a"], 1)
+    _catat(aturan.kunci_pertemuan(jadwal["kid_a"], 1), sesi, jadwal["ord_alfa"], berkas_catatan)
+    _ubah_admin("UPDATE jadwal_pertemuan SET mulai=? WHERE id=?", (_geser(sesi["mulai"], hours=1), sesi["id"]))
+
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+
+    assert kode == 200
+    assert f'href="{RUTE_PERTEMUAN}{sesi["id"]}">Catat</a>' in isi
+    assert "Sudah dicatat" not in isi and TEKS_UBAH not in isi
+
+
+def test_detail_pertemuan_digeser_sesudah_dicatat_tampil_belum_dicatat(server, jadwal, berkas_catatan):
+    sesi = _sesi_kelompok(jadwal["kid_a"], 1)
+    _catat(aturan.kunci_pertemuan(jadwal["kid_a"], 1), sesi, jadwal["ord_alfa"], berkas_catatan)
+    _ubah_admin("UPDATE jadwal_pertemuan SET mulai=? WHERE id=?", (_geser(sesi["mulai"], hours=1), sesi["id"]))
+
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+
+    assert kode == 200
+    assert POLA_ID_TAUTAN.findall(isi) == [str(sesi["id"])]
+    assert "Sudah dicatat" not in isi and TEKS_UBAH not in isi and "Belum dicatat" in isi
+
+
+def test_sesi_tanpa_anggota_pada_saat_itu_tidak_diberi_tautan_di_detail_dan_jadwal(server, jadwal):
+    """Anggota yang penempatannya dibuat sesudah sesi mulai tidak ada di sesi itu (R4): tidak ada yang bisa dicatat."""
+    sesi = _sesi_kelompok(jadwal["kid_a"], 1)
+    sesudah_mulai = _geser(sesi["mulai"], days=1)
+    # Penempatan tidak bisa di-UPDATE (trigger): sama seperti admin, lepas lalu tempatkan ulang pada waktu yang lebih baru.
+    _ubah_admin("DELETE FROM jadwal_penempatan WHERE order_id=?", (jadwal["ord_alfa"],))
+    _ubah_admin("INSERT INTO jadwal_penempatan(order_id,kelompok_id,guru_id,lokasi,dibuat,diubah,dibuat_oleh,"
+                "diubah_oleh) VALUES(?,?,NULL,NULL,?,?,?,?)",
+                (jadwal["ord_alfa"], jadwal["kid_a"], sesudah_mulai, sesudah_mulai, ADMIN, ADMIN))
+
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    assert POLA_ID_TAUTAN.findall(isi) == []
+
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    assert f'href="{RUTE_PERTEMUAN}{sesi["id"]}"' not in isi
+
+
+def test_detail_sesi_dibatalkan_tanpa_tautan(server, jadwal):
+    sesi1 = _sesi_kelompok(jadwal["kid_a"], 1)
+    with js.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        js.batalkan_pertemuan(kon, ADMIN, sesi1["id"], batal=True, sekarang=kelas_kit.KINI)
+        kon.commit()
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    assert str(sesi1["id"]) not in POLA_ID_TAUTAN.findall(isi)
+
+
+def test_detail_sesi_terkunci_tanpa_tautan(server, jadwal, jam):
+    sesi1 = _sesi_kelompok(jadwal["kid_a"], 1)
+    sesi2 = _sesi_kelompok(jadwal["kid_a"], 2)
+    jam.nilai = _geser(aturan.selesai(sesi1["mulai"], sesi1["menit"]), days=aturan.JENDELA_KOREKSI.days)
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    ids = POLA_ID_TAUTAN.findall(isi)
+    assert str(sesi1["id"]) not in ids and str(sesi2["id"]) in ids
+
+
+def test_privat_tercatat_tampil_sudah_dicatat(server, jadwal, berkas_catatan, jam):
+    jam.nilai = JAM_PRIVAT_SUDAH_MULAI
+    privat = _sesi_privat(jadwal["ord_beta"], 1)
+    _catat(aturan.kunci_pertemuan(jadwal["ord_beta"], 1), privat, jadwal["ord_beta"], berkas_catatan)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    assert "Private: Anak Sintetis Beta" in isi
+    assert f'href="{RUTE_PERTEMUAN}{privat["id"]}">Ubah catatan</a>' in isi
+
+
+def test_privasi_tidak_membocorkan_kunci_setelah_privat_mulai(server, jadwal, jam):
+    jam.nilai = JAM_PRIVAT_SUDAH_MULAI
+    for jalur in ("/guru/jadwal", "/guru/kelas", "/guru/kelas/" + jadwal["kid_a"]):
+        kode, isi, _ = server.minta(jalur, auth=AKUN_A)
+        assert kode == 200, jalur
+        assert PETA_KUNCI_BOCOR.search(isi) is None, jalur
+        assert "kor_" not in isi and "akun_" not in isi, jalur
+        assert "siswa_id" not in isi and "order_id" not in isi, jalur
+    _kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert isi.count("klp_") == len(re.findall(r'href="/guru/kelas/klp_[0-9a-f]{32}"', isi))
+
+
+def test_setiap_tautan_catat_membuka_form_milik_guru(server, jadwal, jam):
+    jam.nilai = JAM_PRIVAT_SUDAH_MULAI
+    _kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    ids = POLA_ID_TAUTAN.findall(isi)
+    assert str(_sesi_kelompok(jadwal["kid_a"], 1)["id"]) in ids
+    assert str(_sesi_privat(jadwal["ord_beta"], 1)["id"]) in ids
+    acuan = server.minta(TIDAK_ADA, auth=AKUN_B)
+    for id_teks in ids:
+        kode, isi_form, _ = server.minta(RUTE_PERTEMUAN + id_teks, auth=AKUN_A)
+        assert kode == 200 and POLA_FORM_TOKEN.search(isi_form), id_teks
+        assert server.minta(RUTE_PERTEMUAN + id_teks, auth=AKUN_B)[:2] == acuan[:2], id_teks
+
+
+def test_render_tanpa_berlangsung_sama_dengan_bawaan():
+    ident = ("akun_" + "a" * 32, "guru")
+    pertemuan = [{"judul": "Mini Class: Sintetis", "ke": 1, "mulai": "2026-11-21T02:00:00",
+                  "dibatalkan": False, "kelas_id": "klp_" + "0" * 32}]
+    isi = halaman.halaman_jadwal(ident, pertemuan)
+    assert isi == halaman.halaman_jadwal(ident, pertemuan, ())
+    assert b"Sudah berlangsung" not in isi
+
+
+def test_render_berlangsung_teks_status_dan_tautan_tanpa_id_mentah():
+    ident = ("akun_" + "a" * 32, "guru")
+    berlangsung = [
+        {"judul": "Private: Anak Sintetis", "ke": 2, "mulai": "2026-11-23T09:30:00", "tercatat": False,
+         "id_pertemuan": 77},
+        {"judul": "Mini Class: Sintetis", "ke": 1, "mulai": "2026-11-21T02:00:00", "tercatat": True,
+         "id_pertemuan": 78},
+    ]
+    isi = halaman.halaman_jadwal(ident, [], berlangsung).decode("utf-8")
+    assert "Sudah berlangsung" in isi
+    assert "Catat atau ubah kehadiran dan jurnal. Bisa diubah sampai 7 hari setelah pertemuan selesai." in isi
+    assert 'href="/guru/pertemuan/77">Catat</a>' in isi
+    assert 'href="/guru/pertemuan/78">Ubah catatan</a>' in isi
+    assert "Belum dicatat" in isi and "Sudah dicatat" in isi
+    assert not re.search(r"kor_|klp_[0-9a-f]|siswa_id|order_id", isi)
+
+
+def test_render_detail_sesi_tanpa_aksi_tanpa_tautan():
+    ident = ("akun_" + "a" * 32, "guru")
+    kelas = {"nama": "Kelompok Sintetis", "lokasi": LOKASI_RENDER, "kuota": 5, "terisi": 1,
+             "anggota": [{"nama": "Anak Sintetis", "akses_habis": False}],
+             "sesi": [_ringkasan_sesi(1, None), _ringkasan_sesi(2, {"id_pertemuan": 91, "tercatat": True})]}
+    isi = halaman.halaman_detail(ident, kelas).decode("utf-8")
+    assert isi.count(RUTE_PERTEMUAN) == 1
+    assert 'href="/guru/pertemuan/91">Ubah catatan</a>' in isi
+    assert "Sudah dicatat" in isi and "Belum dicatat" not in isi
