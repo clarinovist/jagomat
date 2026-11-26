@@ -1,7 +1,7 @@
 """Butir antrean admin "Peta dibayar, laporan belum terbit" (butir QA #2, 25 Nov 2026; data sintetis, read-only).
 
-Janji publik: laporan terbit dalam 48 jam setelah pembayaran. Order Peta lunas tanpa laporan terbit ditampilkan; yang sudah lewat janji
-naik jadi "penting". Sumber = domain `purna` (lunas, ditahan, direfund, terbit, terlambat), bukan salinan logikanya.
+Peta terbit otomatis setelah lunas (26 Nov 2026). Butir ini hanya memuat order yang penerbitannya gagal atau tertahan, dan selalu
+tingkat "penting" tanpa masa tunggu. Sumber = domain `purna` (lunas, ditahan, direfund, terbit, terlambat), bukan salinan logikanya.
 """
 from datetime import datetime, timezone
 
@@ -87,23 +87,26 @@ def test_ledger_tak_terbaca_atau_purna_belum_dipasang_berarti_nol(tmp_path):
     assert B.peta_belum_terbit(tmp_path / "tidak-ada.db", LEWAT_JANJI) == (0, 0)
 
 
-def test_antrean_dalam_janji_butir_tinjau_tanpa_menambah_perlu_keputusan(db_kelas, kon_kelas):
-    kk.peta_lunas(kon_kelas, 1)
-    antrean = _kumpulkan(db_kelas, DALAM_JANJI)
-    (item,) = _butir(antrean)
-    assert (item.tingkat, item.judul) == ("tinjau", "1 Peta dibayar, laporan belum terbit")
-    assert antrean.perlu_keputusan == 0 and antrean.total == 1
-    assert item.jalur == "/admin/pembayaran?status=dibayar"
-
-
-def test_antrean_lewat_janji_butir_penting_dan_menambah_perlu_keputusan(db_kelas, kon_kelas):
+@pytest.mark.parametrize("kini", [DALAM_JANJI, LEWAT_JANJI], ids=["dalam_janji", "lewat_janji"])
+def test_antrean_peta_belum_terbit_selalu_penting_tanpa_masa_tunggu(db_kelas, kon_kelas, kini):
+    # Arrange
     kk.peta_lunas(kon_kelas, 1)
     kk.peta_lunas(kon_kelas, 2, akun=kk.AKUN_B)
-    antrean = _kumpulkan(db_kelas, LEWAT_JANJI)
+
+    # Act
+    antrean = _kumpulkan(db_kelas, kini)
+
+    # Assert
     (item,) = _butir(antrean)
-    assert item.tingkat == "penting" and item.judul == "2 Peta dibayar, laporan belum terbit"
-    assert "2 di antaranya sudah lewat" in item.deskripsi and "batas tunggu" in item.deskripsi
+    assert item.tingkat == "penting"
+    assert item.judul == "2 Peta dibayar, laporan belum terbit"
+    assert item.deskripsi == A.KALIMAT_PETA_BELUM_TERBIT
+    assert item.jalur == "/admin/pembayaran?status=dibayar"
     assert antrean.perlu_keputusan == 1 and antrean.mendesak == 0
+    assert antrean.total == 1
+    teks = (item.judul + " " + item.deskripsi).lower()
+    for kata in ("guru", "batas tunggu", "48 jam", "di antaranya"):
+        assert kata not in teks
 
 
 def test_antrean_tanpa_nama_anak_atau_akun(db_kelas, kon_kelas):

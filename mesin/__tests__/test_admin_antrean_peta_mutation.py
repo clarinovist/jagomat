@@ -1,7 +1,7 @@
-"""Mutation guard BARU butir antrean "Peta dibayar, laporan belum terbit": sumber hitungan, janji 48 jam, tingkat, dan hitungan menu.
+"""Mutation guard BARU butir antrean "Peta dibayar, laporan belum terbit": sumber hitungan, tingkat, guard kosong, dan hitungan menu.
 
 Tidak dimutasi (setara): saringan SQL "belum ada laporan terbit" dan "sudah lunas" (hanya penyaring awal; keadaan turunan `purna.keadaan`
-menyaring hal yang sama).
+menyaring hal yang sama). Mutan "tingkat selalu penting" tidak ada karena tingkatnya memang tetap tanpa cabang.
 """
 from pathlib import Path
 
@@ -25,17 +25,20 @@ KASUS = (
         ("    except menunggu.GALAT_BACA:\n        return 0, 0\n", "    except ZeroDivisionError:\n        return 0, 0\n"),
     ], "test_ledger_tak_terbaca_atau_purna_belum_dipasang_berarti_nol"),
     ("tingkat_selalu_tinjau", A, [
-        ('ItemAntrean("penting" if terlambat else "tinjau", "%d Peta dibayar', 'ItemAntrean("tinjau", "%d Peta dibayar'),
-    ], "test_antrean_lewat_janji_butir_penting_dan_menambah_perlu_keputusan"),
-    ("tingkat_selalu_penting", A, [
-        ('ItemAntrean("penting" if terlambat else "tinjau", "%d Peta dibayar', 'ItemAntrean("penting", "%d Peta dibayar'),
-    ], "test_antrean_dalam_janji_butir_tinjau_tanpa_menambah_perlu_keputusan"),
+        ('ItemAntrean("penting", "%d Peta dibayar', 'ItemAntrean("tinjau", "%d Peta dibayar'),
+    ], "test_antrean_peta_belum_terbit_selalu_penting_tanpa_masa_tunggu"),
+    ("tingkat_ikut_janji_48_jam", A, [
+        ('ItemAntrean("penting", "%d Peta dibayar', 'ItemAntrean("penting" if _terlambat else "tinjau", "%d Peta dibayar'),
+    ], "test_antrean_peta_belum_terbit_selalu_penting_tanpa_masa_tunggu"),
+    ("guard_kosong_dihapus", A, [
+        ('    if not menanti:\n        return ()\n    return (ItemAntrean("penting"', '    return (ItemAntrean("penting"'),
+    ], "test_antrean_kosong_bila_semua_terbit"),
     ("penting_tidak_masuk_perlu_keputusan", A, [
         ("for i in backup + tunggakan + belum_tempat + peta_belum + lain if", "for i in backup + tunggakan + belum_tempat + lain if"),
-    ], "test_antrean_lewat_janji_butir_penting_dan_menambah_perlu_keputusan"),
+    ], "test_antrean_peta_belum_terbit_selalu_penting_tanpa_masa_tunggu"),
     ("butir_tidak_ikut_total", A, [
-        ("len(belum_tempat) + len(peta_belum) + len(guru_baru) + len(lain),", "len(belum_tempat) + len(guru_baru) + len(lain),"),
-    ], "test_antrean_dalam_janji_butir_tinjau_tanpa_menambah_perlu_keputusan"),
+        ("len(belum_tempat) + len(peta_belum) + len(guru_baru) + len(privat) + len(lain),", "len(belum_tempat) + len(guru_baru) + len(privat) + len(lain),"),
+    ], "test_antrean_peta_belum_terbit_selalu_penting_tanpa_masa_tunggu"),
 )
 
 

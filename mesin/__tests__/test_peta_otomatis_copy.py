@@ -142,12 +142,10 @@ def test_lembar_tanpa_guru_paraf_dan_kolom_tinjauan():
 
 def test_antrean_admin_peta_tidak_menyuruh_guru_menyusun():
     # Arrange
-    kalimat_lewat = admin_antrean.KALIMAT_PETA_TERLAMBAT % 2
-    kalimat_dalam = admin_antrean.KALIMAT_PETA_DALAM_JANJI
+    kalimat = admin_antrean.KALIMAT_PETA_BELUM_TERBIT
 
     # Act / Assert
-    for kalimat in (kalimat_lewat, kalimat_dalam):
-        _tanpa_guru(kalimat)
-        _tanpa_48_jam(kalimat)
-        assert "Laporan belum terbit otomatis; periksa bahan cek atau terbitkan manual." in kalimat
-    assert kalimat_lewat.startswith("2 di antaranya sudah lewat batas tunggu")
+    _tanpa_guru(kalimat)
+    _tanpa_48_jam(kalimat)
+    assert "batas tunggu" not in kalimat
+    assert kalimat == "Laporan belum terbit otomatis; periksa bahan cek atau terbitkan manual."
