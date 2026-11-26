@@ -31,6 +31,9 @@ ID_JUDUL = "judul-jadwal-anak"
 def _nama_guru(guru_id: str) -> Optional[str]:
     """Nama login guru aktif (peran guru, tidak dinonaktifkan) atau None; id guru tidak pernah dikembalikan."""
     for akun in auth.muat_akun():
+        # Elemen yang bukan dict (berkas sandi rusak) dilewati, bukan galat: beranda tetap 200.
+        if not isinstance(akun, dict):
+            continue
         if akun.get("id_akun") == guru_id and akun.get("peran") == PERAN_GURU and not akun.get("dinonaktifkan"):
             return akun.get("pengguna")
     return None

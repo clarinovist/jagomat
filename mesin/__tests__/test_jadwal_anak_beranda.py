@@ -9,6 +9,7 @@ import contextlib
 import html as pustaka_html
 import re
 import sqlite3
+import types
 
 import pytest
 
@@ -242,3 +243,24 @@ def test_kartu_jadwal_tampil_sebelum_kartu_utama_beranda(siap):
             kon, siap.a.siswa_id, siap.a.akun[0], kartu_jadwal='<i id="uji-jadwal"></i>').decode("utf-8")
     assert "Siap untuk latihan pertama?" in isi
     assert isi.index('id="uji-jadwal"') < isi.index("Siap untuk latihan pertama?")
+
+
+# --- berkas akun rusak: elemen bukan dict dilewati, beranda tetap 200 ----------------------------
+
+def _pakai_daftar_akun(monkeypatch, daftar) -> None:
+    """Ganti pembaca akun HANYA untuk modul kartu; `auth` global tetap dipakai login dan sesi."""
+    monkeypatch.setattr(kartu_modul, "auth", types.SimpleNamespace(muat_akun=lambda *_a, **_k: daftar))
+
+
+def test_guru_valid_tetap_ditemukan_walau_daftar_akun_berisi_elemen_bukan_dict(siap, monkeypatch):
+    _tempat_mini(_aktifkan(siap, siap.a, "mini", JPEG), _kelompok(_guru(GURU_A)))
+    _pakai_daftar_akun(monkeypatch, ["rusak", None, 7] + auth.muat_akun())
+    t = _teks(_kartu(_beranda(siap, siap.a)))
+    assert "Sesi berikutnya" in t and "Guru: pengajar-alfa" in t
+
+
+def test_daftar_akun_hanya_elemen_bukan_dict_beranda_200_dengan_kartu_tanpa_baris_guru(siap, monkeypatch):
+    _tempat_mini(_aktifkan(siap, siap.a, "mini", JPEG), _kelompok(_guru(GURU_A)))
+    _pakai_daftar_akun(monkeypatch, ["rusak", None, 7])
+    t = _teks(_kartu(_beranda(siap, siap.a)))
+    assert "Sesi berikutnya" in t and "Guru:" not in t
