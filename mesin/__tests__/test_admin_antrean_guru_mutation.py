@@ -40,7 +40,7 @@ KASUS = (
         ('return (ItemAntrean("tinjau", "%d guru baru belum masuk lembaga"', 'return (ItemAntrean("penting", "%d guru baru belum masuk lembaga"'),
     ], "test_butir_antrean_tinjau_tanpa_menambah_perlu_keputusan"),
     ("butir_tidak_ikut_total", A, [
-        ("+ len(belum_tempat) + len(guru_baru) + len(lain),", "+ len(belum_tempat) + len(lain),"),
+        ("+ len(guru_baru) + len(privat)", "+ len(privat)"),
     ], "test_butir_antrean_tinjau_tanpa_menambah_perlu_keputusan"),
 )
 
