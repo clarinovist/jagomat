@@ -99,6 +99,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery harga d91a1c5 (37307ed + lapisan data harga/kelas byte-identik dengan main + kontrak 9d20466):
     # tanpa tes baru di pohon recovery, jumlah sama dengan 37307ed. Diverifikasi ulang oleh test_pytest_shard (collect-only arsip exact).
     "d91a1c50e8a3458c17a35635542307bd43aaa5a0": 27849,
+    # Koleksi recovery tagihan c1778a0 (d91a1c5 + lapisan data tagihan_*/kelas_* byte-identik dengan main 9630f0f + kontrak 352c666):
+    # tanpa tes baru di pohon recovery, jumlah sama dengan d91a1c5. Berkas yang ditambah semuanya mesin/*.py non-tes.
+    "c1778a006ec3deb055d259b3e1a38f7ce867bad5": 27849,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
