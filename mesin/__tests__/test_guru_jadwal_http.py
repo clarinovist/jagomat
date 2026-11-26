@@ -518,7 +518,9 @@ def test_privasi_tidak_membocorkan_kunci_setelah_privat_mulai(server, jadwal, ja
         assert "kor_" not in isi and "akun_" not in isi, jalur
         assert "siswa_id" not in isi and "order_id" not in isi, jalur
     _kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
-    assert isi.count("klp_") == len(re.findall(r'href="/guru/kelas/klp_[0-9a-f]{32}"', isi))
+    hrefs = POLA_HREF_KELAS.findall(isi)
+    assert isi.count("klp_") == len(hrefs)
+    assert set(hrefs) == {jadwal["kid_a"]}  # hanya kelompok milik guru A, bukan sekadar jumlah yang cocok
 
 
 def test_setiap_tautan_catat_membuka_form_milik_guru(server, jadwal, jam):
