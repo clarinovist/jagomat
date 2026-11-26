@@ -17,6 +17,7 @@ from typing import Callable, Optional
 
 import playful_components as C
 from format_tanggal import tanggal_pendek
+import akses_harian
 import harian_langganan_dasar as h
 import harian_langganan_ringkas as ringkas
 import harian_langganan_style
@@ -71,6 +72,10 @@ COPY_ALASAN_TIM = "Alasan dari tim:"
 COPY_LENCANA_LES = "Dari les"
 COPY_LENCANA_AKTIF = "Aktif"
 COPY_LENCANA_SEGERA = "Berakhir %d hari lagi"
+COPY_LENCANA_TAGIHAN_BELUM = "Belum dibayar"
+COPY_LENCANA_TAGIHAN_DITOLAK = "Bukti belum sesuai"
+COPY_TAGIHAN_BELUM = "Tagihan Latihan Harian %s belum dibayar."
+COPY_TAGIHAN_DITOLAK = "Tagihan Latihan Harian %s belum dibayar: bukti ditolak."
 COPY_JUDUL_SEGERA = "Perpanjang supaya latihan tidak terputus"
 COPY_BATAS_BUKTI = "Batas bukti untuk tagihan ini sudah tercapai. Hubungi tim bila masih perlu bantuan."
 COPY_TOMBOL_UNGGAH = "Unggah bukti"
@@ -312,6 +317,29 @@ def banner_orang_tua(r: Optional[ringkas.Ringkasan], nama_anak: str) -> str:
     teks = "Latihan Harian %s berakhir %d hari lagi." % (nama_anak or "anak", r.sisa_hari)
     return (f'<p class="ortu-banner-st" id="ortu-langganan-banner" role="status">'
             f'{C.lencana("Segera berakhir", "koral")} {_e(teks)} <a href="{RUTE}">Perpanjang</a></p>')
+
+
+def _tagihan_diingatkan(r: Optional[ringkas.Ringkasan]) -> bool:
+    """Tagihan belum_bayar atau ditolak yang boleh diingatkan: bukan murid les (kartu les menutup tagihan)."""
+    return (r is not None and r.sumber != akses_harian.SUMBER_LES and r.nama_paket_tagihan is not None
+            and r.status_tagihan in (h.STATUS_BELUM_BAYAR, h.STATUS_DITOLAK))
+
+
+def banner_tagihan(r: Optional[ringkas.Ringkasan]) -> str:
+    """Banner tagihan Latihan Harian yang belum dibayar: lencana, nama paket, dan tautan bayar; '' bila tak ada.
+
+    Tanpa nama anak, id order, nominal, atau kode unik. Pembaca sudah menutup menunggu, lunas, dan kedaluwarsa.
+    Sakelar LATIHAN_HARIAN mati berarti `r` None, jadi tidak ada banner.
+    """
+    if not _tagihan_diingatkan(r):
+        return ""
+    if r.status_tagihan == h.STATUS_DITOLAK:
+        lencana, kalimat = C.lencana(COPY_LENCANA_TAGIHAN_DITOLAK, "koral"), COPY_TAGIHAN_DITOLAK
+    else:
+        lencana, kalimat = C.lencana(COPY_LENCANA_TAGIHAN_BELUM, "kuning"), COPY_TAGIHAN_BELUM
+    teks = kalimat % _e(r.nama_paket_tagihan)
+    return (f'<p class="ortu-banner-st" id="ortu-harian-tagihan-banner" role="status">'
+            f'{lencana} {teks} <a href="{RUTE}">{_e(COPY_TOMBOL_LANJUT_BAYAR)}</a></p>')
 
 
 def _kartu_navy_belum() -> str:

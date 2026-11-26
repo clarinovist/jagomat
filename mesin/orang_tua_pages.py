@@ -298,8 +298,8 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan
                 masa_paket=(), tagihan_paket=()) -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
-    Urutan: banner perpanjang Latihan Harian, banner paket belajar (hanya bila `tautan_paket`, isi `masa_paket`), hero
-    ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), laporan Guru, PIN (lipat).
+    Urutan: banner perpanjang Latihan Harian, banner tagihan Latihan Harian belum dibayar, banner paket belajar
+    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), laporan Guru, PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     banner_paket = (kelas_pages.banner_tagihan(tagihan_paket, data.nama_anak)
@@ -307,6 +307,7 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan
     badan = (
         '<div class="funnel-alur-st">' + _pesan(kabar, galat)
         + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
+        + harian_langganan_pages.banner_tagihan(data.langganan)
         + banner_paket
         + _hero_ringkasan(data.nama_anak, data.harian)
         + _blok_cek(data.hasil_cek, data.nama_anak)

@@ -20,6 +20,7 @@ class Ringkasan:
     sisa_hari: int
     status_tagihan: Optional[str]
     alasan_tolak: Optional[str] = None
+    nama_paket_tagihan: Optional[str] = None
 
     @property
     def langganan_aktif(self) -> bool:
@@ -39,4 +40,4 @@ def ringkasan(kon, siswa_id: int, kini) -> Ringkasan:
     if tampil is None:
         return Ringkasan(akses.sumber, akses.berakhir, sisa, None)
     alasan = tampil.alasan_tolak if tampil.status == h.STATUS_DITOLAK else None
-    return Ringkasan(akses.sumber, akses.berakhir, sisa, tampil.status, alasan)
+    return Ringkasan(akses.sumber, akses.berakhir, sisa, tampil.status, alasan, tampil.paket.nama)
