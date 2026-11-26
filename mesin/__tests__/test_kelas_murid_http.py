@@ -21,7 +21,8 @@ import sessions
 from bukti_kit import JPEG, PDF, PNG, TEKS_PALSU
 from kelas_http_kit import (AWAL, BUAT, BUKTI, KOSONG, M, TABEL, ADMIN, baca_admin, berkas_kelas, bukti_terakhir,  # noqa: F401
                             buat, buat_dan_unggah, buat_murid, halaman, hitung, jam, kidup, kirim, kmati,
-                            minta_mentah, order_terakhir, peta_lunas_untuk, semua_berkas, server, token, unggah)
+                            minta_mentah, order_terakhir, peta_lunas_untuk, semua_berkas, server, tagihan_halaman, token,
+                            unggah)
 
 
 @pytest.fixture()
@@ -134,7 +135,7 @@ def test_buat_tagihan_nominal_dari_server_dan_halaman_tagihan(dua):
     o = order_terakhir()
     assert (o["siswa_id"], o["paket"], o["nominal"]) == (dua.a.siswa_id, "mini", 300_000)
     assert o["total_transfer"] == 300_000 + o["kode_unik"] and 1 <= o["kode_unik"] <= 999
-    isi = halaman(dua, dua.a)
+    isi = tagihan_halaman(dua, dua.a, "mini")[1]
     t = teks(isi)
     assert "Bank Contoh" in t and "1234 5678 90" in t and "PT Contoh Sintetis" in t
     assert "Unggah bukti" in t and "Daftar paket ini" not in t and "Batas waktu" in t
@@ -197,13 +198,13 @@ def test_token_kedaluwarsa_ditolak(dua):
     assert hitung() == KOSONG
 
 
-def test_satu_tagihan_terbuka_per_anak_idempoten_dan_paket_lain_konflik(dua):
+def test_idempoten_per_paket_dan_paket_lain_boleh_terbuka_bersamaan(dua):
     assert buat(dua, dua.a, "mini")[0] == 303
     total = order_terakhir()["total_transfer"]
     assert buat(dua, dua.a, "mini")[0] == 303
     assert hitung()["kelas_order"] == 1 and order_terakhir()["total_transfer"] == total
-    kode, _, _ = buat(dua, dua.a, "private")
-    assert kode == 409 and hitung()["kelas_order"] == 1
+    assert buat(dua, dua.a, "private")[0] == 303
+    assert hitung()["kelas_order"] == 2
 
 
 def test_isolasi_murid_a_b_tagihan_status_dan_bukti(dua):
@@ -244,7 +245,7 @@ def test_unggah_catat_bukti_di_subfolder_kelas_dan_status_menunggu(dua):
     assert hitung()["kelas_bukti"] == 1
     assert len(berkas_kelas(dua)) == 1 and len(semua_berkas(dua)) == 1
     assert semua_berkas(dua)[0].startswith("kelas/")
-    t = teks(halaman(dua, dua.a))
+    t = teks(tagihan_halaman(dua, dua.a, "mini")[1])
     assert "Bukti sudah kami terima" in t and "Menunggu verifikasi" in t and "rahasia-klien" not in t
 
 
@@ -306,10 +307,10 @@ def test_multipart_bentuk_aneh_ditolak(dua):
     from bukti_kit import bagian, multipart
     from kelas_http_kit import minta_multipart
     buat(dua, dua.a)
-    tok = token(dua.a.akun, "kelas_bukti")
+    tok = token(dua.a.akun, "kelas_bukti:mini")
     ekstra = multipart([bagian("token", tok.encode()), bagian("berkas", JPEG, nama_berkas="a.jpg"),
                         bagian("order_id", b"kor_" + b"0" * 32)])
-    assert minta_multipart(dua, BUKTI, dua.a.akun, ekstra)[0] == 400
+    assert minta_multipart(dua, BUKTI + "?kode=mini", dua.a.akun, ekstra)[0] == 400
     assert hitung()["kelas_bukti"] == 0 and semua_berkas(dua) == []
 
 
@@ -320,7 +321,7 @@ def test_gagal_catat_menghapus_berkas(dua, monkeypatch):
     def gagal(*_a, **_k):
         raise OSError("disk penuh")
 
-    monkeypatch.setattr(kelas_murid_http.kelas_unggah, "catat_bukti_terbaru", gagal)
+    monkeypatch.setattr(kelas_murid_http.store, "catat_bukti", gagal)
     assert unggah(dua, dua.a)[0] == 503
     assert semua_berkas(dua) == [] and hitung()["kelas_bukti"] == 0
 
@@ -332,10 +333,10 @@ def test_ditolak_boleh_unggah_ulang(dua):
     oid = order_terakhir()["id"]
     with kelas_store.buka(_admin_store.BAWAAN, tulis_data=True) as kon:
         kelas_putusan.tolak(kon, oid, ADMIN, "Nominal kurang tiga digit", AWAL, bukti_dilihat=bukti_terakhir(oid))
-    t = teks(halaman(dua, dua.a))
+    t = teks(tagihan_halaman(dua, dua.a, "mini")[1])
     assert "Ditolak" in t and "Unggah ulang bukti" in t
     assert unggah(dua, dua.a, PNG)[0] == 303
-    assert "Bukti sudah kami terima" in teks(halaman(dua, dua.a))
+    assert "Bukti sudah kami terima" in teks(tagihan_halaman(dua, dua.a, "mini")[1])
 
 
 def test_setuju_halaman_aktif_sampai_tanggal_dan_boleh_perpanjang(dua):
@@ -372,7 +373,7 @@ def test_rekening_di_escape_dan_nilai_berbahaya_ditutup_di_sumber(dua):
     kon.execute("UPDATE rekening_konfigurasi SET nama_bank=?", ("Bank & Mitra",))
     kon.commit()
     buat(dua, dua.a)
-    isi = halaman(dua, dua.a)
+    isi = tagihan_halaman(dua, dua.a, "mini")[1]
     assert "Bank &amp; Mitra" in isi and "Bank & Mitra" not in isi
     kon.execute("UPDATE rekening_konfigurasi SET nama_bank=?", ("<script>alert(1)</script>",))
     kon.commit()

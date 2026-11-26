@@ -30,7 +30,8 @@ def _tagihan(kode=k.KODE_PRIVATE, status=k.STATUS_BELUM_BAYAR, *, deposit=False,
 
 
 def _pilih(kartu, tagihan=None, **kw):
-    return halaman.halaman_pilih_paket(kartu, tagihan, _token, **kw).decode().split("</head>", 1)[1]
+    daftar = () if tagihan is None else (tagihan,)
+    return halaman.halaman_pilih_paket(kartu, daftar, _token, **kw).decode().split("</head>", 1)[1]
 
 
 def _tagih(tagihan, rekening="Bank Contoh 1234 5678 atas nama PT Sintetis", **kw):
@@ -116,7 +117,7 @@ def test_galat_dan_kabar_tampil_ter_escape():
 
 
 def test_pilih_tanpa_kartu_tidak_pecah():
-    assert halaman.halaman_pilih_paket([], None, _token).startswith(b"<!DOCTYPE html>")
+    assert halaman.halaman_pilih_paket([], (), _token).startswith(b"<!DOCTYPE html>")
 
 
 # --- tagihan -----------------------------------------------------------------------------------
@@ -137,8 +138,8 @@ def test_tagihan_deposit_menunjukkan_potongan_tanpa_diskon():
 def test_form_unggah_bukti_hanya_saat_belum_aktif_dan_bisa_diunggah():
     for status in (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK):
         html = _tagih(_tagihan(status=status))
-        assert 'action="/murid/paket/bukti"' in html and 'enctype="multipart/form-data"' in html
-        assert 'name="berkas"' in html and 'name="token" value="tok.kelas_bukti"' in html
+        assert 'action="/murid/paket/bukti?kode=private"' in html and 'enctype="multipart/form-data"' in html
+        assert 'name="berkas"' in html and 'name="token" value="tok.kelas_bukti:private"' in html
     for status in (k.STATUS_MENUNGGU, k.STATUS_AKTIF, k.STATUS_KEDALUWARSA):
         assert "<form" not in _tagih(_tagihan(status=status, berakhir=AKHIR))
 
@@ -270,3 +271,56 @@ def test_kartu_jadwal_tanpa_hex_id_dan_guru():
 def test_teks_aktif_lama_dipertahankan_di_kartu_status():
     html = _tagih(_tagihan(status=k.STATUS_AKTIF, berakhir=AKHIR))
     assert "Penjadwalan pertemuan diatur tim setelah pembayaran disetujui." in _teks(html)
+
+
+# --- daftar: kartu tagihan terbuka, pemulihan, dan tautan per kode paket ------------------------------
+
+def test_kartu_tagihan_terbuka_memuat_total_status_teks_dan_tautan_per_kode():
+    html = _pilih(_dua_kartu(terbuka=True), _tagihan(k.KODE_MINI, unik=7))
+    teks = _teks(html)
+    assert "Rp300.007" in teks and "Menunggu pembayaran" in teks
+    assert 'href="/murid/paket/tagihan?kode=mini"' in html and "Lanjutkan pembayaran" in teks
+    assert "Hapus tagihan" not in teks and "/murid/paket/hapus" not in html
+
+
+def test_kartu_hapus_hanya_bila_belum_bayar_tanpa_bukti_dan_diizinkan():
+    belum = _pilih(_dua_kartu(terbuka=True), _tagihan(k.KODE_MINI), boleh_hapus=True)
+    assert 'href="/murid/paket/hapus?kode=mini"' in belum and "Hapus tagihan" in _teks(belum)
+    ada_bukti = _pilih(_dua_kartu(terbuka=True), _tagihan(k.KODE_MINI, bukti=1), boleh_hapus=True)
+    assert "/murid/paket/hapus" not in ada_bukti
+    tanpa_izin = _pilih(_dua_kartu(terbuka=True), _tagihan(k.KODE_MINI), boleh_hapus=False)
+    assert "/murid/paket/hapus" not in tanpa_izin
+
+
+def test_tagihan_terbuka_sebagai_penanda_di_kartu_paket_tanpa_tombol_daftar():
+    html = _pilih(_dua_kartu(terbuka=True), _tagihan(k.KODE_PRIVATE))
+    assert html.count("Tagihan paket ini ada di atas.") == 2 and 'action="/murid/paket/buat"' not in html
+
+
+def test_paket_dibatalkan_memberi_catatan_pulih_dan_tetap_bisa_didaftar():
+    html = _pilih(_dua_kartu(), dibatalkan={k.KODE_MINI: AKHIR})
+    teks = _teks(html)
+    assert "Memilih lagi memulihkan tagihan yang tadi dihapus (sisa waktu bayar:" in teks
+    assert 'action="/murid/paket/buat"' in html
+
+
+def test_halaman_tagihan_dengan_formulir_unggah_terikat_kode_paket():
+    html = _tagih(_tagihan(k.KODE_MINI))
+    assert 'action="/murid/paket/bukti?kode=mini"' in html and 'value="tok.kelas_bukti:mini"' in html
+    assert 'href="/murid/paket"' in html
+
+
+def test_status_dibatalkan_tampil_teks_tanpa_keyerror_dan_tanpa_pembayaran():
+    html = _tagih(_tagihan(k.KODE_MINI, status=k.STATUS_DIBATALKAN))
+    teks = _teks(html)
+    assert "Dibatalkan" in teks and "Tagihan ini sudah dihapus" in teks
+    assert "Total yang harus Anda transfer" not in teks and 'action="/murid/paket/bukti' not in html
+
+
+def test_konfirmasi_hapus_memuat_akibat_uang_paket_dan_tombol_post():
+    html = halaman.halaman_konfirmasi_hapus(_tagihan(k.KODE_PRIVATE), k.ambil(k.KODE_PRIVATE), _token).decode()
+    teks = _teks(html)
+    assert "Private" in teks and "Rp" in teks and "Ya, hapus tagihan" in teks
+    assert halaman.COPY_AKIBAT_HAPUS in teks and 'action="/murid/paket/hapus"' in html
+    assert 'value="tok.kelas_hapus:private"' in html and 'href="/murid/paket/tagihan?kode=private"' in html
+    assert "kor_" not in html

@@ -46,6 +46,16 @@ def _deposit_dipegang_lain(kon, akun_id: str, siswa_id: int, kode_paket: str, de
     return False
 
 
+def deposit_masih_tersedia(kon, akun_id: str, siswa_id: int, kode_paket: str, deposit_order: str, kini: str) -> bool:
+    """True bila `deposit_order` masih deposit aktif anak ini DAN tidak dipegang tagihan terbuka paket lain.
+
+    Dipakai saat tagihan batal yang berdeposit dipulihkan: deposit yang sudah dipakai (lunas) atau dipegang tagihan lain
+    tidak boleh dipotongkan lagi.
+    """
+    aktif = deposit_aktif(kon, akun_id, siswa_id, kini) == deposit_order
+    return aktif and not _deposit_dipegang_lain(kon, akun_id, siswa_id, kode_paket, deposit_order, kini)
+
+
 def rincian_untuk(kon, akun_id: str, siswa_id: int, kode_paket: str, kini: str,
                   abaikan_order: Optional[str] = None) -> Tuple[katalog.Rincian, Optional[str]]:
     """(rincian, order_id Peta yang dipotongkan atau None) untuk tagihan BARU paket ini pada `kini`.

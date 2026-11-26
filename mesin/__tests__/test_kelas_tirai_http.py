@@ -66,12 +66,12 @@ def test_halaman_paket_memberi_kabar_terkunci_dan_menyembunyikan_pilihan_jadwal(
     assert "terkunci PIN" in isi and "Pilih jadwal kelas" not in isi
 
 
-def test_ganti_jadwal_dan_bukti_juga_ditahan_saat_tirai_tertutup(kidup, murid, jam):
+def test_hapus_jadwal_dan_bukti_juga_ditahan_saat_tirai_tertutup(kidup, murid, jam):
     assert buat(kidup, murid, "mini")[0] == 303
     _pasang_pin(murid)
     jam.maju_jam(1)
     sebelum = hitung()
-    assert kirim(kidup, M + "/ganti", murid, {"token": token(murid.akun, "kelas_ganti:private"), "kode": "private"})[0] == 403
+    assert kirim(kidup, M + "/hapus", murid, {"token": token(murid.akun, "kelas_hapus:mini"), "kode": "mini"})[0] == 403
     assert kirim(kidup, M + "/jadwal", murid, {"token": token(murid.akun, "jadwal_pilih:klp_" + "0" * 32),
                                                "kelompok": "klp_" + "0" * 32})[0] == 403
     assert unggah(kidup, murid)[0] == 403
@@ -85,7 +85,18 @@ def test_tirai_dibuka_untuk_sesi_cookie_mengizinkan_tindakan_dan_tidak_untuk_ses
     tirai.buka(sesi, murid.id_akun, murid.siswa_id)
     assert _kirim_cookie(kidup, murid, sesi, M + "/buat", "kelas_buat:mini", {"kode": "mini"})[0] == 303   # dibuka
     lain = _cookie(kidup, murid)
-    assert _kirim_cookie(kidup, murid, lain, M + "/ganti", "kelas_ganti:private", {"kode": "private"})[0] == 403
+    assert _kirim_cookie(kidup, murid, lain, M + "/hapus", "kelas_hapus:mini", {"kode": "mini"})[0] == 403
+
+
+def test_hapus_tagihan_ditahan_tirai_dan_tanpa_tombol_saat_tertutup(kidup, murid):
+    import schema_tagihan_catatan as stc
+    stc.migrasikan(admin_store.BAWAAN)               # tombol hapus butuh tabel catatan; tirai menahan sebelum itu
+    assert buat(kidup, murid, "mini")[0] == 303
+    _pasang_pin(murid)
+    sebelum = hitung()
+    assert "/murid/paket/hapus?kode=mini" not in halaman(kidup, murid)
+    assert kirim(kidup, M + "/hapus", murid, {"token": token(murid.akun, "kelas_hapus:mini"), "kode": "mini"})[0] == 403
+    assert hitung() == sebelum and baca_admin("SELECT COUNT(*) AS n FROM tagihan_catatan")[0]["n"] == 0
 
 
 def test_cookie_mati_bersama_basic_tidak_mewarisi_tirai_yang_terbuka(kidup, murid):

@@ -44,7 +44,7 @@ _SQL_BERAKHIR_SEMUA_PAKET = ("SELECT MAX(a.berakhir) FROM kelas_akses a JOIN kel
 
 @dataclass(frozen=True)
 class TagihanBelumBayar:
-    """Tagihan paket yang masih menunggu pembayaran atau unggah ulang bukti (butir QA #3, notifikasi gantung)."""
+    """Tagihan paket yang masih menunggu pembayaran atau unggah ulang bukti (notifikasi gantung; satu baris per tagihan)."""
     kode_paket: str
     nama: str
     kedaluwarsa: str
@@ -92,21 +92,18 @@ def _masa_paket(kon, akun_id: str, siswa_id: int, paket: katalog.PaketBelajar, k
 
 
 def tagihan_belum_dibayar(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[TagihanBelumBayar, ...]:
-    """Tagihan TERBARU milik akun untuk anak ini bila belum ada bukti menunggu: belum_bayar atau ditolak (boleh unggah ulang).
+    """Semua tagihan milik akun untuk anak ini yang perlu diingatkan: belum_bayar atau ditolak (boleh unggah ulang).
 
-    Satu elemen paling banyak: setelah ganti paket, tagihan lama masih terbuka sampai habis tetapi tidak diingatkan.
-
-    Jendela bayar yang sudah lewat tidak terbuka, jadi tidak ikut. Tanpa tulis; akun selalu ikut di kueri.
+    Tagihan menunggu verifikasi (sudah ada bukti) dan tagihan yang dibatalkan TIDAK diingatkan. Jendela bayar yang sudah lewat
+    tidak terbuka, jadi tidak ikut. Tanpa tulis; akun selalu ikut di kueri.
     """
     d.periksa_koneksi(kon)
     d.periksa_akun_id(akun_id)
     k.periksa_siswa_id(siswa_id)
     kini = k.ke_baku(sekarang)
-    for o, _fakta, status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini):     # terbaru dulu
-        if status in (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK):
-            return (TagihanBelumBayar(o["paket"], katalog.ambil(o["paket"]).nama, o["kedaluwarsa"], status),)
-        return ()      # tagihan terbaru sudah punya bukti menunggu: tagihan lama (setelah ganti paket) tidak diingatkan
-    return ()
+    return tuple(TagihanBelumBayar(o["paket"], katalog.ambil(o["paket"]).nama, o["kedaluwarsa"], status)
+                 for o, _fakta, status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini)
+                 if status in (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK))
 
 
 def masa_paket_anak(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[MasaPaket, ...]:

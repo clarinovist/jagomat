@@ -109,7 +109,9 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/murid/pesanan", "murid"),
     ("/murid/langganan", "murid"),  # F5: langganan Latihan Harian (exact + /buat /bukti); sakelar LATIHAN_HARIAN mati = jalur murid asing
     ("/murid/latihan-harian", "murid"),  # F4 Latihan Harian (prefix: beranda, /sesi/<id>, /sesi/<id>/ringkasan); sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
-    ("/murid/paket", "murid"),  # Paket Belajar 1 Bulan (exact + /buat /bukti); sakelar PAKET_BELAJAR mati = jalur murid asing
+    ("/murid/paket", "murid"),  # Paket Belajar 1 Bulan (exact, selalu daftar paket); sakelar PAKET_BELAJAR mati = jalur murid asing
+    ("/murid/paket/tagihan", "murid"),  # Paket Belajar: halaman tagihan per kode (?kode=); sakelar mati = jalur murid asing
+    ("/murid/paket/hapus", "murid"),  # Paket Belajar: konfirmasi hapus tagihan (?kode=); sakelar mati = jalur murid asing
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
@@ -173,7 +175,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
     ("/murid/langganan", "murid"),  # F5: POST buat tagihan / unggah bukti langganan; sakelar mati = jalur murid asing
     ("/murid/latihan-harian", "murid"),  # F4: POST /mulai dan /sesi/<id>/jawab; sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
-    ("/murid/paket", "murid"),  # Paket Belajar: POST buat tagihan / unggah bukti; sakelar PAKET_BELAJAR mati = jalur murid asing
+    ("/murid/paket", "murid"),  # Paket Belajar: POST buat tagihan / unggah bukti (?kode=); sakelar PAKET_BELAJAR mati = jalur murid asing
+    ("/murid/paket/hapus", "murid"),  # Paket Belajar: POST hapus tagihan belum bayar tanpa bukti; sakelar mati = jalur murid asing
     ("/murid/paket/jadwal-private/ajukan", "murid"),  # Jadwal Private: POST ajukan slot (token + slot); sakelar mati = jalur murid asing
     ("/murid/paket/jadwal-private/batal", "murid"),  # Jadwal Private: POST batal pengajuan (token); sakelar mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher

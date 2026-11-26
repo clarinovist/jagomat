@@ -84,9 +84,9 @@ def test_tujuan_dan_label_kembali_murid_mengikuti_rute_dan_judul_ortu():
     assert label == judul_ortu == "Halaman Ayah/Bunda"
 
 
-def test_copy_peringatan_ganti_memakai_ejaan_terlanjur():
+def test_copy_akibat_hapus_memakai_ejaan_terlanjur():
     # Arrange
-    copy = kelas.COPY_PERINGATAN_GANTI
+    copy = kelas.COPY_AKIBAT_HAPUS
 
     # Act / Assert
     assert "terlanjur" in copy

@@ -11,7 +11,9 @@ import pytest
 
 import kelas_masa
 import kelas_store
-from kelas_http_kit import (buat, buat_dan_unggah, buat_murid, jam, kidup, kmati, minta_mentah, server)  # noqa: F401
+from bukti_kit import JPEG
+from kelas_http_kit import (buat, buat_dan_unggah, buat_murid, hapus_tagihan, jam, kidup, kmati, minta_mentah,  # noqa: F401
+                            pasang_catatan, server, unggah)
 
 JALUR = "/murid/orang-tua"
 ANAK = "Anak Sintetis"
@@ -33,7 +35,7 @@ def test_tagihan_belum_dibayar_menampilkan_banner_dengan_tautan_ke_halaman_bayar
     buat(kidup, murid, "mini")
     kode, isi = _halaman(kidup, murid)
     assert kode == 200 and PENANDA in isi
-    assert "Tagihan Mini Class" in isi and "belum dibayar" in isi and 'href="/murid/paket"' in isi
+    assert "Tagihan Mini Class" in isi and "belum dibayar" in isi and 'href="/murid/paket/tagihan?kode=mini"' in isi
     assert "Lanjutkan pembayaran" in isi
 
 
@@ -74,3 +76,33 @@ def test_galat_db_kelas_halaman_tetap_200_tanpa_banner(kidup, murid, monkeypatch
     monkeypatch.setattr(kelas_masa, "tagihan_belum_dibayar", rusak)
     kode, isi = _halaman(kidup, murid)
     assert kode == 200 and PENANDA not in isi
+
+
+def _banner(isi):
+    awal = isi.index(PENANDA)
+    return isi[awal:isi.index("</p>", awal)]
+
+
+def test_dua_tagihan_belum_dibayar_dua_baris_masing_masing_menaut_kodenya(kidup, murid):
+    assert buat(kidup, murid, "private")[0] == 303
+    assert buat(kidup, murid, "mini")[0] == 303
+    banner = _banner(_halaman(kidup, murid)[1])
+    assert banner.count("<br>") == 1 and banner.count("Lanjutkan pembayaran") == 2
+    assert 'href="/murid/paket/tagihan?kode=private"' in banner and 'href="/murid/paket/tagihan?kode=mini"' in banner
+
+
+def test_tagihan_menunggu_verifikasi_tidak_diingatkan_tagihan_lain_tetap(kidup, murid):
+    assert buat(kidup, murid, "private")[0] == 303
+    assert buat(kidup, murid, "mini")[0] == 303
+    assert unggah(kidup, murid, JPEG, kode="mini")[0] == 303
+    banner = _banner(_halaman(kidup, murid)[1])
+    assert "kode=private" in banner and "kode=mini" not in banner
+
+
+def test_tagihan_dibatalkan_tidak_diingatkan(kidup, murid):
+    pasang_catatan()
+    assert buat(kidup, murid, "private")[0] == 303
+    assert buat(kidup, murid, "mini")[0] == 303
+    assert hapus_tagihan(kidup, murid, "mini")[0] == 303
+    banner = _banner(_halaman(kidup, murid)[1])
+    assert "kode=private" in banner and "kode=mini" not in banner

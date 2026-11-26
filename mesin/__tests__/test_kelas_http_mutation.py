@@ -11,8 +11,10 @@ from harian_mutasi_kit import uji_mutasi
 
 TES_ADMIN = "test_kelas_admin_http.py"
 TES_MURID = "test_kelas_murid_http.py"
+TES_DUA = "test_kelas_dua_tagihan_http.py"
+TES_HAPUS = "test_kelas_hapus_http.py"
 SALIN_TES = tuple(sorted(p.name for p in Path(__file__).parent.glob("*_kit.py"))) + (
-    "conftest.py", TES_ADMIN, TES_MURID)
+    "conftest.py", TES_ADMIN, TES_MURID, TES_DUA, TES_HAPUS)
 
 MURID = "kelas_murid_http.py"
 ADMIN = "kelas_admin_http.py"
@@ -22,7 +24,10 @@ _ADMIN_SAJA = "test_non_admin_404_identik_rute_tak_dikenal_sakelar_mati_atau_hid
 _SISWA_SESI = "test_kueri_siswa_diabaikan_get_dan_post or test_isolasi_murid_a_b_tagihan_status_dan_bukti"
 _FORM_KETAT = "test_nominal_tidak_bisa_dari_form"
 _TOKEN_KODE = "test_token_salah_atau_untuk_kode_lain_atau_akun_lain_ditolak"
-_SATU_TAGIHAN = "test_satu_tagihan_terbuka_per_anak_idempoten_dan_paket_lain_konflik"
+_TOKEN_HAPUS = "test_token_salah_atau_untuk_aksi_atau_kode_lain_403_tanpa_efek"
+_TOKEN_UNGGAH = "test_token_unggah_terikat_kode_paket"
+_UNGGAH_KODE = "test_unggah_masuk_ke_tagihan_paket_yang_dipilih_walau_mini_terbaru"
+_HAPUS_TABEL = "test_tanpa_tabel_catatan_tombol_hapus_tidak_tampil_dan_post_ditolak_tanpa_tulis"
 _REKENING = "test_rekening_kosong_halaman_jujur_dan_post_404_tanpa_efek"
 _BUKTI_BASI = "test_tinjauan_basi_bukti_baru_ditolak_409_tanpa_efek"
 _FIELD_ASING = "test_target_tidak_dari_field_form"
@@ -64,13 +69,24 @@ KASUS = (
     ("form_buat_menerima_field_asing", MURID, [
         ("    if data is None or set(data) != KUNCI_FORM_BUAT:", "    if data is None or not set(data) >= KUNCI_FORM_BUAT:"),
     ], TES_MURID, _FORM_KETAT),
-    ("token_buat_tidak_terikat_kode", MURID, [
+    ("token_buat_dan_hapus_tidak_terikat_kode", MURID, [
         ("aksi + kode, data[\"token\"]", "aksi + \"mini\", data[\"token\"]"),
-    ], TES_MURID, _TOKEN_KODE),
-    ("satu_tagihan_lintas_paket_dilepas", MURID, [
-        ("store.buat_tagihan(kon, akun_id, siswa_id, kode, kini, tolak_paket_lain_terbuka=True)",
-         "store.buat_tagihan(kon, akun_id, siswa_id, kode, kini, tolak_paket_lain_terbuka=False)"),
-    ], TES_MURID, _SATU_TAGIHAN),
+    ], TES_MURID, _TOKEN_KODE + " or " + _TOKEN_HAPUS),
+    ("aksi_hapus_sama_dengan_buat", MURID, [
+        ("_form_buat(penangan, principal, halaman.AKSI_HAPUS)", "_form_buat(penangan, principal, halaman.AKSI_BUAT)"),
+    ], TES_HAPUS, _TOKEN_HAPUS),
+    ("token_unggah_tidak_terikat_kode", MURID, [
+        ("halaman.AKSI_BUKTI + kode, form.token", "halaman.AKSI_BUKTI + \"mini\", form.token"),
+    ], TES_DUA, _TOKEN_UNGGAH),
+    ("kode_unggah_dari_kueri_diabaikan", MURID, [
+        ("    kode = _kode_kueri(penangan.path)", "    kode = \"mini\""),
+    ], TES_DUA, _UNGGAH_KODE),
+    ("tombol_hapus_tanpa_tabel_catatan", MURID, [
+        ("    tampil_hapus = bisa_hapus and not tertutup", "    tampil_hapus = not tertutup"),
+    ], TES_HAPUS, _HAPUS_TABEL),
+    ("hapus_tanpa_penjaga_tabel_catatan", "kelas_batal.py", [
+        ("        if not cat.terpasang(kon):\n            raise k.KelasKonflik(\"pembatalan tagihan belum tersedia\")", "        pass"),
+    ], TES_HAPUS, _HAPUS_TABEL),
     ("rekening_kosong_tetap_melayani_post", MURID, [
         ("    if _rekening() is None:  # gerbang pembayaran tertutup", "    if False:  # gerbang pembayaran tertutup"),
     ], TES_MURID, _REKENING),
@@ -98,30 +114,3 @@ KASUS = (
 @pytest.mark.parametrize("nama,berkas,ganti,berkas_tes,tes", KASUS, ids=[k[0] for k in KASUS])
 def test_mutasi_guard_http_kelas_merah_lalu_pulih(tmp_path, nama, berkas, ganti, berkas_tes, tes):
     uji_mutasi(tmp_path, berkas, ganti, berkas_tes, tes, SALIN_TES)
-
-
-# --- ganti paket (butir QA #3, 25 Nov 2026) -------------------------------------------------------------------
-TES_GANTI_DOMAIN = "test_kelas_ganti.py"
-TES_GANTI_HTTP = "test_kelas_ganti_http.py"
-SALIN_GANTI = tuple(sorted(p.name for p in Path(__file__).parent.glob("*_kit.py"))) + (
-    "conftest.py", TES_GANTI_DOMAIN, TES_GANTI_HTTP)
-
-KASUS_GANTI = (
-    # Dua guard lain di kelas_ganti (jumlah_bukti, len(terbuka)) tumpang tindih dengan status turunan dan trigger DB
-    # untuk dua paket yang ada sekarang (mutan setara, tak bisa merah); dipertahankan sebagai pertahanan berlapis.
-    ("ganti_deposit_tidak_dipindah", "kelas_ganti.py", [
-        ('kon, akun_id, siswa_id, paket, kini, lama["id"])', "kon, akun_id, siswa_id, paket, kini)"),
-    ], TES_GANTI_DOMAIN, "test_deposit_peta_ikut_ke_tagihan_baru"),
-    ("ganti_token_tidak_terikat_aksi", MURID, [
-        ("_form_buat(penangan, principal, halaman.AKSI_GANTI)", "_form_buat(penangan, principal, halaman.AKSI_BUAT)"),
-    ], TES_GANTI_HTTP, "test_ganti_berhasil_halaman_menampilkan_tagihan_baru_dan_bukti_masuk_ke_tagihan_baru"),
-    ("tagihan_berjalan_bukan_yang_terbaru", MURID, [
-        ("    for order, _fakta, _status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini):\n        return",
-         "    for order, _fakta, _status in reversed(list(ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini))):\n        return"),
-    ], TES_GANTI_HTTP, "test_ganti_berhasil_halaman_menampilkan_tagihan_baru_dan_bukti_masuk_ke_tagihan_baru"),
-)
-
-
-@pytest.mark.parametrize("nama,berkas,ganti,berkas_tes,tes", KASUS_GANTI, ids=[k[0] for k in KASUS_GANTI])
-def test_mutasi_guard_ganti_paket_merah_lalu_pulih(tmp_path, nama, berkas, ganti, berkas_tes, tes):
-    uji_mutasi(tmp_path, berkas, ganti, berkas_tes, tes, SALIN_GANTI)

@@ -356,17 +356,16 @@ def test_antrean_urut_bukti_terlama_dan_hanya_yang_menunggu(kon_kelas):
 
 # --- satu tagihan terbuka per anak lintas paket (opsi untuk jalur HTTP, atomik di transaksi yang sama) ----------
 
-def test_opsi_tolak_paket_lain_terbuka_menolak_paket_kedua_dan_idempoten_untuk_paket_sama(kon_kelas):
+def test_paket_lain_boleh_terbuka_bersamaan_dan_paket_sama_idempoten(kon_kelas):
     pertama = tagih(kon_kelas, 1, "mini")
-    with pytest.raises(k.KelasKonflik):
-        kelas_store.buat_tagihan(kon_kelas, AKUN_A, 1, "private", KINI, acak=lambda bebas: bebas[0],
-                                 tolak_paket_lain_terbuka=True)
-    assert kelas_store.tagihan_terbuka(kon_kelas, AKUN_A, 1, "private", KINI) is None
-    ulang = kelas_store.buat_tagihan(kon_kelas, AKUN_A, 1, "mini", KINI, acak=lambda bebas: bebas[0],
-                                     tolak_paket_lain_terbuka=True)
+    assert tagih(kon_kelas, 1, "private").kode_paket == "private"
+    ulang = tagih(kon_kelas, 1, "mini")
     assert ulang.order_id == pertama.order_id
 
 
-def test_tanpa_opsi_paket_lain_tetap_boleh_terbuka_bersamaan(kon_kelas):
-    tagih(kon_kelas, 1, "mini")
-    assert tagih(kon_kelas, 1, "private").kode_paket == "private"
+def test_tagihan_terbuka_semua_memuat_setiap_paket_terbuka_dan_tanpa_milik_akun_lain(kon_kelas):
+    mini = tagih(kon_kelas, 1, "mini")
+    private = tagih(kon_kelas, 1, "private")
+    semua = kelas_store.tagihan_terbuka_semua(kon_kelas, AKUN_A, 1, KINI)
+    assert {t.order_id for t in semua} == {mini.order_id, private.order_id}
+    assert kelas_store.tagihan_terbuka_semua(kon_kelas, AKUN_B, 1, KINI) == ()

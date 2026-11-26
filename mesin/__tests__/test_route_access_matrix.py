@@ -81,6 +81,8 @@ _PROBE_GET = {
     "/murid/langganan": "/murid/langganan",
     "/murid/latihan-harian": "/murid/latihan-harian",
     "/murid/paket": "/murid/paket",
+    "/murid/paket/tagihan": "/murid/paket/tagihan?kode=mini",
+    "/murid/paket/hapus": "/murid/paket/hapus?kode=mini",
     "/lembaga": "/lembaga",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
@@ -139,6 +141,7 @@ _PROBE_POST = {
     "/murid/langganan": "/murid/langganan/buat",
     "/murid/latihan-harian": "/murid/latihan-harian/mulai",
     "/murid/paket": "/murid/paket/buat",
+    "/murid/paket/hapus": "/murid/paket/hapus",
     "/murid/paket/jadwal-private/ajukan": "/murid/paket/jadwal-private/ajukan",
     "/murid/paket/jadwal-private/batal": "/murid/paket/jadwal-private/batal",
     "/lembaga": "/lembaga/pindah",
@@ -263,6 +266,9 @@ def test_tabel_akses_punya_probe():
     # Paket Belajar 1 Bulan (sakelar PAKET_BELAJAR): exact murid, tepat setelah Latihan Harian; GET dan POST di bawahnya.
     assert get["/murid/paket"] == post["/murid/paket"] == "murid"
     assert urutan.index("/murid/paket") == urutan.index("/murid/latihan-harian") + 1
+    # Daftar paket selalu tampil; halaman tagihan per kode dan konfirmasi hapus murid di bawah /murid/paket (GET), hapus juga POST.
+    assert get["/murid/paket/tagihan"] == get["/murid/paket/hapus"] == "murid" and post["/murid/paket/hapus"] == "murid"
+    assert urutan.index("/murid/paket/tagihan") == urutan.index("/murid/paket") + 1
     # Jadwal Private (orang tua): exact murid, tanpa entri GET; sakelar PAKET_BELAJAR mati = jalur murid asing.
     for rute in ("/murid/paket/jadwal-private/ajukan", "/murid/paket/jadwal-private/batal"):
         assert post[rute] == "murid" and rute not in get

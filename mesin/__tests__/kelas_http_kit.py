@@ -30,6 +30,8 @@ from pesanan_transfer_http_kit import minta_multipart  # noqa: E402,F401
 M = "/murid/paket"
 BUAT = M + "/buat"
 BUKTI = M + "/bukti"
+TAGIHAN = M + "/tagihan"
+HAPUS = M + "/hapus"
 TABEL = ("kelas_order", "kelas_tagihan", "kelas_bukti", "kelas_verifikasi", "kelas_akses", "kelas_keluarga")
 KOSONG = {t: 0 for t in TABEL}
 ADMIN = "admin_sintetis"
@@ -97,9 +99,31 @@ def buat(server, murid, kode="mini", *, ekstra=None, hapus=(), tok=None, aksi=No
     return kirim(server, BUAT, murid, data)
 
 
-def unggah(server, murid, isi=JPEG, *, tok=None, **opsi):
-    tok = token(murid.akun, "kelas_bukti") if tok is None else tok
-    return minta_multipart(server, BUKTI, murid.akun, bukti(tok, isi, **opsi))
+def hapus_tagihan(server, murid, kode="mini", *, tok=None, ekstra=None):
+    data = {"token": token(murid.akun, "kelas_hapus:" + kode) if tok is None else tok, "kode": kode}
+    data.update(ekstra or {})
+    return kirim(server, HAPUS, murid, data)
+
+
+def unggah(server, murid, isi=JPEG, *, kode="mini", tok=None, **opsi):
+    tok = token(murid.akun, "kelas_bukti:" + kode) if tok is None else tok
+    return minta_multipart(server, BUKTI + "?kode=" + kode, murid.akun, bukti(tok, isi, **opsi))
+
+
+def tagihan_halaman(server, murid, kode="mini"):
+    """GET halaman tagihan satu paket: (kode, isi, tajuk)."""
+    return minta_mentah(server, TAGIHAN + "?kode=" + kode, murid.akun)
+
+
+def hapus_halaman(server, murid, kode="mini"):
+    """GET halaman konfirmasi hapus satu paket: (kode, isi, tajuk)."""
+    return minta_mentah(server, HAPUS + "?kode=" + kode, murid.akun)
+
+
+def pasang_catatan() -> None:
+    """Migrasi tabel catatan tagihan (batal/pulih); tanpa ini tombol hapus tidak tampil dan POST hapus ditolak."""
+    import schema_tagihan_catatan as stc
+    stc.migrasikan(admin_store.BAWAAN)
 
 
 def halaman(server, murid):
@@ -128,5 +152,5 @@ def peta_lunas_untuk(murid: Murid, n: int = 1) -> str:
 
 def buat_dan_unggah(server, murid, kode="mini", isi=JPEG) -> str:
     assert buat(server, murid, kode)[0] == 303
-    assert unggah(server, murid, isi)[0] == 303
+    assert unggah(server, murid, isi, kode=kode)[0] == 303
     return order_terakhir()["id"]

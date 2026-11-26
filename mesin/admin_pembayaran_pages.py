@@ -27,6 +27,7 @@ COPY_STATUS = {
     S.S_LUNAS: "Dibayar",
     S.S_DITOLAK: "Ditolak (menunggu unggah ulang)",
     S.S_KEDALUWARSA: "Kedaluwarsa",
+    S.S_DIBATALKAN: "Dibatalkan oleh orang tua",
     S.S_PERLU_DIPERIKSA: "Perlu diperiksa",
     S.S_DIREFUND: "Direfund (dicatat)",
 }
@@ -35,7 +36,7 @@ COPY_SARING = (
     ("Menunggu verifikasi", "menunggu"),
     ("Belum bayar", "belum_bayar"),
     ("Dibayar", "dibayar"),
-    ("Ditolak / kedaluwarsa", "ditolak"),
+    ("Ditolak / kedaluwarsa / dibatalkan", "ditolak"),
     ("Semua", None),
 )
 KODE_SARING = frozenset(nilai for _label, nilai in COPY_SARING if nilai is not None)
@@ -43,7 +44,7 @@ COPY_KOSONG = {
     "menunggu": "Tidak ada transfer yang menunggu verifikasi.",
     "belum_bayar": "Tidak ada tagihan yang menunggu pembayaran.",
     "dibayar": "Belum ada pembayaran yang lunas.",
-    "ditolak": "Tidak ada order yang ditolak atau kedaluwarsa.",
+    "ditolak": "Tidak ada order yang ditolak, kedaluwarsa, atau dibatalkan.",
 }
 COPY_KOSONG_SEMUA = "Belum ada order pembayaran."
 COPY_PERIKSA_BUKTI = "Periksa bukti"

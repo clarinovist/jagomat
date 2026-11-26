@@ -45,20 +45,23 @@ S_BELUM_BAYAR = d.STATUS_BELUM_BAYAR
 S_LUNAS = "lunas"
 S_DITOLAK = d.STATUS_DITOLAK
 S_KEDALUWARSA = d.STATUS_KEDALUWARSA
+S_DIBATALKAN = kelas_dasar.STATUS_DIBATALKAN  # tagihan kelas yang dibatalkan pembeli (bukan status Peta/harian)
 S_PERLU_DIPERIKSA = d.STATUS_PERLU_DIPERIKSA
 S_DIREFUND = d.STATUS_DIREFUND
 
 # Kelompok saringan = kunci `?status=`; tiap status ada di tepat satu kelompok (sama dengan daftar Pesanan).
+# Tagihan dibatalkan masuk kelompok "ditolak" (tidak lanjut tanpa dibayar); tidak pernah masuk "belum_bayar".
 KELOMPOK = {
     "menunggu": (S_MENUNGGU,),
     "belum_bayar": (S_BELUM_BAYAR,),
     "dibayar": (S_LUNAS, S_PERLU_DIPERIKSA, S_DIREFUND),
-    "ditolak": (S_DITOLAK, S_KEDALUWARSA),
+    "ditolak": (S_DITOLAK, S_KEDALUWARSA, S_DIBATALKAN),
 }
 
 _PETA = {d.STATUS_SUDAH_DIBAYAR: S_LUNAS}
 _HARIAN = {hd.STATUS_AKTIF: S_LUNAS}
-_KELAS = {kelas_dasar.STATUS_MENUNGGU: S_MENUNGGU, kelas_dasar.STATUS_AKTIF: S_LUNAS}
+_KELAS = {kelas_dasar.STATUS_MENUNGGU: S_MENUNGGU, kelas_dasar.STATUS_AKTIF: S_LUNAS,
+          kelas_dasar.STATUS_DIBATALKAN: S_DIBATALKAN}
 
 RUTE_PETA = "/admin/pesanan"
 RUTE_HARIAN = "/admin/langganan"

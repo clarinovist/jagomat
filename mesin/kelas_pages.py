@@ -9,11 +9,13 @@ Aturan isi:
 - Mini Class online tanpa lokasi fisik (keputusan Pemilik 25 Nov 2026): kolom lokasi kelompok berupa tautan Zoom
   atau Google Meet. Kartu jadwal menampilkannya sebagai tautan hanya bila lolos validasi ulang; selain itu teks biasa.
 - Tidak ada klaim hasil belajar, id order, atau kontak. Semua nilai dinamis di-escape.
+- Daftar paket SELALU tampil. Di atasnya satu kartu per tagihan terbuka (tautan per KODE paket, bukan id order). Hapus tagihan
+  (konfirmasi GET + POST) hanya untuk tagihan belum bayar tanpa bukti dan bila tabel catatan tagihan sudah dipasang.
 """
 from __future__ import annotations
 
 import html
-from typing import Callable, Optional, Sequence
+from typing import Callable, Mapping, Optional, Sequence
 
 import harian_langganan_dasar as h
 import harian_langganan_style
@@ -29,12 +31,13 @@ from playful_style import GAYA_CERIA
 RUTE = "/murid/paket"
 RUTE_BUAT = RUTE + "/buat"
 RUTE_BUKTI = RUTE + "/bukti"
-RUTE_GANTI = RUTE + "/ganti"
+RUTE_TAGIHAN = RUTE + "/tagihan"
+RUTE_HAPUS = RUTE + "/hapus"
 RUTE_JADWAL = RUTE + "/jadwal"
 AKSI_JADWAL = "jadwal_pilih:"
 AKSI_BUAT = "kelas_buat:"
-AKSI_GANTI = "kelas_ganti:"
-AKSI_BUKTI = "kelas_bukti"
+AKSI_HAPUS = "kelas_hapus:"
+AKSI_BUKTI = "kelas_bukti:"
 ID_JUDUL = "judul-paket"
 COPY_JUDUL = "Paket belajar 1 bulan"
 COPY_PENGANTAR = ("Pilih paket, lalu transfer ke rekening kami dan unggah bukti transfernya. "
@@ -44,7 +47,7 @@ COPY_TOMBOL_DAFTAR = "Daftar paket ini"
 COPY_TOMBOL_UNGGAH = "Unggah bukti"
 COPY_TOMBOL_UNGGAH_ULANG = "Unggah ulang bukti"
 COPY_LOKASI = "Kelas berlangsung online lewat Zoom atau Google Meet. Tautan dikirim setelah Anda daftar."
-COPY_ADA_TAGIHAN = "Selesaikan tagihan yang sedang berjalan dulu sebelum mendaftar paket lain."
+COPY_ADA_TAGIHAN = "Tagihan paket ini ada di atas."
 COPY_JUDUL_STATUS = "Status paket"
 COPY_JUDUL_TAGIHAN = "Bayar lewat transfer"
 COPY_REKENING_KOSONG = "Rekening tujuan belum tersedia. Hubungi tim sebelum mentransfer."
@@ -61,16 +64,23 @@ COPY_TAUTAN_KELAS = "Tautan kelas"
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
 COPY_KEMBALI = "Kembali ke pilih paket"
-COPY_JUDUL_GANTI = "Salah pilih paket?"
-COPY_PERINGATAN_GANTI = ("Jangan transfer ke tagihan yang lama. Bila Anda sudah terlanjur mentransfer, hubungi tim lewat "
-                         "WhatsApp sebelum mengganti. Tagihan lama tidak bisa dipakai lagi dan habis sendiri.")
 COPY_TAUTAN_TAGIHAN = "Lanjutkan pembayaran"
+COPY_TAUTAN_HAPUS = "Hapus tagihan"
+COPY_TOMBOL_HAPUS = "Ya, hapus tagihan"
+COPY_BATAL = "Batal"
+COPY_JUDUL_HAPUS = "Hapus tagihan"
+COPY_AKIBAT_HAPUS = ("Jangan transfer ke tagihan ini setelah dihapus. Bila Anda sudah terlanjur mentransfer, hubungi tim "
+                     "lewat WhatsApp dulu sebelum menghapus.")
+COPY_PULIH = "Memilih lagi memulihkan tagihan yang tadi dihapus (sisa waktu bayar: %s)."
+COPY_DIBATALKAN_ISI = "Tagihan ini sudah dihapus. Pilih paket lagi bila masih ingin mendaftar."
+COPY_TOTAL_TRANSFER = "Total transfer:"
 _ACCEPT_BUKTI = "image/jpeg,image/png,application/pdf"
 _LABEL_MODE = {k.MODE_ONLINE: "Belajar online", k.MODE_OFFLINE: "Tatap muka (offline)"}
 _STATUS = {k.STATUS_BELUM_BAYAR: ("kuning", "Menunggu pembayaran"),
            k.STATUS_MENUNGGU: ("kuning", "Menunggu verifikasi"),
            k.STATUS_DITOLAK: ("koral", "Ditolak"),
-           k.STATUS_KEDALUWARSA: ("koral", "Kedaluwarsa")}
+           k.STATUS_KEDALUWARSA: ("koral", "Kedaluwarsa"),
+           k.STATUS_DIBATALKAN: ("koral", COPY_DIBATALKAN)}
 _BOLEH_UNGGAH = (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK)
 
 TokenUntuk = Callable[[str], str]
@@ -139,9 +149,17 @@ def _form_daftar(paket: k.PaketBelajar, token_untuk: TokenUntuk) -> str:
             f'{_tombol(COPY_TOMBOL_DAFTAR)}</form>')
 
 
-def _kartu_paket(kartu: k.KartuPaket, token_untuk: TokenUntuk) -> str:
+def _aksi_paket(kartu: k.KartuPaket, token_untuk: TokenUntuk, dibatalkan_sampai: Optional[str]) -> str:
+    """Tombol Daftar, atau penanda 'ada di atas' bila paket sudah punya tagihan terbuka; catatan pulih bila dibatalkan."""
+    if kartu.ada_tagihan_terbuka:
+        return _p(COPY_ADA_TAGIHAN, "lg-kecil")
+    pulih = _p(COPY_PULIH % waktu_wib(dibatalkan_sampai), "lg-kecil") if dibatalkan_sampai else ""
+    return pulih + _form_daftar(kartu.paket, token_untuk)
+
+
+def _kartu_paket(kartu: k.KartuPaket, token_untuk: TokenUntuk, dibatalkan_sampai: Optional[str] = None) -> str:
     paket = kartu.paket
-    aksi = _p(COPY_ADA_TAGIHAN, "lg-kecil") if kartu.ada_tagihan_terbuka else _form_daftar(paket, token_untuk)
+    aksi = _aksi_paket(kartu, token_untuk, dibatalkan_sampai)
     return (f'<section class="lg-paket"><div class="lg-paket-kepala"><div class="lg-paket-nama">'
             f'<h3>{_e(paket.nama)}</h3>{_ringkas_isi(paket)}</div>'
             f'<p class="lg-harga">{_e(rupiah(paket.harga))}</p></div>'
@@ -194,22 +212,44 @@ def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk) -> str:
     return _kartu(f"<h2>{_e(COPY_JUDUL_PILIH_JADWAL)}</h2>{_p(COPY_PENGANTAR_PILIH_JADWAL, 'lg-kecil')}{daftar}")
 
 
-def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan: Optional[k.TagihanKelas],
-                        token_untuk: TokenUntuk, galat: str = "", kabar: str = "",
-                        jadwal: Optional[dict] = None, pilihan_jadwal: Sequence = (), privat: str = "") -> bytes:
-    """Halaman /murid/paket: status tagihan terakhir (bila ada) + kartu paket dengan rincian khusus pembeli.
+def _boleh_hapus_tagihan(tagihan: k.TagihanKelas, boleh_hapus: bool) -> bool:
+    return boleh_hapus and tagihan.status == k.STATUS_BELUM_BAYAR and not tagihan.jumlah_bukti
 
+
+def _kartu_tagihan(tagihan: k.TagihanKelas, boleh_hapus: bool) -> str:
+    """Kartu satu tagihan terbuka di atas daftar: paket, total transfer, status (teks), batas waktu, dan tautan per kode."""
+    nada, teks = _label_status(tagihan)
+    kode = _e(tagihan.kode_paket)
+    tautan = f'<a href="{RUTE_TAGIHAN}?kode={kode}">{_e(COPY_TAUTAN_TAGIHAN)}</a>'
+    if _boleh_hapus_tagihan(tagihan, boleh_hapus):
+        tautan += f' · <a href="{RUTE_HAPUS}?kode={kode}">{_e(COPY_TAUTAN_HAPUS)}</a>'
+    batas = _baris("Batas waktu", waktu_wib(tagihan.kedaluwarsa)) if tagihan.kedaluwarsa else ""
+    return _kartu(f'<h2>{_e(k.ambil(tagihan.kode_paket).nama)}</h2>{C.lencana(teks, nada)}'
+                  f'<p class="lg-kecil">{_e(COPY_TOTAL_TRANSFER)}</p>'
+                  f'<p class="lg-nominal"><strong>{_e(rupiah(tagihan.total))}</strong></p>{batas}<p>{tautan}</p>')
+
+
+def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan_terbuka: Sequence[k.TagihanKelas],
+                        token_untuk: TokenUntuk, galat: str = "", kabar: str = "",
+                        jadwal: Optional[dict] = None, pilihan_jadwal: Sequence = (), privat: str = "", *,
+                        dibatalkan: Optional[Mapping[str, str]] = None, boleh_hapus: bool = False) -> bytes:
+    """Halaman /murid/paket: SELALU daftar paket; di atasnya satu kartu per tagihan terbuka.
+
+    `tagihan_terbuka` = tagihan belum bayar, menunggu, atau ditolak milik anak (`kelas_store.tagihan_terbuka_semua`).
+    `dibatalkan` = {kode paket: batas waktu WIB} untuk paket yang tagihannya baru dihapus (catatan pulih, tombol tetap ada).
+    `boleh_hapus` = tautan hapus boleh tampil (tabel catatan terpasang dan tirai tidak menahan).
     `jadwal` (bacaan `jadwal_store.jadwal_untuk_murid`) menambah kartu jadwal pertemuan; None = tanpa kartu.
     `pilihan_jadwal` (`jadwal_pilih.pilihan_untuk`) menambah kartu pilih kelompok; kosong = tanpa kartu.
     `privat` (kartu Jadwal Private dari `kelas_private_pages`) menambah kartu di bawahnya; "" = tanpa kartu.
     """
     pesan = ((_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "") + _kartu_jadwal(jadwal)
              + _kartu_pilih_jadwal(pilihan_jadwal, token_untuk) + privat)
-    status = _kartu_status(tagihan) if tagihan is not None else ""
+    kartu_tagihan = "".join(_kartu_tagihan(t, boleh_hapus) for t in tagihan_terbuka)
     sapa = C.maskot_bicara("menunjuk", COPY_SAPA)
     judul = f'<div class="lg-pilih-judul"><h2>Pilih paket</h2>{_p(COPY_PENGANTAR)}</div>'
-    daftar = "".join(_kartu_paket(x, token_untuk) for x in kartu)
-    return _bungkus(pesan + status + sapa + judul + daftar)
+    tanda = dibatalkan or {}
+    daftar = "".join(_kartu_paket(x, token_untuk, tanda.get(x.paket.kode)) for x in kartu)
+    return _bungkus(pesan + kartu_tagihan + sapa + judul + daftar)
 
 
 # --- tagihan ----------------------------------------------------------------------------------
@@ -242,40 +282,47 @@ def _rekening(rekening: str) -> str:
     return f'<div class="lg-rincian">{baris}</div>'
 
 
-def _form_unggah(token: str, ulang: bool) -> str:
-    return (f'<form method="post" action="{RUTE_BUKTI}" enctype="multipart/form-data">'
+def _form_unggah(token: str, ulang: bool, kode_paket: str) -> str:
+    return (f'<form method="post" action="{RUTE_BUKTI}?kode={_e(kode_paket)}" enctype="multipart/form-data">'
             f'<input type="hidden" name="token" value="{_e(token)}">'
             f'<label class="lg-berkas">{_e(COPY_LABEL_BERKAS)}'
             f'<input type="file" name="berkas" accept="{_ACCEPT_BUKTI}" required></label>'
             f'{_tombol(COPY_TOMBOL_UNGGAH_ULANG if ulang else COPY_TOMBOL_UNGGAH)}</form>')
 
 
+def _isi_uang_selesai(status: str) -> str:
+    """Isi uang untuk tagihan yang tidak lagi dibayar: kedaluwarsa atau dibatalkan (teks); aktif tanpa isi."""
+    if status == k.STATUS_KEDALUWARSA:
+        return _p(COPY_KEDALUWARSA)
+    if status == k.STATUS_DIBATALKAN:
+        return _p(COPY_DIBATALKAN_ISI, "lg-kecil")
+    return ""
+
+
 def _isi_uang(tagihan: k.TagihanKelas, rekening: str, token_untuk: TokenUntuk) -> str:
-    if tagihan.status in (k.STATUS_AKTIF, k.STATUS_KEDALUWARSA):
-        return _p(COPY_KEDALUWARSA) if tagihan.status == k.STATUS_KEDALUWARSA else ""
+    if tagihan.status in (k.STATUS_AKTIF, k.STATUS_KEDALUWARSA, k.STATUS_DIBATALKAN):
+        return _isi_uang_selesai(tagihan.status)
     isi = (f'<p class="lg-kecil">{_e(COPY_LABEL_NOMINAL)}</p>'
            f'<p class="lg-nominal"><strong>{_e(rupiah(tagihan.total))}</strong></p>'
            f'<p class="lg-tulis">{_e(COPY_TULIS_TRANSFER)}</p><hr class="lg-pemisah">'
            f'{_rekening(rekening)}'
            f'{_baris("Batas waktu", waktu_wib(tagihan.kedaluwarsa)) if tagihan.kedaluwarsa else ""}')
     if tagihan.status in _BOLEH_UNGGAH:
-        isi += _p(COPY_ATURAN, "lg-kecil") + _form_unggah(token_untuk(AKSI_BUKTI), tagihan.status == k.STATUS_DITOLAK)
+        isi += _p(COPY_ATURAN, "lg-kecil") + _form_unggah(token_untuk(AKSI_BUKTI + tagihan.kode_paket),
+                                                          tagihan.status == k.STATUS_DITOLAK, tagihan.kode_paket)
     return isi
 
 
-def _form_ganti(paket: k.PaketBelajar, token_untuk: TokenUntuk) -> str:
-    return (f'<form method="post" action="{RUTE_GANTI}">'
-            f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_GANTI + paket.kode))}">'
-            f'<input type="hidden" name="kode" value="{_e(paket.kode)}">'
-            f'{_tombol("Ganti ke " + paket.nama)}</form>')
-
-
-def _blok_ganti(tagihan: k.TagihanKelas, token_untuk: TokenUntuk) -> str:
-    """Ganti paket hanya selagi tagihan belum dibayar dan belum ada satu pun bukti (butir QA #3)."""
-    if tagihan.status != k.STATUS_BELUM_BAYAR or tagihan.jumlah_bukti:
-        return ""
-    lain = "".join(_form_ganti(p, token_untuk) for p in k.DAFTAR_PAKET if p.kode != tagihan.kode_paket)
-    return _kartu(f"<h2>{_e(COPY_JUDUL_GANTI)}</h2>{_p(COPY_PERINGATAN_GANTI, 'lg-kecil')}{lain}")
+def halaman_konfirmasi_hapus(tagihan: k.TagihanKelas, paket: k.PaketBelajar, token_untuk: TokenUntuk) -> bytes:
+    """Konfirmasi hapus tagihan belum bayar tanpa bukti: nama paket, total, akibat uang, tombol POST, dan batal kembali."""
+    formulir = (f'<form method="post" action="{RUTE_HAPUS}">'
+                f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_HAPUS + paket.kode))}">'
+                f'<input type="hidden" name="kode" value="{_e(paket.kode)}">'
+                f'{_tombol(COPY_TOMBOL_HAPUS)}</form>')
+    kembali = f'<p class="lg-kembali"><a href="{RUTE_TAGIHAN}?kode={_e(paket.kode)}">{_e(COPY_BATAL)}</a></p>'
+    isi = _kartu(f"<h2>{_e(COPY_JUDUL_HAPUS)} {_e(paket.nama)}?</h2>"
+                 f"{_p(COPY_TOTAL_TRANSFER + ' ' + rupiah(tagihan.total))}{_p(COPY_AKIBAT_HAPUS, 'lg-kecil')}{formulir}")
+    return _bungkus(isi + kembali)
 
 
 def halaman_tagihan(tagihan: k.TagihanKelas, paket: k.PaketBelajar, rekening: str,
@@ -289,7 +336,7 @@ def halaman_tagihan(tagihan: k.TagihanKelas, paket: k.PaketBelajar, rekening: st
     uang = (f'<section class="lg-kartu lg-kertas"><h2>{_e(COPY_JUDUL_TAGIHAN)}</h2>'
             f'{_isi_uang(tagihan, rekening, token_untuk)}</section>')
     kembali = f'<p class="lg-kembali"><a href="{RUTE}">{_e(COPY_KEMBALI)}</a></p>'
-    return _bungkus(pesan + _kartu_status(tagihan) + rincian + uang + _blok_ganti(tagihan, token_untuk) + kembali)
+    return _bungkus(pesan + _kartu_status(tagihan) + rincian + uang + kembali)
 
 
 COPY_LABEL_KARTU_ORTU = "Paket belajar"
@@ -340,7 +387,7 @@ def banner_orang_tua(masa: Sequence[km.MasaPaket], nama_anak: str) -> str:
 def _baris_tagihan(tagihan: km.TagihanBelumBayar, nama_anak: str) -> str:
     anak = _e(nama_anak or "anak")
     paket = _e(tagihan.nama)
-    tautan = f'<a href="{RUTE}">{_e(COPY_TAUTAN_TAGIHAN)}</a>'
+    tautan = f'<a href="{RUTE_TAGIHAN}?kode={_e(tagihan.kode_paket)}">{_e(COPY_TAUTAN_TAGIHAN)}</a>'
     if tagihan.status == k.STATUS_DITOLAK:
         return f'{C.lencana("Bukti belum sesuai", "koral")} Tagihan {paket} {anak} belum dibayar: bukti ditolak. {tautan}'
     return f'{C.lencana("Belum dibayar", "kuning")} Tagihan {paket} {anak} belum dibayar. {tautan}'

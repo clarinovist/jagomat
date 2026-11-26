@@ -13,7 +13,11 @@ TIRAI = "tirai_aksi.py"
 KASUS = (
     ("post_tanpa_gerbang_tirai", MURID, [
         ("    if _tirai_tertutup(penangan, *pembeli):  # PIN terpasang dan tirai tertutup: tanpa efek", "    if False:"),
-    ], "test_pin_terpasang_basic_tidak_bisa_daftar_paket_dan_tanpa_efek or test_ganti_jadwal_dan_bukti_juga_ditahan_saat_tirai_tertutup"),
+    ], "test_pin_terpasang_basic_tidak_bisa_daftar_paket_dan_tanpa_efek or test_hapus_jadwal_dan_bukti_juga_ditahan_saat_tirai_tertutup"),
+    ("hapus_dikecualikan_dari_tirai", MURID, [
+        ("    if _tirai_tertutup(penangan, *pembeli):  # PIN terpasang dan tirai tertutup: tanpa efek",
+         "    if _tirai_tertutup(penangan, *pembeli) and jalur != halaman.RUTE_HAPUS:  # PIN terpasang dan tirai tertutup: tanpa efek"),
+    ], "test_hapus_jadwal_dan_bukti_juga_ditahan_saat_tirai_tertutup or test_hapus_tagihan_ditahan_tirai_dan_tanpa_tombol_saat_tertutup"),
     ("pin_tak_terbaca_dianggap_terbuka", TIRAI, [
         ("    except sqlite3.Error:\n        return True\n    token = penangan._ambil_token()", "    except sqlite3.Error:\n        return False\n    token = penangan._ambil_token()"),
     ], "test_pin_tidak_terbaca_gagal_tertutup"),
@@ -30,7 +34,7 @@ KASUS = (
         ("            if not pin_store.ada_pin(kon, siswa_id):\n                return False\n", "            pass\n"),
     ], "test_tanpa_pin_tindakan_berjalan_seperti_biasa"),
     ("kabar_terkunci_tidak_muncul_dan_pilihan_tetap", MURID, [
-        ("    if _tirai_tertutup(penangan, principal, siswa_id):\n        kabar =", "    if False:\n        kabar ="),
+        ("    if tertutup:\n        kabar =", "    if False:\n        kabar ="),
     ], "test_halaman_paket_memberi_kabar_terkunci_dan_menyembunyikan_pilihan_jadwal"),
 )
 

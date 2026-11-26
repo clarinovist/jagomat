@@ -45,7 +45,7 @@ COPY_GALAT_ALASAN = ("Alasan penolakan wajib diisi (1 sampai %d karakter, tanpa 
                      "Tidak ada yang diubah." % BATAS_ALASAN)
 COPY_STATUS = {k.STATUS_AKTIF: "Disetujui", k.STATUS_MENUNGGU: "Menunggu verifikasi",
                k.STATUS_DITOLAK: "Ditolak (menunggu unggah ulang)", k.STATUS_KEDALUWARSA: "Kedaluwarsa",
-               k.STATUS_BELUM_BAYAR: "Menunggu pembayaran"}
+               k.STATUS_BELUM_BAYAR: "Menunggu pembayaran", k.STATUS_DIBATALKAN: "Dibatalkan oleh orang tua"}
 MAKS_ANGKA_ID_BUKTI = 18
 _ID_BUKTI = re.compile(r"[0-9]{1,%d}" % MAKS_ANGKA_ID_BUKTI)
 _LABEL_MIME = {"image/jpeg": "JPEG", "image/png": "PNG", "application/pdf": "PDF"}

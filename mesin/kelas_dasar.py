@@ -33,6 +33,9 @@ STATUS_AKTIF = katalog.STATUS_AKTIF
 STATUS_KEDALUWARSA = katalog.STATUS_KEDALUWARSA
 STATUS_DITOLAK = katalog.STATUS_DITOLAK
 STATUS_TERBUKA = (STATUS_BELUM_BAYAR, STATUS_MENUNGGU, STATUS_DITOLAK)
+# Dibatalkan pembeli selama jendela bayar belum lewat. SENGAJA di luar STATUS_TERBUKA: tagihan batal tidak dihitung belum
+# bayar, tidak diingatkan, tidak masuk antrean, dan tidak menerima bukti atau putusan.
+STATUS_DIBATALKAN = katalog.STATUS_DIBATALKAN
 
 _POLA_ORDER = re.compile(r"kor_[0-9a-f]{32}")
 

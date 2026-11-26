@@ -1,18 +1,21 @@
-"""Catat bukti ke tagihan terbuka terbaru, dipilih di dalam transaksi (butir QA #3, 25 Nov 2026; data sintetis, tingkat domain)."""
+"""Catat bukti ke tagihan terbuka per (akun, anak, paket) lewat `kelas_store.catat_bukti` (butir QA #3; data sintetis, domain).
+
+Tagihan dipilih dari kode paket di dalam transaksi tulis. Akun lain, anak lain, dan paket tanpa tagihan terbuka identik
+(KelasKonflik tanpa tulis). Kasus dua tagihan berdampingan ada di `test_kelas_unggah_order.py`.
+"""
 import pytest
 
 import kelas_dasar as k
-import kelas_ganti as G
 import kelas_kit as kk
-import kelas_unggah as U
+import kelas_store as store
 from kelas_kit import db_kelas, kon_kelas  # noqa: F401
 
 AKUN = kk.AKUN_A
 SESUDAH = "2026-11-20T10:00:00"
 
 
-def _catat(kon, n=1, siswa=1, akun=AKUN, sekarang=SESUDAH):
-    return U.catat_bukti_terbaru(kon, akun, siswa, kk.MIME, kk.UKURAN, kk.sha(n), kk.berkas(n), sekarang)
+def _catat(kon, n=1, siswa=1, akun=AKUN, paket="mini", sekarang=SESUDAH):
+    return store.catat_bukti(kon, akun, siswa, paket, kk.MIME, kk.UKURAN, kk.sha(n), kk.berkas(n), sekarang)
 
 
 def _bukti(kon):
@@ -24,13 +27,6 @@ def test_bukti_masuk_ke_tagihan_terbuka_dan_status_menunggu(kon_kelas):
     hasil = _catat(kon_kelas)
     assert hasil["baru"] is True and hasil["status"] == k.STATUS_MENUNGGU
     assert _bukti(kon_kelas) == [(tagihan.order_id,)]
-
-
-def test_setelah_ganti_paket_bukti_masuk_ke_tagihan_terbaru_bukan_yang_lama(kon_kelas):
-    kk.tagih(kon_kelas, paket="mini")
-    baru = G.ganti_paket(kon_kelas, AKUN, 1, "private", SESUDAH, acak=kk.pilih_pertama)
-    _catat(kon_kelas)
-    assert _bukti(kon_kelas) == [(baru.order_id,)]
 
 
 def test_tanpa_tagihan_terbuka_atau_milik_akun_lain_konflik_tanpa_tulis(kon_kelas):
@@ -76,5 +72,5 @@ def test_batas_bukti_tercapai_melempar_batas_bukti(kon_kelas):
 def test_metadata_tidak_sah_ditolak_sebelum_db(kon_kelas):
     kk.tagih(kon_kelas, paket="mini")
     with pytest.raises(Exception):
-        U.catat_bukti_terbaru(kon_kelas, AKUN, 1, "text/html", kk.UKURAN, kk.sha(1), kk.berkas(1), SESUDAH)
+        store.catat_bukti(kon_kelas, AKUN, 1, "mini", "text/html", kk.UKURAN, kk.sha(1), kk.berkas(1), SESUDAH)
     assert _bukti(kon_kelas) == []

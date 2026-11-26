@@ -187,10 +187,9 @@ def test_banner_tagihan_kosong_dan_escape():
     assert "<script>" not in isi and "&lt;script&gt;" in isi and "Mini &lt;b&gt;" in isi
 
 
-def test_banner_hanya_tagihan_terbaru_setelah_ganti_paket(kon_kelas):
-    import kelas_ganti
-    from kelas_kit import pilih_pertama, tagih
+def test_dua_tagihan_belum_dibayar_terbaca_keduanya(kon_kelas):
+    from kelas_kit import tagih
     tagih(kon_kelas, paket="mini")
-    kelas_ganti.ganti_paket(kon_kelas, AKUN_A, 1, "private", SESUDAH_UPLOAD, acak=pilih_pertama)
-    (item,) = masa.tagihan_belum_dibayar(kon_kelas, AKUN_A, 1, SESUDAH_UPLOAD)
-    assert item.kode_paket == "private"
+    tagih(kon_kelas, paket="private")
+    daftar = masa.tagihan_belum_dibayar(kon_kelas, AKUN_A, 1, KINI)
+    assert {(t.kode_paket, t.status) for t in daftar} == {("mini", "belum_bayar"), ("private", "belum_bayar")}
