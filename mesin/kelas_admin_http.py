@@ -26,6 +26,7 @@ import admin_pesanan_aksi as aksi
 import admin_pesanan_pages as daftar_ui
 import admin_security
 import admin_store
+import admin_kode_anak_http as kode_anak
 import admin_verifikasi_http as bukti_umum
 import bukti_berkas
 import kelas_admin_pages as ui
@@ -171,6 +172,7 @@ def _get_detail(penangan, principal) -> None:
                                               ("sesi_batal", jadwal_http.AKSI_SESI_BATAL, {"order_id": order_id}))}
             isi += jadwal_ui.blok_penempatan({"paket": detail["kode_paket"]}, ringkas, kelompok, guru,
                                              detail["status"] == dasar.STATUS_AKTIF, tokens)
+    isi += kode_anak.blok_html(penangan, principal, order_id)
     _kirim(penangan, principal, isi)
 
 

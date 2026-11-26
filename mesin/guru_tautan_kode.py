@@ -89,6 +89,14 @@ def cabut(akun_id: str, siswa_id: int, *, kode_id_diharapkan: int, oleh: str, pe
                      oleh=oleh, peran=peran, pada=pada, path=path)
 
 
+def cabut_semua(akun_id: str, siswa_id: int, *, oleh: str, peran: str, pada: str, path=None) -> int:
+    """Cabut kode aktif anak tanpa `kode_id` dan tanpa cek anak (aksi admin "cabut semua kode anak ini").
+
+    Idempoten: 1 bila ada kode yang dicabut, 0 bila tidak ada (tanpa galat dan tanpa berkas baru).
+    """
+    return dasar.cabut_semua(akun_id=akun_id, siswa_id=siswa_id, oleh=oleh, peran=peran, pada=pada, path=path)
+
+
 def kode_aktif(akun_id: str, siswa_id: int, *, path=None) -> Optional[Dict[str, object]]:
     """{"id", "dibuat", "peran"} kode aktif anak, atau None. Tanpa kode mentah, hash, dan id akun pembuat."""
     aktif = dasar.kode_aktif(akun_id, siswa_id, path=path)

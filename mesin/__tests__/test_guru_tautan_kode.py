@@ -223,3 +223,31 @@ def test_kode_aktif_hanya_memuat_id_waktu_dan_peran(berkas, anak_hilang):
 def test_kode_aktif_tanpa_berkas_mengembalikan_none_dan_tidak_membuat_berkas(berkas, anak_hilang):
     assert kode.kode_aktif(AKUN_ANAK_A, SIBLING_A) is None
     assert not berkas.exists()
+
+
+def test_cabut_semua_mencabut_kode_aktif_lalu_kedua_kali_mengembalikan_nol(berkas, anak_hilang):
+    kode.buat_kode_baru(AKUN_ANAK_A, SIBLING_A, pada=KINI, **PEMBUAT_ORANG_TUA)
+
+    pertama = kode.cabut_semua(AKUN_ANAK_A, SIBLING_A, oleh=AKUN_ANAK_A, peran=aturan.PERAN_ORANG_TUA, pada=SESUDAH)
+    kedua = kode.cabut_semua(AKUN_ANAK_A, SIBLING_A, oleh=AKUN_ANAK_A, peran=aturan.PERAN_ORANG_TUA, pada=SESUDAH)
+
+    assert (pertama, kedua) == (1, 0)
+    assert kode.kode_aktif(AKUN_ANAK_A, SIBLING_A) is None
+    assert baris_tabel(berkas, "kode_cabut") == 1
+
+
+def test_cabut_semua_tanpa_kode_aktif_mengembalikan_nol_dan_tidak_membuat_berkas(berkas, anak_hilang):
+    hasil = kode.cabut_semua(AKUN_ANAK_A, SIBLING_A, oleh=AKUN_ANAK_A, peran=aturan.PERAN_ORANG_TUA, pada=SESUDAH)
+
+    assert hasil == 0
+    assert not berkas.exists()
+
+
+def test_cabut_semua_tetap_bisa_saat_anak_sudah_tidak_ada(berkas, anak_hilang):
+    kode.buat_kode_baru(AKUN_ANAK_A, SIBLING_A, pada=KINI, **PEMBUAT_ORANG_TUA)
+    anak_hilang.add((AKUN_ANAK_A, SIBLING_A))
+
+    hasil = kode.cabut_semua(AKUN_ANAK_A, SIBLING_A, oleh=AKUN_ANAK_A, peran=aturan.PERAN_ORANG_TUA, pada=SESUDAH)
+
+    assert hasil == 1
+    assert kode.kode_aktif(AKUN_ANAK_A, SIBLING_A) is None

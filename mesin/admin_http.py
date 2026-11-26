@@ -1166,6 +1166,7 @@ def _tangani_post_admin(penangan, jalur):
     import kelas_admin_http
     import jadwal_admin_http
     import jadwal_private_admin_http
+    import admin_kode_anak_http
     if harian_langganan_admin_http.tangani_post(penangan, jalur):
         return True
     if kelas_admin_http.tangani_post(penangan, jalur):
@@ -1173,6 +1174,8 @@ def _tangani_post_admin(penangan, jalur):
     if jadwal_admin_http.tangani_post(penangan, jalur):
         return True
     if jadwal_private_admin_http.tangani_post(penangan, jalur):
+        return True
+    if admin_kode_anak_http.tangani_post(penangan, jalur):
         return True
     if admin_kurikulum_cp_http.tangani_post(penangan, jalur):
         return True
