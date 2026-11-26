@@ -298,7 +298,9 @@ def halaman_info(judul: str, teks: str) -> bytes:
 def _bungkus(isi: str) -> bytes:
     badan = f'<div class="lg-isi"><h1 id="{ID_JUDUL}">{_e(COPY_JUDUL)}</h1>{isi}</div>'
     css = GAYA_CERIA + harian_langganan_style.GAYA_LANGGANAN_HARIAN
-    return pesanan_murid_pages.halaman_murid(COPY_JUDUL, ID_JUDUL, badan, "/murid", "Beranda", css_tambahan=css)
+    return pesanan_murid_pages.halaman_murid(
+        COPY_JUDUL, ID_JUDUL, badan, pesanan_murid_pages.TUJUAN_ORANG_TUA, pesanan_murid_pages.LABEL_ORANG_TUA,
+        css_tambahan=css)
 
 
 # --- halaman orang tua: banner dan kartu enam keadaan -----------------------------------------

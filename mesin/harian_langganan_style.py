@@ -9,6 +9,7 @@ from __future__ import annotations
 import design_tokens as T
 
 _UKURAN_KISI = "16px"
+_UKURAN_KET = ".95rem"  # naik dari .875rem (UKURAN_TEKS_LABEL); tidak ada token global yang pas
 _MIRING_TULISAN = "-1.5deg"
 
 GAYA_LANGGANAN_HARIAN = f"""
@@ -21,7 +22,7 @@ GAYA_LANGGANAN_HARIAN = f"""
 .lg-kartu > * {{ margin: 0; }}
 .lg-kartu h2 {{ font: 800 {T.UKURAN_BAGIAN_STITCH}/1.25 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
 .lg-kartu p {{ line-height: 1.5; }}
-.lg-kecil {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
+.lg-kecil {{ font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.TEKS_VARIAN}; }}
 .lg-pilih-judul {{ display: flex; flex-direction: column; gap: {T.SP_3}; }}
 .lg-pilih-judul > * {{ margin: 0; }}
 .lg-pilih-judul h2 {{ font: 800 {T.UKURAN_BAGIAN_STITCH}/1.25 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
@@ -34,9 +35,9 @@ GAYA_LANGGANAN_HARIAN = f"""
 .lg-paket-nama {{ display: flex; flex-direction: column; gap: {T.SP_1}; min-width: 0; }}
 .lg-paket-nama > * {{ margin: 0; }}
 .lg-paket-nama h3 {{ font: 800 {T.UKURAN_BAGIAN_STITCH}/1.2 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
-.lg-ket {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_VARIAN}; }}
+.lg-ket {{ font-size: {_UKURAN_KET}; color: {T.TEKS_VARIAN}; }}
 .lg-hemat {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_TERSIMPAN}; }}
-.lg-harga {{ margin: 0; white-space: nowrap; font: 800 {T.UKURAN_BAGIAN_STITCH}/1.2 {T.FONT_HEADLINE}; font-variant-numeric: tabular-nums;
+.lg-harga {{ margin: 0; white-space: nowrap; font: 800 {T.UKURAN_ANGKA_DEWASA}/1.2 {T.FONT_HEADLINE}; font-variant-numeric: tabular-nums;
   color: {T.TEKS_JUDUL}; }}
 .lg-paket form, .lg-kartu form {{ display: flex; flex-direction: column; gap: {T.SP_3}; margin: 0; }}
 .lg-isi button.ceria-tombol {{ width: 100%; border: 0; cursor: pointer; font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 800; line-height: 1.3;

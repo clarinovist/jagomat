@@ -123,13 +123,15 @@ def _form_unggah(token: str, ulang: bool, rute: Rute) -> str:
         f'{_tombol(COPY_TOMBOL_UNGGAH_ULANG if ulang else COPY_TOMBOL_UNGGAH)}</form>')
 
 
-def _rincian(tampilan, rekening) -> str:
+def _rincian(tampilan, rekening, rute: Rute = RUTE_GURU) -> str:
     nominal = rupiah(tampilan.nominal)
+    # Penekanan nominal hanya untuk murid (CSS-nya hanya dimuat di shell murid); markup guru tidak berubah.
+    sorot = "" if rute is RUTE_GURU else ' class="pesanan-nominal"'
     return (
         f"<p>Bank: <strong>{_e(rekening.nama_bank)}</strong></p>"
         f"<p>Nomor rekening: <strong>{_e(rekening.nomor_label)}</strong></p>"
         f"<p>Atas nama: <strong>{_e(rekening.atas_nama)}</strong></p>"
-        f'<p class="funnel-catatan-st">Nominal yang harus Anda transfer: <strong>{_e(nominal)}</strong>. '
+        f'<p class="funnel-catatan-st">Nominal yang harus Anda transfer: <strong{sorot}>{_e(nominal)}</strong>. '
         "Nominal harus persis sama sampai tiga digit terakhir; jangan dibulatkan.</p>"
         f"<p>Batas waktu: <strong>{_e(waktu_wib(tampilan.kedaluwarsa))}</strong></p>"
     )
@@ -149,7 +151,7 @@ def _isi_dengan_tagihan(tampilan, rekening, token_untuk, rute: Rute) -> str:
         isi += f'<p class="funnel-catatan-st">{_e(COPY_DITOLAK)} <strong>{_e(tampilan.alasan_tolak)}</strong></p>'
     if tampilan.status == STATUS_MENUNGGU_VERIFIKASI:
         isi += _catatan(COPY_MENUNGGU)
-    isi += _rincian(tampilan, rekening)
+    isi += _rincian(tampilan, rekening, rute)
     if tampilan.status != STATUS_MENUNGGU_VERIFIKASI:
         isi += _catatan(COPY_ATURAN)
     return isi + _aksi_unggah(tampilan, token_untuk, rute)

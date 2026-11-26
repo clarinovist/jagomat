@@ -7,6 +7,7 @@ kartu "Pesan" untuk anak yang belum punya pesanan. Tidak ada kontak orang tua di
 from __future__ import annotations
 
 import brand
+import design_tokens as T
 from account_style import GAYA_AKUN
 from cek_pages import _a, _e
 from murid_shell import PANAH_KEMBALI, aksi_topbar, bungkus_murid, kepala_murid, topbar_murid
@@ -15,6 +16,14 @@ from style_stitch import gaya_stitch
 KELAS_UTAMA = "pendamping-editorial-st akun-editorial-st akun-sempit-st funnel-halaman-st"
 COPY_JUDUL_PESAN = "Pesan Peta Kemampuan"
 COPY_TOMBOL_PESAN = "Pesan Peta Kemampuan"
+# Tautan kembali topbar murid untuk Paket, Latihan Harian, dan Peta (dimasuki dari Halaman Ayah/Bunda).
+# TUJUAN sama dengan `orang_tua_style.RUTE`, LABEL sama dengan `orang_tua_pages.COPY_JUDUL` (dijaga tes).
+TUJUAN_ORANG_TUA = "/murid/orang-tua"
+LABEL_ORANG_TUA = "Halaman Ayah/Bunda"
+# Penekanan nominal bayar Peta: hanya dimuat di shell murid (kelas `pesanan-nominal` tidak ada di halaman guru).
+GAYA_PESANAN_MURID = f"""
+.pesanan-nominal {{ font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+"""
 
 
 def halaman_murid(judul: str, id_judul: str, isi: str, beranda: str, label_beranda: str,
@@ -33,11 +42,22 @@ def halaman_murid(judul: str, id_judul: str, isi: str, beranda: str, label_beran
 <body class="st">{bungkus_murid(topbar + utama)}</body></html>""".encode()
 
 
-def kartu_pesan(rute_pesan: str, token: str, harga: str) -> str:
-    """Kartu pertama kali memesan: harga dari domain + satu tombol POST bertoken."""
+def harga_tebal(kalimat: str, nominal: str) -> str:
+    """Kalimat harga ter-escape dengan `nominal` (sudah diformat, mis. `Rp49.000`) dibungkus `pesanan-nominal`.
+
+    Teks yang tampak tetap sama. Tanpa `nominal`, atau bila tidak ditemukan dalam kalimat, hasilnya kalimat biasa.
+    """
+    teks, sorot = _e(kalimat), _e(nominal)
+    if not sorot or sorot not in teks:
+        return teks
+    return teks.replace(sorot, f'<strong class="pesanan-nominal">{sorot}</strong>', 1)
+
+
+def kartu_pesan(rute_pesan: str, token: str, harga: str, nominal: str = "") -> str:
+    """Kartu pertama kali memesan: harga dari domain (nominal ditebalkan bila diberikan) + satu tombol POST bertoken."""
     return (
         '<div class="kartu-st">'
-        f"<h2>{_e(COPY_JUDUL_PESAN)}</h2><p>{_e(harga)}</p>"
+        f"<h2>{_e(COPY_JUDUL_PESAN)}</h2><p>{harga_tebal(harga, nominal)}</p>"
         f'<form method="post" action="{_a(rute_pesan)}">'
         f'<input type="hidden" name="token" value="{_a(token)}">'
         '<p class="akun-aksi-sandi">'

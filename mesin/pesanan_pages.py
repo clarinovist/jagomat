@@ -20,11 +20,11 @@ from funnel_pages import COPY_HARGA
 from peta_hero import hero_peta
 from playful_style import GAYA_CERIA
 from pesanan_dasar import (
-    STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_DITOLAK, STATUS_KEDALUWARSA,
+    RUPIAH_PAKET, STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_DITOLAK, STATUS_KEDALUWARSA,
     STATUS_MENUNGGU_VERIFIKASI, STATUS_PERLU_DIPERIKSA, STATUS_SUDAH_DIBAYAR,
 )
 from pesanan_permukaan import RUTE_GURU, Rute, rute_untuk_peran
-from pesanan_transfer_pages import COPY_JUDUL_QRIS, COPY_PETUNJUK_QRIS, COPY_STATUS_PILIH
+from pesanan_transfer_pages import COPY_JUDUL_QRIS, COPY_PETUNJUK_QRIS, COPY_STATUS_PILIH, rupiah
 from pesanan_voucher_pages import kartu_voucher
 
 RUTE_STATUS = "/pesanan"
@@ -130,13 +130,27 @@ def _kepala_ident(ident, nama_anak: str = "") -> str:
 
 
 def _bungkus_ident(ident, isi: str, css_tambahan: str = "") -> bytes:
-    """Guru: bingkai pengelola lama; murid: shell murid (isi kartu sama); `css_tambahan` hanya untuk shell murid."""
+    """Guru: bingkai pengelola lama; murid: shell murid dengan tautan kembali ke Halaman Ayah/Bunda.
+
+    `css_tambahan` hanya untuk shell murid; gaya penekanan nominal selalu ikut di shell murid.
+    """
     if not _murid(ident):
         return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
     import pesanan_murid_pages
-    rute = _rute(ident)
     return pesanan_murid_pages.halaman_murid(
-        COPY_JUDUL, ID_JUDUL, isi, rute.beranda, rute.label_beranda, css_tambahan)
+        COPY_JUDUL, ID_JUDUL, isi, pesanan_murid_pages.TUJUAN_ORANG_TUA, pesanan_murid_pages.LABEL_ORANG_TUA,
+        css_tambahan + pesanan_murid_pages.GAYA_PESANAN_MURID)
+
+
+def _nominal_murid(ident) -> str:
+    """Nominal paket yang ditebalkan di halaman murid; kosong untuk guru (markup guru tetap)."""
+    return rupiah(RUPIAH_PAKET) if _murid(ident) else ""
+
+
+def _kalimat_harga(ident) -> str:
+    """Kalimat harga paket; nominal ditebalkan hanya di shell murid."""
+    import pesanan_murid_pages
+    return pesanan_murid_pages.harga_tebal(COPY_HARGA, _nominal_murid(ident))
 
 
 def _kartu(isi: str) -> str:
@@ -230,7 +244,7 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
         _kepala_ident(ident, tampilan["nama_anak"])
         + (hero_peta() if ramai else "")
         + _kartu(f"{maskot}<h2>{_e(judul)}</h2><p>{_e(kalimat)}</p>"
-                 f'<p class="funnel-catatan-st">{_e(COPY_HARGA)}</p>')
+                 f'<p class="funnel-catatan-st">{_kalimat_harga(ident)}</p>')
     )
     isi += transfer
     if tampilan["qr"]:
@@ -250,7 +264,7 @@ def halaman_belum_memesan(ident, token: str) -> bytes:
     rute = _rute(ident)
     isi = (
         _kepala_ident(ident)
-        + pesanan_murid_pages.kartu_pesan(rute.pesan, token, COPY_HARGA)
+        + pesanan_murid_pages.kartu_pesan(rute.pesan, token, COPY_HARGA, _nominal_murid(ident))
         + _catatan_refund()
     )
     return _bungkus_ident(ident, isi)
