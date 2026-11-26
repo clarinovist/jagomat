@@ -489,3 +489,81 @@ def test_detail_kelas_sesi_memuat_id_kunci_dan_jumlah_anggota(db, contoh):
     assert sesi1["kunci"] == aturan.kunci_pertemuan(contoh["kid_a"], 1)
     assert sesi1["anggota_n"] == 1
     assert detail["anggota"] == [{"siswa_id": 1, "akses_habis": False}]
+
+
+# --- T1-T4 (celah tes Fase 1): pertemuan berikut, batas mulai, dan pembatalan -------------------
+
+KINI_SETELAH_SESI_TERAKHIR = "2026-12-22T00:00:00"  # ke-8 Mini Alfa (15 Des) sudah lewat
+KE_PRIVAT_MENDATANG = list(range(2, 9))  # Private A: ke-1 (23 Nov 16.30 WIB) lampau pada kini = ke-1 + 1 jam
+
+
+def _mendatang(db, guru, kini):
+    with _ro(db) as kon:
+        return gb.pertemuan_mendatang(kon, guru, kini)
+
+
+def _ke_mini(hasil) -> list:
+    return sorted(p["ke"] for p in hasil if p["jenis"] == "kelompok")
+
+
+def _ke_privat(hasil) -> list:
+    return sorted(p["ke"] for p in hasil if p["jenis"] == "privat")
+
+
+# T1: `mulai` pertemuan berikut (daftar_kelas) hanya dari pertemuan aktif, mendatang, dan paling awal.
+
+def test_pertemuan_berikut_lewati_yang_lampau_dan_dibatalkan(db, contoh):
+    # Arrange: ke-1 lampau; ke-2 masih mendatang tetapi dibatalkan; ke-3 mendatang dan aktif.
+    with js.buka(db, tulis_data=True) as kon:
+        ke2 = _sesi_kelompok(kon, contoh["kid_a"], 2)
+        js.batalkan_pertemuan(kon, ADMIN, ke2["id"], batal=True, sekarang=kelas_kit.KINI)
+        kon.commit()
+    # Act
+    with _ro(db) as kon:
+        ke1, ke2_batal, ke3 = [_sesi_kelompok(kon, contoh["kid_a"], ke) for ke in (1, 2, 3)]
+        daftar = gb.daftar_kelas(kon, GURU_A, KINI_SESI_PERTAMA_LEWAT)
+    # Assert
+    assert ke1["mulai"] < KINI_SESI_PERTAMA_LEWAT <= ke2_batal["mulai"]  # kondisi uji
+    assert ke2_batal["dibatalkan"] == 1
+    assert daftar[0]["berikut"] == ke3["mulai"]
+
+
+def test_pertemuan_berikut_kosong_bila_semua_pertemuan_sudah_lampau(db, contoh):
+    with _ro(db) as kon:
+        ke8 = _sesi_kelompok(kon, contoh["kid_a"], 8)
+        daftar = gb.daftar_kelas(kon, GURU_A, KINI_SETELAH_SESI_TERAKHIR)
+    assert ke8["mulai"] < KINI_SETELAH_SESI_TERAKHIR  # kondisi uji
+    assert [kelas["berikut"] for kelas in daftar] == [None]
+
+
+# T3: pertemuan Private yang sudah lampau tidak masuk `pertemuan_mendatang` (Mini sudah diuji di tes B2).
+
+def test_pertemuan_privat_lampau_tidak_masuk_mendatang(db, contoh):
+    with _ro(db) as kon:
+        ke1 = _sesi_privat(kon, contoh["ord_a"], 1)
+    kini = _tambah(ke1["mulai"], hours=1)
+    with _ro(db) as kon:
+        status = ks.status_dari(ks.baris_order(kon, contoh["ord_a"]), ks.fakta_order(kon, contoh["ord_a"]), kini)
+    mendatang = _mendatang(db, GURU_A, kini)
+    assert status == kelas_dasar.STATUS_AKTIF  # kondisi uji: order memang aktif
+    assert _ke_privat(mendatang) == KE_PRIVAT_MENDATANG
+
+
+# T4: batas `mulai >= kini`: tepat sama ikut; satu detik sebelum kini tidak ikut.
+
+def test_pertemuan_mini_mulai_tepat_pada_kini_ikut_dan_satu_detik_lewat_tidak(db, contoh):
+    with _ro(db) as kon:
+        ke2 = _sesi_kelompok(kon, contoh["kid_a"], 2)
+    tepat = _ke_mini(_mendatang(db, GURU_A, ke2["mulai"]))
+    satu_detik_lewat = _ke_mini(_mendatang(db, GURU_A, _tambah(ke2["mulai"], seconds=1)))
+    assert 2 in tepat
+    assert 2 not in satu_detik_lewat
+
+
+def test_pertemuan_privat_mulai_tepat_pada_kini_ikut_dan_satu_detik_lewat_tidak(db, contoh):
+    with _ro(db) as kon:
+        ke2 = _sesi_privat(kon, contoh["ord_a"], 2)
+    tepat = _ke_privat(_mendatang(db, GURU_A, ke2["mulai"]))
+    satu_detik_lewat = _ke_privat(_mendatang(db, GURU_A, _tambah(ke2["mulai"], seconds=1)))
+    assert 2 in tepat
+    assert 2 not in satu_detik_lewat

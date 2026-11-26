@@ -27,6 +27,7 @@ import schema_tagihan_catatan
 from cek_http_kit import AKUN_A, AKUN_ADMIN, AKUN_B, AKUN_MURID, id_akun, server, tambah_anak  # noqa: F401
 from harian_kit import jam  # noqa: F401
 from kelas_http_kit import pasang_skema
+from pesanan_transfer_pages import waktu_wib
 
 ADMIN = "admin_sintetis"
 LOKASI_MEET = "https://meet.google.com/abc-defg-hij"
@@ -35,6 +36,13 @@ TIDAK_ADA = "/guru/tidak-ada"
 KELAS_TIDAK_ADA = "/guru/kelas/klp_" + "0" * 32
 KELAS_CACAT = "/guru/kelas/bukan-id"
 PERLU_MASUK = "perlu masuk"
+JUMLAH_PERTEMUAN = 8  # sesi per kelompok (jadwal_pertemuan ke 1..8)
+NAMA_KELOMPOK_KOSONG = "Mini Kosong Sintetis"
+LABEL_DIBATALKAN = " · " + halaman.COPY_DIBATALKAN
+POLA_HREF_KELAS = re.compile(r'href="/guru/kelas/(klp_[0-9a-f]{32})"')
+POLA_BARIS_KELAS = re.compile(r'<li><strong>([^<]*)</strong><p class="jadwal-meta-st">([^<]*)</p>')
+POLA_SESI_DETAIL = re.compile(r"<li>Pertemuan (\d+) · ([^<]*)")
+POLA_BARIS_JADWAL = re.compile(r'<strong>([^<]*)</strong><p class="jadwal-meta-st">Pertemuan (\d+) · ([^<]*)')
 
 
 def _tempatkan_mini(kon, kelompok_id, siswa, n):
@@ -129,13 +137,21 @@ def test_guru_pemilik_melihat_jadwal_dan_kelas_sendiri(server, jadwal):
 
 
 def test_halaman_guru_tidak_membocorkan_id_mentah(server, jadwal):
-    for jalur in ("/guru/jadwal", "/guru/kelas", "/guru/kelas/" + jadwal["kid_a"]):
+    kelas_diharapkan = {
+        "/guru/jadwal": {jadwal["kid_a"]},
+        "/guru/kelas": {jadwal["kid_a"]},
+        "/guru/kelas/" + jadwal["kid_a"]: set(),
+    }
+    for jalur, diharapkan in kelas_diharapkan.items():
         kode, isi, _ = server.minta(jalur, auth=AKUN_A)
         assert kode == 200, jalur
         assert "kor_" not in isi and "akun_" not in isi, jalur
         assert "siswa_id" not in isi and "order_id" not in isi, jalur
-        tautan = re.findall(r'href="/guru/kelas/klp_[0-9a-f]{32}"', isi)
-        assert isi.count("klp_") == len(tautan), jalur
+        hrefs = POLA_HREF_KELAS.findall(isi)
+        assert isi.count("klp_") == len(hrefs), jalur
+        assert set(hrefs) == diharapkan, jalur
+        if diharapkan:
+            assert hrefs, jalur
 
 
 # --- H2: guru lain mendapat 404 identik ---------------------------------------------------
@@ -553,3 +569,87 @@ def test_render_detail_sesi_tanpa_aksi_tanpa_tautan():
     assert isi.count(RUTE_PERTEMUAN) == 1
     assert 'href="/guru/pertemuan/91">Ubah catatan</a>' in isi
     assert "Sudah dicatat" in isi and "Belum dicatat" not in isi
+
+
+# --- T1, T2, T5 (celah tes Fase 1): pertemuan berikut, label Dibatalkan, dan latihan.db baca-saja ----
+
+def _batalkan_admin(pertemuan_id: int) -> None:
+    with js.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        js.batalkan_pertemuan(kon, ADMIN, pertemuan_id, batal=True, sekarang=kelas_kit.KINI)
+        kon.commit()
+
+
+def _buat_kelompok_tanpa_mendatang() -> str:
+    """Kelompok Mini milik guru A dengan semua pertemuannya dibatalkan: tidak ada pertemuan berikut."""
+    with js.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        kid = js.buat_kelompok(kon, ADMIN, nama=NAMA_KELOMPOK_KOSONG, lokasi=LOKASI_MEET,
+                               guru_id=id_akun(AKUN_A), kuota=5, tanggal="2026-11-21", jam="09:00",
+                               sekarang=kelas_kit.KINI)
+        for sesi in js.detail_kelompok(kon, kid)["sesi"]:
+            js.batalkan_pertemuan(kon, ADMIN, sesi["id"], batal=True, sekarang=kelas_kit.KINI)
+        kon.commit()
+    return kid
+
+
+def _meta_kelas(isi: str) -> dict:
+    """Teks meta tiap kelompok di `/guru/kelas`, dikunci nama kelompok (satu baris per kelompok)."""
+    return dict(POLA_BARIS_KELAS.findall(isi))
+
+
+# T1: pertemuan berikut di `/guru/kelas` (daftar_kelas) memakai pertemuan aktif paling awal, atau copy kosong.
+
+def test_kelas_saya_memuat_pertemuan_berikut_yang_aktif_paling_awal(server, jadwal):
+    ke2 = _sesi_kelompok(jadwal["kid_a"], 2)
+    ke3 = _sesi_kelompok(jadwal["kid_a"], 3)
+    _batalkan_admin(ke2["id"])
+    kode, isi, _ = server.minta("/guru/kelas", auth=AKUN_A)
+    assert kode == 200
+    assert f"Pertemuan berikut: {waktu_wib(ke3['mulai'])}" in _meta_kelas(isi)["Mini Alfa"]
+
+
+def test_kelas_saya_tanpa_pertemuan_mendatang_memuat_copy_kosong(server, jadwal):
+    _buat_kelompok_tanpa_mendatang()
+    kode, isi, _ = server.minta("/guru/kelas", auth=AKUN_A)
+    assert kode == 200
+    meta = _meta_kelas(isi)
+    assert halaman.COPY_TIDAK_ADA_BERIKUT in meta[NAMA_KELOMPOK_KOSONG]
+    assert "Pertemuan berikut" not in meta[NAMA_KELOMPOK_KOSONG]
+    assert "Pertemuan berikut" in meta["Mini Alfa"]
+
+
+# T2: label "Dibatalkan" hanya pada pertemuan yang dibatalkan, di detail kelas dan di Jadwal saya.
+
+def test_detail_kelas_beri_label_dibatalkan_hanya_pada_sesi_yang_batal(server, jadwal):
+    _batalkan_admin(_sesi_kelompok(jadwal["kid_a"], 2)["id"])
+    _batalkan_admin(_sesi_kelompok(jadwal["kid_a"], 5)["id"])
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    baris = POLA_SESI_DETAIL.findall(isi)
+    assert len(baris) == JUMLAH_PERTEMUAN
+    assert {int(ke) for ke, teks in baris if LABEL_DIBATALKAN in teks} == {2, 5}
+    assert isi.count(LABEL_DIBATALKAN) == 2
+
+
+def test_jadwal_saya_beri_label_dibatalkan_untuk_mini_dan_privat_yang_batal(server, jadwal):
+    _batalkan_admin(_sesi_kelompok(jadwal["kid_a"], 2)["id"])
+    _batalkan_admin(_sesi_privat(jadwal["ord_beta"], 3)["id"])
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    mendatang = _bagian_mendatang(isi)
+    batal = {(judul, int(ke)) for judul, ke, sisa in POLA_BARIS_JADWAL.findall(mendatang) if LABEL_DIBATALKAN in sisa}
+    assert batal == {("Mini Class: Mini Alfa", 2), ("Private: Anak Sintetis Beta", 3)}
+    assert mendatang.count(LABEL_DIBATALKAN) == 2
+
+
+# T5: latihan.db dibuka mode ro. Berkas yang belum ada tidak boleh terbuat; nama anak jadi placeholder.
+
+def test_latihan_belum_ada_tidak_dibuat_dan_nama_anak_jadi_placeholder(server, jadwal, monkeypatch, tmp_path):
+    hilang = tmp_path / "latihan-tidak-ada.db"
+    monkeypatch.setattr(database, "BAWAAN", hilang)
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+    assert kode == 200
+    assert "Private: Anak" in isi and "Anak Sintetis Beta" not in isi
+    kode, isi, _ = server.minta("/guru/kelas/" + jadwal["kid_a"], auth=AKUN_A)
+    assert kode == 200
+    assert "<li>Anak</li>" in isi and "Anak Sintetis Alfa" not in isi
+    assert not list(tmp_path.glob("latihan-tidak-ada.db*"))
