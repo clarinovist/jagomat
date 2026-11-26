@@ -46,9 +46,9 @@ FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 _POLA_WAKTU = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}")
 
 # Gerbang fitur kode anak (syarat rilis L6). MATI = ketiga permukaan (guru, orang tua, admin) tidak ada: 404
-# identik, tanpa efek, tanpa membuat `guru-tautan.db`. Hanya dinyalakan di commit rilis, SETELAH backup
-# `guru-tautan.db` dan tool backup HOST terpasang. Tes menyalakannya lewat monkeypatch atau fixture.
-KODE_ANAK_AKTIF = False
+# identik, tanpa efek, tanpa membuat `guru-tautan.db`. DINYALAKAN di commit rilis ini, setelah tool backup HOST
+# memuat `guru-tautan.db` (`guru_tautan_bentuk.py`). Tes yang butuh keadaan mati mematikannya lewat monkeypatch.
+KODE_ANAK_AKTIF = True
 
 
 # --- kode -------------------------------------------------------------------------------

@@ -19,8 +19,10 @@ TOPIK_SINTETIS = "campuran"
 LABEL_TOPIK_LAINNYA = "Topik lain"
 JEDA_TERLAMBAT = timedelta(hours=24)
 JENDELA_KOREKSI = timedelta(days=7)
-# None = butir antrean "lewat tanpa jurnal" mati. Diisi di commit rilis; tes mengubahnya lewat monkeypatch.
-PERTEMUAN_WAJIB_SEJAK = None
+# None = butir antrean "lewat tanpa jurnal" mati. Diisi di commit rilis: 28 Nov 2026 00.00 WIB (= 27 Nov 17.00 UTC),
+# supaya pertemuan sebelum guru bisa mengisi jurnal tidak ditagih. Geser ke saat deploy bila deploy lebih lambat.
+# Tes mengubahnya lewat monkeypatch.
+PERTEMUAN_WAJIB_SEJAK = "2026-11-27T17:00:00"
 PERTEMUAN_KE_MIN = 1
 PERTEMUAN_KE_MAKS = 8
 MENIT_MIN = 1

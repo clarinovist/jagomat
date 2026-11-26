@@ -104,9 +104,11 @@ def _post_guru(server, kelompok_id: str, token: str):
                         data={"kode": KODE, "token": token})
 
 
-def test_gerbang_bawaan_mati_dan_dibaca_saat_panggilan():
-    """Berkas ini tidak masuk daftar penyala, jadi default kode harus tetap mati di sini."""
-    assert aturan.KODE_ANAK_AKTIF is False
+def test_gerbang_bawaan_menyala_di_kode_rilis_dan_dibaca_saat_panggilan(monkeypatch):
+    """Commit rilis menyalakan gerbang; `kode_anak_aktif()` membaca konstanta saat panggilan, bukan saat impor."""
+    assert aturan.KODE_ANAK_AKTIF is True
+    assert aturan.kode_anak_aktif() is True
+    monkeypatch.setattr(aturan, "KODE_ANAK_AKTIF", False)
     assert aturan.kode_anak_aktif() is False
 
 
