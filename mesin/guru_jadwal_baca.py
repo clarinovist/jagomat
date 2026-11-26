@@ -9,11 +9,27 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Optional, Set
 
+import guru_pertemuan_aturan as aturan
 import jadwal_dasar as jd
 import kelas_dasar as dasar
 import kelas_status as ks
 
 PLACEHOLDER_NAMA = "Anak"
+PERTEMUAN_ID_MIN = 1
+PERTEMUAN_ID_MAKS = 2 ** 63 - 1  # batas INTEGER SQLite; id di luar rentang langsung None
+# Penempatan satu kelompok atau satu order Private, dengan masa akses terakhir per order (MAX, LEFT JOIN).
+_SQL_ANGGOTA_KELOMPOK = (
+    "SELECT p.order_id, o.siswa_id, p.dibuat, MAX(a.berakhir) AS berakhir "
+    "FROM jadwal_penempatan p JOIN kelas_order o ON o.id=p.order_id "
+    "LEFT JOIN kelas_akses a ON a.order_id=p.order_id "
+    "WHERE p.kelompok_id=? GROUP BY p.order_id, o.siswa_id, p.dibuat ORDER BY p.order_id"
+)
+_SQL_ANGGOTA_ORDER = (
+    "SELECT p.order_id, o.siswa_id, p.dibuat, MAX(a.berakhir) AS berakhir "
+    "FROM jadwal_penempatan p JOIN kelas_order o ON o.id=p.order_id "
+    "LEFT JOIN kelas_akses a ON a.order_id=p.order_id "
+    "WHERE p.order_id=? AND p.kelompok_id IS NULL GROUP BY p.order_id, o.siswa_id, p.dibuat"
+)
 
 
 def _id_kelompok_sah(kelompok_id) -> bool:
@@ -146,3 +162,56 @@ def nama_siswa(kon, ids) -> Dict[int, str]:
     ditemukan = {int(siswa_id): nama for siswa_id, nama in
                  kon.execute("SELECT id, nama FROM siswa WHERE id IN (%s)" % tanda, unik).fetchall()}
     return {siswa_id: ditemukan.get(siswa_id, PLACEHOLDER_NAMA) for siswa_id in unik}
+
+
+def _anggota_pertemuan(kon, baris: List, mulai: str, waktu: str) -> List[dict]:
+    """Anggota pertemuan: order aktif pada `waktu` dan penempatannya sudah ada pada `mulai` (R4)."""
+    aktif = _order_aktif_ids(kon, (b["order_id"] for b in baris), waktu)
+    return [{"order_id": b["order_id"], "siswa_id": b["siswa_id"], "akses_habis": _akses_habis(b["berakhir"], waktu)}
+            for b in baris if b["order_id"] in aktif and aturan.anggota_masuk_form(b["dibuat"], mulai)]
+
+
+def _dict_pertemuan_milik(jenis: str, baris, id_awal: str, nama_kelompok: Optional[str], anggota: List[dict]) -> dict:
+    return {"id": int(baris["id"]), "jenis": jenis, "id_awal": id_awal, "ke": int(baris["ke"]),
+            "mulai": baris["mulai"], "menit": int(baris["menit"]), "dibatalkan": bool(baris["dibatalkan"]),
+            "nama_kelompok": nama_kelompok, "anggota": anggota}
+
+
+def _pertemuan_mini_milik(kon, guru_id: str, pertemuan_id: int, waktu: str) -> Optional[dict]:
+    baris = kon.execute(
+        "SELECT s.id, s.ke, s.mulai, s.menit, s.dibatalkan, k.id AS kelompok_id, k.nama AS nama_kelompok "
+        "FROM jadwal_pertemuan s JOIN jadwal_kelompok k ON k.id=s.kelompok_id "
+        "WHERE s.id=? AND k.guru_id=?", (pertemuan_id, guru_id)).fetchone()
+    if baris is None:
+        return None
+    penempatan = kon.execute(_SQL_ANGGOTA_KELOMPOK, (baris["kelompok_id"],)).fetchall()
+    anggota = _anggota_pertemuan(kon, penempatan, baris["mulai"], waktu)
+    return _dict_pertemuan_milik("kelompok", baris, baris["kelompok_id"], baris["nama_kelompok"], anggota)
+
+
+def _pertemuan_privat_milik(kon, guru_id: str, pertemuan_id: int, waktu: str) -> Optional[dict]:
+    baris = kon.execute(
+        "SELECT s.id, s.ke, s.mulai, s.menit, s.dibatalkan, s.order_id "
+        "FROM jadwal_pertemuan s JOIN jadwal_penempatan p ON p.order_id=s.order_id "
+        "WHERE s.id=? AND p.guru_id=? AND p.kelompok_id IS NULL", (pertemuan_id, guru_id)).fetchone()
+    if baris is None:
+        return None
+    penempatan = kon.execute(_SQL_ANGGOTA_ORDER, (baris["order_id"],)).fetchall()
+    anggota = _anggota_pertemuan(kon, penempatan, baris["mulai"], waktu)
+    return _dict_pertemuan_milik("privat", baris, baris["order_id"], None, anggota)
+
+
+def pertemuan_milik(kon, guru_id: str, pertemuan_id, kini) -> Optional[dict]:
+    """Pertemuan Mini atau Private milik guru, atau None. Id cacat, tak ada, dan milik guru lain sama hasilnya.
+
+    Kepemilikan di SQL: Mini lewat `jadwal_kelompok.guru_id`, Private lewat `jadwal_penempatan.guru_id`. Hanya SELECT.
+    `anggota`: list `{"order_id", "siswa_id", "akses_habis"}` urut order_id. order_id dan siswa_id hanya untuk pemakaian
+    internal pemanggil dan tidak boleh dirender.
+    """
+    if type(pertemuan_id) is not int or not PERTEMUAN_ID_MIN <= pertemuan_id <= PERTEMUAN_ID_MAKS:
+        return None
+    waktu = dasar.ke_baku(kini)
+    milik = _pertemuan_mini_milik(kon, guru_id, pertemuan_id, waktu)
+    if milik is not None:
+        return milik
+    return _pertemuan_privat_milik(kon, guru_id, pertemuan_id, waktu)

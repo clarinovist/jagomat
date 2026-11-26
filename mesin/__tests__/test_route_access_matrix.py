@@ -87,6 +87,7 @@ _PROBE_GET = {
     "/guru/jadwal": "/guru/jadwal",
     "/guru/kelas": "/guru/kelas",
     "/guru/kelas/": "/guru/kelas/klp_" + "0" * 32,
+    "/guru/pertemuan/": "/guru/pertemuan/1",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
     "/lembar/": "/lembar/1",
@@ -151,6 +152,7 @@ _PROBE_POST = {
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
     "/akun/kontak": "/akun/kontak",
+    "/guru/pertemuan/": "/guru/pertemuan/1",
     "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
     "/cek-kemampuan/tautan": "/cek-kemampuan/tautan",
     "/paket-coba/pesan": "/paket-coba/pesan",
@@ -181,7 +183,7 @@ _HARAPAN_ANONIM_POST = {
 RUTE_PERMUKAAN_GURU = (
     "/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1",
     "/cek-kemampuan/mulai", "/cek-kemampuan/hasil", "/pesanan", "/pesanan/qr", "/paket-coba/pesan",
-    "/guru/jadwal", "/guru/kelas", "/guru/kelas/klp_" + "0" * 32,
+    "/guru/jadwal", "/guru/kelas", "/guru/kelas/klp_" + "0" * 32, "/guru/pertemuan/1",
 )
 
 
