@@ -661,6 +661,23 @@ finally:
 '''
 PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_HARGA_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
 
+# Catatan tagihan (tagihan_*: batal/pulih) opt-in di admin-control.db; namespace TERPISAH dari kelas_*, jadwal_*, dan harga_*.
+# Tabel belum ada = lulus (preflight sebelum migrasi); bila ada, seluruh objek wajib persis DDL source image dan `kelas_*`
+# wajib sah (schema_tagihan_catatan.validasi mengecek keduanya). Probe hanya membaca (mode=ro, query_only).
+PROBE_TAGIHAN_SKEMA = '''
+from pathlib import Path
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    ada = kon.execute("SELECT count(*) FROM sqlite_master WHERE tbl_name GLOB 'tagihan_*'").fetchone()[0]
+    if ada and Path('/app/schema_tagihan_catatan.py').is_file():
+        import schema_tagihan_catatan
+        assert schema_tagihan_catatan.validasi(kon), 'schema_tagihan_parsial'
+finally:
+    kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_TAGIHAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+
 # Pesanan v1 + transfer_* + purna_* + rekening_* adalah migrasi opt-in yang eksplisit: probe image
 # (container synthetic tanpa data nyata) memastikan keempatnya idempoten. Impor diberi
 # penjaga agar image lama yang belum membawa modulnya tetap dapat diprobe.
@@ -733,6 +750,18 @@ if schema_harga is not None:
         schema_harga.migrasikan(Path('/data/admin-control.db'))
     with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
         assert schema_harga.validasi(kon)
+        assert not kon.execute('PRAGMA foreign_key_check').fetchone()
+try:
+    import schema_tagihan_catatan
+except ImportError:
+    schema_tagihan_catatan = None
+if schema_tagihan_catatan is not None and schema_kelas is not None:
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert not schema_tagihan_catatan.validasi(kon)
+    for _ in range(2):
+        schema_tagihan_catatan.migrasikan(Path('/data/admin-control.db'))
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert schema_tagihan_catatan.validasi(kon)
         assert not kon.execute('PRAGMA foreign_key_check').fetchone()
 try:
     import pesanan_rekening

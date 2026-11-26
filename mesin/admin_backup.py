@@ -75,6 +75,7 @@ class RingkasanBackup:
     skema_kelas: bool = False
     skema_jadwal: bool = False
     skema_harga: bool = False
+    skema_tagihan: bool = False
 
 
 def _sha256(path: Path) -> str:
@@ -366,6 +367,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
     skema_kelas = False
     skema_jadwal = False
     skema_harga = False
+    skema_tagihan = False
     if versi_admin in (VERSI_TARGET['admin'], 8, 9):
         import admin_store
         import support_settings
@@ -383,6 +385,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 skema_kelas = admin_backup_pesanan.deteksi_kelas(kon)
                 skema_jadwal = admin_backup_pesanan.deteksi_jadwal(kon)
                 skema_harga = admin_backup_pesanan.deteksi_harga(kon)
+                skema_tagihan = admin_backup_pesanan.deteksi_tagihan(kon)
                 if versi_admin == 9:
                     import assistant_quota_store
                     assistant_quota_store.validasi_sumber(kon)
@@ -424,7 +427,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         or bool(foto_pending or foto_unknown) or bool(registrasi_pending),
         kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
         skema_registrasi, registrasi_pending, skema_dukungan, skema_sensor, skema_policy,
-        skema_pesanan_transfer, skema_kelas, skema_jadwal, skema_harga,
+        skema_pesanan_transfer, skema_kelas, skema_jadwal, skema_harga, skema_tagihan,
     )
 
 
@@ -630,14 +633,15 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                      target_dukungan=None, target_sensor=None, target_policy=None,
                      target_pesanan=None, target_transfer=None,
                      target_rekening=None, target_purna=None,
-                     target_kelas=None, target_jadwal=None, target_harga=None) -> RingkasanBackup:
+                     target_kelas=None, target_jadwal=None, target_harga=None,
+                     target_tagihan=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
     versi8/9 atau menaikkan legacy ke7; target9 eksplisit menguji8→9. ``target_pesanan``/
-    ``target_transfer``/``target_rekening``/``target_purna``/``target_kelas``/``target_jadwal``/``target_harga`` opt-in skema pesanan v1,
+    ``target_transfer``/``target_rekening``/``target_purna``/``target_kelas``/``target_jadwal``/``target_harga``/``target_tagihan`` opt-in skema pesanan v1,
     ``transfer_*`` (menyeret pesanan), ``rekening_*``, ``purna_*`` (menyeret pesanan + transfer), ``kelas_*`` (menyeret
-    pesanan), ``jadwal_*`` (menyeret kelas + pesanan), dan ``harga_*`` (berdiri sendiri, tanpa kunci asing) hanya pada turunan; None mempertahankan, menurun ditolak. Bukan izin
+    pesanan), ``jadwal_*`` (menyeret kelas + pesanan), ``harga_*`` (berdiri sendiri, tanpa kunci asing), dan ``tagihan_*`` (menyeret kelas + pesanan) hanya pada turunan; None mempertahankan, menurun ditolak. Bukan izin
     migrasi backup induk, downgrade, aktivasi entitlement, atau provider.
     ``target_foto=True`` memasang receipt hanya pada turunan; None mempertahankan
     schema induk. ``target_registrasi=True`` juga opt-in hanya turunan. Receipt,
@@ -686,6 +690,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     import admin_backup_pesanan
     if target_jadwal is True and target_kelas is None:
         target_kelas = True
+    if target_tagihan is True and target_kelas is None:
+        target_kelas = True
     if target_kelas is True and target_pesanan is None:
         target_pesanan = True
     try:
@@ -706,6 +712,12 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         raise BackupTidakSah('target rehearsal jadwal tidak sah')
     if target_jadwal and not target_kelas:
         raise BackupTidakSah('target rehearsal jadwal memerlukan kelas')
+    if target_tagihan is None:
+        target_tagihan = sebelum.skema_tagihan
+    if type(target_tagihan) is not bool or (sebelum.skema_tagihan and not target_tagihan):
+        raise BackupTidakSah('target rehearsal tagihan tidak sah')
+    if target_tagihan and not target_kelas:
+        raise BackupTidakSah('target rehearsal tagihan memerlukan kelas')
     if target_harga is None:
         target_harga = sebelum.skema_harga
     if type(target_harga) is not bool or (sebelum.skema_harga and not target_harga):
@@ -764,6 +776,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                 admin_backup_pesanan.migrasikan_jadwal(turunan / BERKAS_WAJIB['admin'])
             if target_harga:
                 admin_backup_pesanan.migrasikan_harga(turunan / BERKAS_WAJIB['admin'])
+            if target_tagihan:
+                admin_backup_pesanan.migrasikan_tagihan(turunan / BERKAS_WAJIB['admin'])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"]) 
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
@@ -808,6 +822,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                 raise BackupTidakSah('state jadwal berubah selama rehearsal')
             if admin_backup_pesanan.deteksi_harga(kon) != target_harga:
                 raise BackupTidakSah('state harga berubah selama rehearsal')
+            if admin_backup_pesanan.deteksi_tagihan(kon) != target_tagihan:
+                raise BackupTidakSah('state tagihan berubah selama rehearsal')
             if target_admin == 9:
                 import assistant_quota_store
                 assistant_quota_store.validasi_sumber(kon)
@@ -845,5 +861,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown,
         target_registrasi, sebelum.operasi_registrasi_profil_pending,
         target_dukungan, target_sensor, target_policy, target_pesanan_transfer,
-        target_kelas, target_jadwal, target_harga,
+        target_kelas, target_jadwal, target_harga, target_tagihan,
     )

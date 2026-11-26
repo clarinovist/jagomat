@@ -114,6 +114,16 @@ def test_kontrak_candidate_memasukkan_modul_rekening():
     assert "pesanan_rekening.py" in deploy.PROBE_KONTRAK
 
 
+def test_kontrak_candidate_memasukkan_schema_tagihan_lewat_glob(tmp_path):
+    """schema_tagihan_catatan.py masuk sidik lewat glob 'schema' (tanpa nama eksplisit): mengubah isinya mengubah sidik."""
+    for berkas in (AKAR / "mesin").glob("*.py"):
+        (tmp_path / berkas.name).write_bytes(berkas.read_bytes())
+    asli = _fingerprint(tmp_path)
+    sumber = tmp_path / "schema_tagihan_catatan.py"
+    sumber.write_text(sumber.read_text(encoding="utf-8") + "\n_PENANDA_KONTRAK = 1\n", encoding="utf-8")
+    assert _fingerprint(tmp_path) != asli
+
+
 def test_pin_soft_launch_migrasi_memerlukan_pair_exact_tanpa_auto_deploy():
     """Recovery soft launch menjadi anchor migrasi; pair exact tetap wajib."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')

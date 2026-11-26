@@ -40,6 +40,8 @@ from release_jadwal_pair import (SUMBER_TULIS as JADWAL_TULIS,
     SUMBER_BACA as JADWAL_BACA, SUMBER_KEMBALI as JADWAL_KEMBALI)
 from release_harga_pair import (SUMBER_TULIS as HARGA_TULIS,
     SUMBER_BACA as HARGA_BACA, SUMBER_KEMBALI as HARGA_KEMBALI)
+from release_tagihan_pair import (SUMBER_TULIS as TAGIHAN_TULIS,
+    SUMBER_BACA as TAGIHAN_BACA, SUMBER_KEMBALI as TAGIHAN_KEMBALI)
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
@@ -58,7 +60,7 @@ for _nama in (
     "release_package_pair", "release_quota_pair", "release_registration_pair",
     "release_support_pair", "release_policy_pair", "release_sensor_pair",
     "release_question_pair", "release_admin_launch_pair",
-    "release_kelas_pair", "release_jadwal_pair", "release_harga_pair",
+    "release_kelas_pair", "release_jadwal_pair", "release_harga_pair", "release_tagihan_pair",
 ):
     _validasi_pair(sys.modules[_nama], nama=_nama)
 
@@ -277,6 +279,9 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             (32, candidate_image, HARGA_TULIS, 'OSN_HARGA_WRITER_OK'),
             (33, recovery_image, HARGA_BACA, 'OSN_HARGA_RECOVERY_OK'),
             (34, candidate_image, HARGA_KEMBALI, 'OSN_HARGA_RETURN_OK'),
+            (35, candidate_image, TAGIHAN_TULIS, 'OSN_TAGIHAN_WRITER_OK'),
+            (36, recovery_image, TAGIHAN_BACA, 'OSN_TAGIHAN_RECOVERY_OK'),
+            (37, candidate_image, TAGIHAN_KEMBALI, 'OSN_TAGIHAN_RETURN_OK'),
         ):
             if _jalankan(image, volume, sumber, token, nomor) != marker:
                 raise GalatVerifikasi('probe_paket_kuota_gagal')
@@ -293,7 +298,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'package_pair_checks': 8, 'quota_pair_checks': 8,
             'photo_pair_checks': 8, 'registration_pair_checks': 8,
             'support_pair_checks': 8, 'sensor_pair_checks': 8, 'policy_pair_checks': 6,
-            'question_pair_checks': 8, 'kelas_pair_checks': 8, 'jadwal_pair_checks': 8, 'harga_pair_checks': 8, 'provider_calls': 0}
+            'question_pair_checks': 8, 'kelas_pair_checks': 8, 'jadwal_pair_checks': 8, 'harga_pair_checks': 8, 'tagihan_pair_checks': 8, 'provider_calls': 0}
 
 
 def main(argv=None):

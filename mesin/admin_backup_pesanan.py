@@ -1,4 +1,4 @@
-"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, `kelas_*`, `jadwal_*`, dan `harga_*` pada validator/rehearsal backup.
+"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, `kelas_*`, `jadwal_*`, `harga_*`, dan `tagihan_*` pada validator/rehearsal backup.
 
 Urutan tetap (pesanan, transfer, rekening, purna, kelas, jadwal): transfer bergantung pada ledger pesanan, purna
 bergantung pada pesanan dan transfer, kelas bergantung pada ledger pesanan (dan memakai purna saat lunas),
@@ -95,3 +95,15 @@ def migrasikan_harga(path) -> None:
     """Pasang skema `harga_*` (idempoten) pada salinan temp; tidak mensyaratkan ledger lain."""
     import schema_harga
     schema_harga.migrasikan(path)
+
+
+def deteksi_tagihan(kon) -> bool:
+    """Tabel `tagihan_catatan` terpasang dan sah (True), absen (False), parsial/berbeda/tanpa kelas -> ValueError."""
+    import schema_tagihan_catatan
+    return schema_tagihan_catatan.validasi(kon)
+
+
+def migrasikan_tagihan(path) -> None:
+    """Pasang `tagihan_catatan` (idempoten) pada salinan temp; mensyaratkan `kelas_*` sudah terpasang."""
+    import schema_tagihan_catatan
+    schema_tagihan_catatan.migrasikan(path)

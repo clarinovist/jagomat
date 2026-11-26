@@ -389,3 +389,4 @@ retensi, batas umur, alert SSH gagal) semuanya tertangkap.
    terpisah, kehilangan Mac berarti seluruh backup R2 tidak bisa dibuka. Retensi per domain dan bukti penghapusan tetap perlu dioperasionalkan.
 
 - `harga_*` (harga admin): opt-in `skema_harga` pada validasi bundle dan `target_harga` pada rehearsal (berdiri sendiri; tidak boleh turun; parsial ditolak).
+- `tagihan_*` (catatan batal/pulih Paket Belajar): opt-in `skema_tagihan` pada validasi bundle dan `target_tagihan` pada rehearsal; berdiri di atas `kelas_*` (menyeret kelas dan pesanan); tidak boleh turun; parsial ditolak.
