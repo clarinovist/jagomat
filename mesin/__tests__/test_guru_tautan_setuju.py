@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import threading
 from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
@@ -260,6 +261,64 @@ def test_putusan_dengan_tempat_menolak_tempatkan_yang_bukan_fungsi(tautan_saja):
     assert _ledger(path) == []
 
 
+TUNGGU_KUNCI_DETIK = 0.2
+BATAS_THREAD_DETIK = 5.0
+
+
+def _jalankan_di_thread(sasaran) -> BaseException | None:
+    """Jalankan `sasaran` di thread lain dan tunggu selesai. Mengembalikan galat yang dilempar, atau None.
+
+    Galat ditangkap di dalam thread supaya tidak lolos sebagai peringatan thread (`-W error` menjadikannya galat).
+    """
+    hasil: list = []
+
+    def jalan() -> None:
+        try:
+            sasaran()
+        except BaseException as galat:
+            hasil.append(galat)
+        else:
+            hasil.append(None)
+
+    thread = threading.Thread(target=jalan)
+    thread.start()
+    thread.join(BATAS_THREAD_DETIK)
+    assert not thread.is_alive(), "thread tidak selesai; kemungkinan menggantung"
+    return hasil[0]
+
+
+def _pastikan_kalah_oleh_kunci(galat: BaseException | None) -> None:
+    """Tolak serentak harus gagal sebagai GalatTautan yang disebabkan kunci tulis (BEGIN IMMEDIATE tertahan)."""
+    assert type(galat) is tautan.GalatTautan, "tolak serentak harus GalatTautan, bukan %r" % (galat,)
+    assert isinstance(galat.__cause__, sqlite3.OperationalError), "galat tolak bukan karena kunci SQLite"
+
+
+def test_tolak_serentak_di_dalam_tempatkan_kalah_oleh_kunci_dan_setuju_tetap_tunggal(tautan_saja, monkeypatch):
+    path, permintaan = tautan_saja
+    monkeypatch.setattr(tautan, "TIMEOUT_DETIK", TUNGGU_KUNCI_DETIK)
+    dipanggil: list = []
+    ledger_di_dalam: list = []
+
+    def tolak_dari_thread() -> None:
+        tautan.putusan(permintaan_id=permintaan, akun_id=MURID, siswa_id=SISWA, hasil=aturan.HASIL_TOLAK,
+                       oleh=MURID, pada=SESUDAH, path=path)
+
+    def tempatkan() -> None:
+        dipanggil.append(True)
+        _pastikan_kalah_oleh_kunci(_jalankan_di_thread(tolak_dari_thread))
+        ledger_di_dalam.append(_ledger(path))
+
+    _panggil_dengan_tempat(path, permintaan, tempatkan)
+
+    assert dipanggil == [True]
+    assert ledger_di_dalam == [[]]
+    assert _ledger(path) == [(permintaan, aturan.HASIL_SETUJU, MURID)]
+    with pytest.raises(tautan.PutusanTakBisa):
+        tautan.putusan(permintaan_id=permintaan, akun_id=MURID, siswa_id=SISWA, hasil=aturan.HASIL_TOLAK,
+                       oleh=MURID, pada=SESUDAH, path=path)
+    assert _ledger(path) == [(permintaan, aturan.HASIL_SETUJU, MURID)]
+
+
 # --- setujui_permintaan: jalur normal dan aturan tertutup -------------------------------
 
 def test_setujui_menempatkan_anak_dan_mencatat_putusan_oleh_anak(tmp_path):
@@ -388,6 +447,35 @@ def test_dua_persetujuan_beruntun_hanya_satu_penempatan_dan_satu_putusan(tmp_pat
 def test_tolak_sesudah_setuju_ditolak_dan_putusan_tidak_berubah(tmp_path):
     k = _siapkan(tmp_path)
     _setujui(k)
+    with pytest.raises(tempat.GagalPutusan) as galat:
+        tempat.tolak_permintaan(permintaan_id=k.permintaan_id, akun_id=k.murid_id, siswa_id=k.siswa_id,
+                                oleh=k.murid_id, pada=SESUDAH, path_tautan=k.tautan)
+    assert _alasan(galat) == tempat.ALASAN_PERMINTAAN_TAK_BISA
+    assert _ledger(k.tautan) == [(k.permintaan_id, "setuju", k.murid_id)]
+
+
+def test_setujui_tolak_serentak_di_tengah_penempatan_kalah_oleh_kunci_dan_setuju_tetap_tunggal(tmp_path,
+                                                                                               monkeypatch):
+    k = _siapkan(tmp_path)
+    monkeypatch.setattr(tautan, "TIMEOUT_DETIK", TUNGGU_KUNCI_DETIK)
+    pilih_asli = jp.pilih_kelompok
+    dipanggil: list = []
+
+    def tolak_dari_thread() -> None:
+        tautan.putusan(permintaan_id=k.permintaan_id, akun_id=k.murid_id, siswa_id=k.siswa_id,
+                       hasil=aturan.HASIL_TOLAK, oleh=k.murid_id, pada=SESUDAH, path=k.tautan)
+
+    def pilih_dengan_tolak_serentak(kon, *args, **kwargs) -> None:
+        dipanggil.append(True)
+        _pastikan_kalah_oleh_kunci(_jalankan_di_thread(tolak_dari_thread))
+        pilih_asli(kon, *args, **kwargs)
+
+    monkeypatch.setattr(jp, "pilih_kelompok", pilih_dengan_tolak_serentak)
+    _setujui(k)
+
+    assert dipanggil == [True]
+    assert _ledger(k.tautan) == [(k.permintaan_id, "setuju", k.murid_id)]
+    assert _penempatan(k) == [k.kelompok_id]
     with pytest.raises(tempat.GagalPutusan) as galat:
         tempat.tolak_permintaan(permintaan_id=k.permintaan_id, akun_id=k.murid_id, siswa_id=k.siswa_id,
                                 oleh=k.murid_id, pada=SESUDAH, path_tautan=k.tautan)
