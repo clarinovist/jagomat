@@ -537,6 +537,7 @@ def tangani_get(penangan, jalur):
     import kelas_admin_http
     import jadwal_admin_http
     import jadwal_private_admin_http
+    import admin_jurnal_http
     if admin_kurikulum_merdeka_http.tangani_get(penangan, jalur):
         return True
     if admin_pembayaran_http.tangani_get(penangan, jalur):
@@ -548,6 +549,8 @@ def tangani_get(penangan, jalur):
     if jadwal_admin_http.tangani_get(penangan, jalur):
         return True
     if jadwal_private_admin_http.tangani_get(penangan, jalur):
+        return True
+    if admin_jurnal_http.tangani_get(penangan, jalur):
         return True
     if admin_kurikulum_http.tangani_get(penangan, jalur):
         return True

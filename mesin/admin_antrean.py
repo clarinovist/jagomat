@@ -9,6 +9,7 @@ import admin_queries as Q
 import admin_store
 import admin_antrean_bayar
 import admin_antrean_guru
+import admin_antrean_jurnal
 import admin_antrean_private
 import admin_transfer_menunggu
 import admin_verifikasi_pages
@@ -137,6 +138,20 @@ def _item_pengajuan_private(path_admin, sekarang: float) -> Tuple[ItemAntrean, .
         return ()
     return (ItemAntrean("tinjau", "%d pengajuan jadwal Private menunggu" % jumlah, KALIMAT_PRIVATE,
                         JALUR_PRIVATE, "Lihat jadwal"),)
+
+
+JALUR_JURNAL = "/admin/jadwal/jurnal"
+KALIMAT_JURNAL = ("Guru belum mencatat kehadiran dan jurnal untuk pertemuan yang sudah lewat. "
+                  "Guru masih bisa mengisinya sampai 7 hari setelah pertemuan.")
+
+
+def _item_jurnal(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
+    """Satu butir tinjau bila ada pertemuan lewat tanpa jurnal (aturan R6); tanpa nama anak, guru, atau order."""
+    jumlah = admin_antrean_jurnal.jumlah(path_admin, sekarang)
+    if not jumlah:
+        return ()
+    return (ItemAntrean("tinjau", "%d pertemuan lewat tanpa jurnal" % jumlah, KALIMAT_JURNAL,
+                        JALUR_JURNAL, "Lihat daftar"),)
 
 
 def _item_peta_belum_terbit(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
@@ -285,13 +300,14 @@ def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> Antrea
     guru_baru = _item_guru_baru()
     peta_belum = _item_peta_belum_terbit(path_admin, sekarang)
     lain = item_pengguna(konteks)
-    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + belum_bayar + belum_tempat + peta_belum + guru_baru + privat + lain)
+    jurnal = _item_jurnal(path_admin, sekarang)
+    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + belum_bayar + belum_tempat + peta_belum + guru_baru + privat + lain + jurnal)
     menunggu_semua = len(transfer) + len(harian) + len(kelas)
     mendesak = total_operasi + menunggu_semua
     penting = sum(1 for i in backup + tunggakan + belum_tempat + peta_belum + lain if i.tingkat == "penting")
     return AntreanAdmin(
         item=semua[:BATAS_BARIS],
-        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(belum_bayar) + len(belum_tempat) + len(peta_belum) + len(guru_baru) + len(privat) + len(lain),
+        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(belum_bayar) + len(belum_tempat) + len(peta_belum) + len(guru_baru) + len(privat) + len(lain) + len(jurnal),
         mendesak=mendesak,
         layanan_tersedia=tersedia,
         bukti_backup=bukti,

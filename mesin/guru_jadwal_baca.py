@@ -290,3 +290,17 @@ def pertemuan_dalam_jendela(kon, guru_id: str, kini) -> List[dict]:
                                      guru_id, batas, waktu)
     urut_id = sorted(mini + privat, key=lambda p: p["id"])
     return sorted(urut_id, key=lambda p: p["mulai"], reverse=True)
+
+
+# --- anggota pertemuan untuk antrean admin (SELECT saja; dipakai admin_antrean_jurnal) -----------
+
+def anggota_kelompok_pertemuan(kon, kelompok_id: str, mulai: str, waktu: str) -> List[dict]:
+    """Anggota Mini yang masuk pertemuan pada `mulai` dan order-nya aktif pada `waktu` (R4). Hanya SELECT."""
+    penempatan = kon.execute(_SQL_ANGGOTA_KELOMPOK, (kelompok_id,)).fetchall()
+    return _anggota_pertemuan(kon, penempatan, mulai, waktu)
+
+
+def anggota_order_pertemuan(kon, order_id: str, mulai: str, waktu: str) -> List[dict]:
+    """Anggota Private (satu order) yang masuk pertemuan pada `mulai` dan order-nya aktif pada `waktu` (R4)."""
+    penempatan = kon.execute(_SQL_ANGGOTA_ORDER, (order_id,)).fetchall()
+    return _anggota_pertemuan(kon, penempatan, mulai, waktu)
