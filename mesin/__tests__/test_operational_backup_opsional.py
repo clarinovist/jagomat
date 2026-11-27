@@ -15,6 +15,8 @@ import guru_pertemuan_dasar
 import guru_tautan_bentuk
 import guru_tautan_dasar
 import guru_tugas_bentuk
+import jadwal_private_bentuk
+import jadwal_private_dasar as jpd
 import kurikulum_override
 
 SEED = {nama: False for nama in feature_switch.NAMA_SAKELAR}
@@ -94,6 +96,22 @@ def buat_jadwal_tetap(data):
         "VALUES (1, 'uji', 'akun_" + 'f' * 32 + "', '2026-11-27T01:05:00')",
     )
     return data / 'guru-jadwal-tetap.db'
+
+
+def buat_jadwal_private(data, aditif=False):
+    """DB jadwal private sintetis: DDL minimal tabel dasar (user_version 1); aditif = pasang `DDL_TAMBAHAN` asli."""
+    path = data / 'jadwal-private.db'
+    ubah_sqlite(
+        path,
+        'PRAGMA user_version = 1',
+        'CREATE TABLE private_slot(id INTEGER PRIMARY KEY)',
+        'CREATE TABLE private_pengajuan(id INTEGER PRIMARY KEY)',
+    )
+    if aditif:
+        with sqlite3.connect(path) as c:
+            jpd.pasang_tambahan(c)
+        c.close()
+    return path
 
 
 def sahkan_ulang(target, **manifest):
@@ -176,16 +194,17 @@ def test_capture_semua_opsional_terurut(sumber, tmp_path):
     buat_kode_tautan(sumber)
     buat_tugas_guru(sumber)
     buat_jadwal_tetap(sumber)
+    buat_jadwal_private(sumber)
     target = buat(sumber, tmp_path)
     assert backup.OPSIONAL == (
         'sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db',
-        'guru-tugas.db', 'guru-jadwal-tetap.db')
+        'guru-tugas.db', 'guru-jadwal-tetap.db', 'jadwal-private.db')
     assert backup.read_json(target / backup.MANIFEST)['optional'] == [
         'cetakan.db', 'cetakan_ai.db', 'guru-jadwal-tetap.db', 'guru-pertemuan.db', 'guru-tautan.db',
-        'guru-tugas.db', 'kurikulum.db', 'sakelar.db']
+        'guru-tugas.db', 'jadwal-private.db', 'kurikulum.db', 'sakelar.db']
     assert backup.validate(target)['optional'] == (
         'cetakan.db', 'cetakan_ai.db', 'guru-jadwal-tetap.db', 'guru-pertemuan.db', 'guru-tautan.db',
-        'guru-tugas.db', 'kurikulum.db', 'sakelar.db')
+        'guru-tugas.db', 'jadwal-private.db', 'kurikulum.db', 'sakelar.db')
 
 
 def test_capture_tanpa_catatan_pertemuan_tetap_valid_seperti_empat_opsional_lama(sumber, tmp_path):
@@ -370,6 +389,58 @@ def test_jadwal_tetap_tabel_hilang_ditolak(sumber, tmp_path, tabel):
     ubah_sqlite(target / 'opsional/guru-jadwal-tetap.db', 'DROP TABLE %s' % tabel)
     sahkan_ulang(target)
     with pytest.raises(backup.Ditolak, match='schema jadwal tetap'):
+        backup.validate(target)
+
+
+def test_nama_opsional_jadwal_private_sama_dengan_nama_berkas_bentuk():
+    """Daftar OPSIONAL (literal) dan modul bentuk harus menyebut berkas yang sama; default aplikasi tetap di /data."""
+    assert jadwal_private_bentuk.NAMA_BERKAS in backup.OPSIONAL
+    assert jpd.BERKAS_BAWAAN == '/data/' + jadwal_private_bentuk.NAMA_BERKAS
+
+
+def test_capture_jadwal_private_v1_tanpa_tabel_aditif_lolos(sumber, tmp_path):
+    buat_jadwal_private(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('jadwal-private.db',)
+    with sqlite3.connect(target / 'opsional/jadwal-private.db') as c:
+        assert c.execute("SELECT count(*) FROM sqlite_master WHERE name IN ('private_pola_pengajuan', 'tunggu_mini')"
+                         ).fetchone() == (0,)
+    c.close()
+
+
+def test_capture_jadwal_private_dengan_tabel_aditif_lolos(sumber, tmp_path):
+    buat_jadwal_private(sumber, aditif=True)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('jadwal-private.db',)
+    with sqlite3.connect(target / 'opsional/jadwal-private.db') as c:
+        assert c.execute("SELECT count(*) FROM sqlite_master WHERE name IN ('private_pola_pengajuan', 'tunggu_mini')"
+                         ).fetchone() == (2,)
+    c.close()
+
+
+def test_capture_tolak_jadwal_private_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):
+    ubah_sqlite(sumber / 'jadwal-private.db', 'CREATE TABLE sementara(id INTEGER)')
+    with pytest.raises(backup.Ditolak, match='schema jadwal private'):
+        buat(sumber, tmp_path)
+    assert not (tmp_path / 'backup-uji').exists()
+
+
+def test_jadwal_private_user_version_salah_ditolak(sumber, tmp_path):
+    buat_jadwal_private(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/jadwal-private.db', 'PRAGMA user_version = 2')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema jadwal private'):
+        backup.validate(target)
+
+
+@pytest.mark.parametrize('tabel', jadwal_private_bentuk.TABEL_SKEMA)
+def test_jadwal_private_tabel_dasar_hilang_ditolak(sumber, tmp_path, tabel):
+    buat_jadwal_private(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/jadwal-private.db', 'DROP TABLE %s' % tabel)
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema jadwal private'):
         backup.validate(target)
 
 

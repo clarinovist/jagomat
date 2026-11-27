@@ -30,14 +30,14 @@
   `guru_pertemuan_dasar`), dan `guru-tautan.db` (ledger persetujuan orang tua untuk kode anak guru, append-only, hanya id dan hash kode tanpa nama atau kode mentah; dibuat saat tulis pertama,
   `guru_tautan_dasar`), dan `guru-tugas.db` (tugas dari guru untuk sesi anak, append-only, hanya id, topik berlabel,
   dan tenggat tanpa nama atau teks bebas; dibuat saat tulis pertama), dan `guru-jadwal-tetap.db` (jadwal tetap guru, tabel append-only
-  `tetap_usulan` dan `tetap_putusan`). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
+  `tetap_usulan` dan `tetap_putusan`), dan `jadwal-private.db` (jadwal Private orang tua, tabel `private_slot` dan `private_pengajuan`; tabel aditif lazy tidak ikut diwajibkan sehingga berkas v1 lama tetap sah). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
   disalin dengan SQLite backup API; yang tidak ada dilewati; symlink/non-regular
   ditolak. Manifest mencatat daftar terurut di key `optional`; isi `opsional/` harus
   persis sama, tiap DB lulus integrity+FK, dan `sakelar.db` wajib `user_version`
   sesuai `feature_switch.VERSI_SKEMA` serta tabel `sakelar`+`audit_sakelar`;
-  `kurikulum.db`, `cetakan.db`, `cetakan_ai.db`, `guru-pertemuan.db`, `guru-tautan.db`, `guru-tugas.db`, dan `guru-jadwal-tetap.db` wajib `user_version` + `TABEL_SKEMA` modulnya
+  `kurikulum.db`, `cetakan.db`, `cetakan_ai.db`, `guru-pertemuan.db`, `guru-tautan.db`, `guru-tugas.db`, `guru-jadwal-tetap.db`, dan `jadwal-private.db` wajib `user_version` + `TABEL_SKEMA` modulnya
   (`kurikulum_override`, `cetakan_store`, `cetakan_ai_store`, `guru_pertemuan_bentuk`, `guru_tautan_bentuk`, `guru_tugas_bentuk`,
-  `guru_jadwal_tetap_bentuk`).
+  `guru_jadwal_tetap_bentuk`, `jadwal_private_bentuk`).
   Folder `opsional/` selalu ada, boleh kosong. Bundle **v1 lama tetap valid** (tanpa
   `opsional/`). `admin_backup.BERKAS_WAJIB` dan bundle core tidak berubah. Tool host
   di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py`, `kurikulum_override.py`, dan
@@ -49,7 +49,7 @@
   `mesin/guru_pertemuan_bentuk.py` (konstanta saja, TANPA impor; sengaja dipisah agar host tidak perlu `auth`/`topics`); tool host lama diam-diam tidak
   menyertakannya, jadi perbarui `/opt/osn/backup-tool` DAN `/opt/osn/backup-harian/backup_harian.py` bersama rilis fitur jurnal pertemuan. Berkas
   0 byte tidak punya header SQLite dan membuat `sqlite_copy` menolak seluruh bundle; `guru_pertemuan_dasar.catat` karena itu membuang berkas kosong yang
-  baru ia buat bila penulisan pertama gagal. Untuk `guru-tautan.db` tool host cukup membawa `mesin/guru_tautan_bentuk.py` (konstanta saja, TANPA impor); tool host lama tidak menyertakannya, jadi perbarui `/opt/osn/backup-tool` DAN `/opt/osn/backup-harian/backup_harian.py` bersama rilis tautan kode anak. Untuk `guru-tugas.db` tool host cukup membawa `mesin/guru_tugas_bentuk.py` (konstanta saja, TANPA impor), dan kedua tool host itu wajib dipasang ulang membawa berkas tersebut SEBELUM deploy yang menyalakan fitur tugas guru. Untuk `guru-jadwal-tetap.db` tool host cukup membawa `mesin/guru_jadwal_tetap_bentuk.py` (konstanta saja, TANPA impor), dan kedua tool host itu wajib dipasang ulang membawa berkas tersebut SEBELUM deploy yang menyalakan fitur jadwal tetap guru;
+  baru ia buat bila penulisan pertama gagal. Untuk `guru-tautan.db` tool host cukup membawa `mesin/guru_tautan_bentuk.py` (konstanta saja, TANPA impor); tool host lama tidak menyertakannya, jadi perbarui `/opt/osn/backup-tool` DAN `/opt/osn/backup-harian/backup_harian.py` bersama rilis tautan kode anak. Untuk `guru-tugas.db` tool host cukup membawa `mesin/guru_tugas_bentuk.py` (konstanta saja, TANPA impor), dan kedua tool host itu wajib dipasang ulang membawa berkas tersebut SEBELUM deploy yang menyalakan fitur tugas guru. Untuk `guru-jadwal-tetap.db` tool host cukup membawa `mesin/guru_jadwal_tetap_bentuk.py` (konstanta saja, TANPA impor), dan kedua tool host itu wajib dipasang ulang membawa berkas tersebut SEBELUM deploy yang menyalakan fitur jadwal tetap guru. Untuk `jadwal-private.db` tool host cukup membawa `mesin/jadwal_private_bentuk.py` (konstanta saja, TANPA impor); tool host lama diam-diam tidak menyertakannya, jadi kedua tool host itu wajib dipasang ulang membawa berkas tersebut sebelum backup dianggap memuat jadwal Private;
 - `operational-manifest.json`: revision/digest aplikasi, cutoff, daftar/hash/ukuran
   file dan direktori. Tidak berisi isi jawaban, nama anak, atau credential.
   Path lampiran tetap privat, bukan untuk log/prompt.
@@ -190,7 +190,7 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   dengan galat sehingga jejaknya masuk log.
 - **Isi**: lima DB wajib (`latihan`, `admin-control`, `ai-control`, `pendamping`,
   `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`,
-  `cetakan_ai.db`, `guru-pertemuan.db`, `guru-tautan.db`, `guru-tugas.db`, `guru-jadwal-tetap.db` bila ada (dibuat saat fiturnya pertama dipakai), serta `kelas-daftar.db`
+  `cetakan_ai.db`, `guru-pertemuan.db`, `guru-tautan.db`, `guru-tugas.db`, `guru-jadwal-tetap.db`, `jadwal-private.db` bila ada (dibuat saat fiturnya pertama dipakai), serta `kelas-daftar.db`
   (sumber `/var/lib/kelas-daftar/daftar.db`, pendaftaran `kelas.jagomat.id` milik service
   `kelas-daftar` di port 8731) yang disalin lewat backup API baca-saja. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
   lolos `integrity_check`, dan hash-nya dicatat di `manifest.json` dengan

@@ -19,10 +19,10 @@ import jadwal_dasar as jd
 import kelas_dasar as kd
 import paket_belajar_katalog as katalog
 import schema_jadwal
+from jadwal_private_bentuk import VERSI_SKEMA
 
 ENV_BERKAS_DB = "JADWAL_PRIVATE_DB"
 BERKAS_BAWAAN = "/data/jadwal-private.db"
-VERSI_SKEMA = 1
 PAKET = schema_jadwal.KODE_PAKET_PRIVATE
 MENIT_SESI = katalog.ambil(PAKET).menit
 JAM_PESAN_MINIMAL = 24

@@ -33,7 +33,7 @@ import sys
 VERSI = 1
 WAJIB = ("latihan.db", "admin-control.db", "ai-control.db", "pendamping.db", "riset-konsumen.db")
 OPSIONAL = ("sakelar.db", "kurikulum.db", "cetakan.db", "cetakan_ai.db", "guru-pertemuan.db", "guru-tautan.db",
-            "guru-tugas.db", "guru-jadwal-tetap.db")
+            "guru-tugas.db", "guru-jadwal-tetap.db", "jadwal-private.db")
 SANDI = "sandi.json"
 # (nama di bundle, jalur sumber); dilewati bila berkasnya tidak ada.
 TAMBAHAN = (("kelas-daftar.db", "/var/lib/kelas-daftar/daftar.db"),)
