@@ -102,6 +102,8 @@ _DDL_POLA = (
 # Daftar DDL tambahan: tiap fitur menambah grup baru di sini. Semua statement IF NOT EXISTS (aditif, idempoten) dan
 # VERSI_SKEMA TIDAK dinaikkan: image lama menolak setiap versi selain 0/1 (503 / kartu hilang), sedangkan tabel
 # ekstra tidak terbaca olehnya. Berkas tanpa tabel baru tetap terbaca lewat `ada_tabel`.
+# APPEND-ONLY: grup yang sudah dirilis JANGAN diedit. IF NOT EXISTS berarti perubahan pada grup lama tidak pernah
+# sampai ke berkas yang sudah ada; fitur baru (mis. daftar tunggu Mini) menambah grup sendiri di akhir tuple ini.
 DDL_TAMBAHAN = (_DDL_POLA,)
 
 
