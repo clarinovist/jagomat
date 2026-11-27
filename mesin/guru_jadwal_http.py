@@ -21,6 +21,7 @@ import guru_jadwal_pages as halaman
 import guru_pertemuan_aturan as aturan
 import guru_pertemuan_dasar as catatan
 import guru_tautan_http as tautan  # bagian 'Tambah anak dengan kode' di detail kelas (pemilik saja)
+import guru_jadwal_tetap_aturan as tetap_aturan  # gerbang rilis tautan 'Jadwal tetap saya' di halaman jadwal
 import guru_tugas_aturan as tugas_aturan  # gerbang rilis tautan 'Tugas untuk anak' di halaman jadwal
 import jadwal_store as js
 import kelas_dasar as dasar
@@ -123,8 +124,9 @@ def _halaman_jadwal(penangan, principal) -> None:
     sudah = _sudah_dicatat([(p["kunci"], p["mulai"]) for p in berlangsung])
     tampilan = [_tampilan_pertemuan(p, nama) for p in pertemuan]
     tampilan_berlangsung = [_tampilan_berlangsung(p, nama, sudah) for p in berlangsung]
-    penangan._kirim_privat(halaman.halaman_jadwal(_ident(principal), tampilan, tampilan_berlangsung,
-                                                  tugas_aktif=tugas_aturan.guru_tugas_aktif()))
+    penangan._kirim_privat(halaman.halaman_jadwal(
+        _ident(principal), tampilan, tampilan_berlangsung,
+        tugas_aktif=tugas_aturan.guru_tugas_aktif(), tetap_aktif=tetap_aturan.guru_jadwal_tetap_aktif()))
 
 
 def _halaman_kelas(penangan, principal) -> None:

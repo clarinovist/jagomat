@@ -124,6 +124,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/guru/pertemuan/", "guru"),  # catat kehadiran & jurnal (GET/POST): hanya peran guru; selain pemilik = 404 identik
     ("/guru/tugas", "guru"),  # Tugas untuk anak (exact, daftar anak): gerbang mati = 404 identik rute tak dikenal
     ("/guru/tugas/", "guru"),  # Tugas untuk anak (GET halaman anak): gerbang mati / selain guru tertaut = 404 identik
+    ("/guru/jadwal-tetap", "guru"),  # Usulan jadwal tetap (exact): gerbang mati / selain guru = 404 identik rute tak dikenal
     # Funnel Fase 2b (setelah palang sandi). `/cek-kemampuan` exact di atas tetap publik;
     # dua rute ini exact, bukan prefix. Sakelar mati: 200 "belum dibuka" (GET).
     ("/cek-kemampuan/mulai", "guru"),
@@ -194,6 +195,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/akun/kontak", "guru"),  # guard asal dispatcher + token form; admin 404
     ("/guru/pertemuan/", "guru"),  # POST catat kehadiran & jurnal: guard asal + token per pertemuan; selain pemilik = 404 identik
     ("/guru/tugas/", "guru"),  # POST tugas untuk anak: guard asal + token per anak; gerbang mati / selain tertaut = 404 identik
+    ("/guru/jadwal-tetap", "guru"),  # POST usulan jadwal tetap: guard asal + token; gerbang mati / selain guru = 404 identik
     ("/guru/kelas/", "guru"),  # POST tambah anak dengan kode (`/guru/kelas/<klp_id>/tautan`): guard asal + token; selain pemilik = 404 identik
     # Funnel Fase 2b: sakelar mati = tak berefek, 404 rute tak dikenal.
     ("/cek-kemampuan/mulai", "guru"),
@@ -839,6 +841,9 @@ class Penangan(BaseHTTPRequestHandler):
         import guru_tugas_http  # Tugas untuk anak (peran guru); gerbang mati / selain guru tertaut = 404 identik
         if guru_tugas_http.tangani_get(self, jalur):
             return
+        import guru_jadwal_tetap_http  # Usulan jadwal tetap (peran guru); gerbang mati / selain guru = 404 identik
+        if guru_jadwal_tetap_http.tangani_get(self, jalur):
+            return
         if parent_report_http.tangani_guru_get(self, jalur):
             return
         import peta_laporan_guru_http  # D1-2: laporan Peta untuk orang tua ditulis Guru; sebelum penangkap /anak/
@@ -999,6 +1004,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import guru_tugas_http  # POST tugas untuk anak; setelah _lolos_sandi dan guard asal
         if guru_tugas_http.tangani_post(self, jalur):
+            return
+        import guru_jadwal_tetap_http  # POST usulan jadwal tetap; setelah _lolos_sandi dan guard asal
+        if guru_jadwal_tetap_http.tangani_post(self, jalur):
             return
         import guru_tautan_http  # POST tambah anak dengan kode; setelah _lolos_sandi dan guard asal
         if guru_tautan_http.tangani_post(self, jalur):

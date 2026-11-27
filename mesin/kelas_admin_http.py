@@ -20,6 +20,7 @@ yang sama dengan verifikasi transfer dan Latihan Harian):
 from __future__ import annotations
 
 import sqlite3
+from typing import Optional
 
 import admin_http as h
 import admin_pesanan_aksi as aksi
@@ -29,6 +30,8 @@ import admin_store
 import admin_kode_anak_http as kode_anak
 import admin_verifikasi_http as bukti_umum
 import bukti_berkas
+import guru_jadwal_tetap_aturan as tetap_aturan
+import guru_jadwal_tetap_peringatan as tetap
 import kelas_admin_pages as ui
 import kelas_berkas as berkas
 import kelas_dasar as dasar
@@ -104,7 +107,8 @@ def _get_antrean(penangan, principal) -> None:
             guru = jadwal_http.guru_map()
         except (OSError, ValueError):
             guru = {}
-        isi += jadwal_ui.blok_daftar(kelompok, guru, token_jadwal)
+        isi += jadwal_ui.blok_daftar(kelompok, guru, token_jadwal,
+                                     tautan_tetap=tetap_aturan.guru_jadwal_tetap_aktif())
     _kirim(penangan, principal, isi)
 
 
@@ -130,6 +134,14 @@ def _tampilan(detail):
     tagihan = katalog.TagihanKelas(detail["order_id"], detail["kode_paket"], detail["rincian"], detail["kode_unik"],
                                    detail["total"], detail["status"], None, len(bukti), None)
     return item, tagihan, [ui.BuktiView(str(b["id"]), b["diunggah"], b["ukuran"], b["mime"]) for b in bukti]
+
+
+def _tandai_penempatan(ringkas: Optional[dict]) -> Optional[dict]:
+    """Sesi penempatan ditandai luar jam tetap guru pemilik sesinya: guru kelompok Mini, atau guru Private."""
+    if ringkas is None:
+        return None
+    guru = ringkas["kelompok_guru"] if ringkas["kelompok_id"] else ringkas["guru_id"]
+    return {**ringkas, "sesi": tetap.tandai(ringkas["sesi"], guru)}
 
 
 def _get_detail(penangan, principal) -> None:
@@ -162,6 +174,7 @@ def _get_detail(penangan, principal) -> None:
                 guru = jadwal_http.guru_map()
             except (OSError, ValueError):
                 guru = {}
+            ringkas = _tandai_penempatan(ringkas)
             isi_lepas = {"order_id": order_id}
             if ringkas is not None:                   # versi = penempatan yang dilihat admin; form lama ditolak
                 isi_lepas = {**isi_lepas, "target_revisi": ringkas["dibuat"]}

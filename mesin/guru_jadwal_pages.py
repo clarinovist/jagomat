@@ -33,6 +33,8 @@ COPY_UBAH_CATATAN = "Ubah catatan"
 RUTE_PERTEMUAN = "/guru/pertemuan/"
 RUTE_TUGAS = "/guru/tugas"
 COPY_TUGAS_ANAK = "Tugas untuk anak"
+RUTE_JADWAL_TETAP = "/guru/jadwal-tetap"
+COPY_JADWAL_TETAP = "Jadwal tetap saya"
 
 GAYA = f"""<style>
 .jadwal-st {{ display: grid; gap: {T.SP_4}; }}
@@ -146,13 +148,21 @@ def _tautan_tugas(tugas_aktif: bool) -> str:
     return f'<p><a class="jadwal-tautan-st" href="{RUTE_TUGAS}">{COPY_TUGAS_ANAK}</a></p>'
 
 
+def _tautan_jadwal_tetap(tetap_aktif: bool) -> str:
+    """Satu tautan 'Jadwal tetap saya' hanya bila gerbang jadwal tetap guru menyala; selain itu tidak ada byte tambahan."""
+    if not tetap_aktif:
+        return ""
+    return f'<p><a class="jadwal-tautan-st" href="{RUTE_JADWAL_TETAP}">{COPY_JADWAL_TETAP}</a></p>'
+
+
 def halaman_jadwal(ident, pertemuan: Sequence[dict], berlangsung: Sequence[dict] = (),
-                   *, tugas_aktif: bool = False) -> bytes:
+                   *, tugas_aktif: bool = False, tetap_aktif: bool = False) -> bytes:
     """Pertemuan mendatang milik guru, dan pertemuan yang sudah berlangsung dalam jendela catat (bila ada).
 
     `pertemuan` tiap item: `judul`, `ke`, `mulai`, `dibatalkan`, `kelas_id` (atau None).
     `berlangsung` tiap item: `judul`, `ke`, `mulai`, `tercatat` (bool), `id_pertemuan` (int).
     `tugas_aktif` (bawaan False): gerbang tugas guru; False menghasilkan byte yang sama dengan sebelumnya.
+    `tetap_aktif` (bawaan False): gerbang jadwal tetap guru; sama, tanpa byte tambahan bila False.
     """
     daftar = _daftar_atau_kosong([_baris_pertemuan(p) for p in pertemuan], COPY_KOSONG_JADWAL)
     isi = ('<main aria-labelledby="judul-jadwal" class="jadwal-st">'
@@ -164,6 +174,7 @@ def halaman_jadwal(ident, pertemuan: Sequence[dict], berlangsung: Sequence[dict]
            '<section class="jadwal-kartu-st" aria-label="Pertemuan mendatang">'
            f"<h2>Pertemuan mendatang</h2>{daftar}</section>"
            f"{_tautan_tugas(tugas_aktif)}"
+           f"{_tautan_jadwal_tetap(tetap_aktif)}"
            '<p><a class="jadwal-tautan-st" href="/guru">Kembali ke ruang guru</a></p></main>')
     return _halaman_stitch("Jadwal saya", GAYA + isi, ident=ident,
                            kelas_bungkus=KELAS_BUNGKUS_JADWAL, privat=True)

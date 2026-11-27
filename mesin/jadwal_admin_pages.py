@@ -29,6 +29,12 @@ COPY_BENTROK_SESI = "Bentrok dengan jadwal guru lain"
 COPY_BENTROK_PERINGATAN = ("Guru ini punya pertemuan lain di jam yang sama; periksa dan geser bila perlu. "
                            "Penyimpanan tidak diblokir.")
 COPY_BENTROK_KOLOM = "Bentrok jadwal guru: %d pertemuan"
+COPY_LUAR_JAM_SESI = "Di luar jam tetap guru"
+COPY_LUAR_JAM_PERINGATAN = ("Ada pertemuan di luar jam tetap guru. "
+                            "Jadwal tetap hanya acuan; penyimpanan tidak diblokir.")
+COPY_TAUTAN_TETAP = "Jadwal tetap guru"
+RUTE_TETAP = "/admin/jadwal/tetap"
+KUNCI_LUAR_JAM = "luar_jam"
 STRIP = "—"
 COPY_TANPA_KELOMPOK = "Belum ada kelompok Mini Class. Buat kelompok dulu di halaman antrean."
 COPY_SESI_KOSONG = "Belum ada pertemuan."
@@ -87,7 +93,7 @@ def _form_buat(token, guru: Mapping[str, str]) -> str:
         % (RUTE_KELOMPOK, _hidden(token), _opsi_guru(guru)))
 
 
-def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token) -> str:
+def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token, *, tautan_tetap: bool = False) -> str:
     """Blok di halaman antrean: petunjuk, tabel kelompok, dan form buat."""
     if guru:
         form = _form_buat(token, guru)
@@ -105,6 +111,8 @@ def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token) -> st
     tabel = vp._tabel("Kelompok", ("Nama", "Tautan", "Guru", "Terisi", "Pertemuan berikut", "Peringatan"),
                       baris, COPY_KOSONG)
     tautan = '<p><a class="admin-tautan" href="%s">%s</a></p>' % (pv.RUTE, _e(COPY_TAUTAN_PRIVATE))
+    if tautan_tetap:
+        tautan += '<p><a class="admin-tautan" href="%s">%s</a></p>' % (RUTE_TETAP, _e(COPY_TAUTAN_TETAP))
     return ('<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">%s</p>%s%s%s</section>'
             % (_e(JUDUL_DAFTAR), _e(COPY_PETUNJUK), tautan, tabel, form + catatan))
 
@@ -149,13 +157,17 @@ def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: 
         status = "Dibatalkan" if s["dibatalkan"] else "Aktif"
         if s.get("bentrok"):
             status += " · " + COPY_BENTROK_SESI
+        if s.get(KUNCI_LUAR_JAM):
+            status += " · " + COPY_LUAR_JAM_SESI
         aksi = (_aksi_sesi(s, token_ubah, token_batal) if bisa_ubah else "") + _tautan_jurnal(s, kini)
         baris.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>"
                      % (s["ke"], _e(_waktu(s["mulai"])), _e(status), aksi))
     peringatan = ('<p class="admin-catatan" role="note">%s</p>' % _e(COPY_BENTROK_PERINGATAN)
                   if any(s.get("bentrok") for s in sesi) else "")
-    return peringatan + vp._tabel("Delapan pertemuan", ("Ke", "Waktu (WIB)", "Status", "Aksi"),
-                                  "".join(baris), COPY_SESI_KOSONG)
+    peringatan_luar = ('<p class="admin-catatan" role="note">%s</p>' % _e(COPY_LUAR_JAM_PERINGATAN)
+                       if any(s.get(KUNCI_LUAR_JAM) for s in sesi) else "")
+    return peringatan + peringatan_luar + vp._tabel("Delapan pertemuan", ("Ke", "Waktu (WIB)", "Status", "Aksi"),
+                                                    "".join(baris), COPY_SESI_KOSONG)
 
 
 def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping, *,

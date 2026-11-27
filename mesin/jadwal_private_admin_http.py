@@ -15,6 +15,7 @@ import admin_http as h
 import admin_pesanan_aksi as aksi
 import admin_pesanan_pages as daftar_ui
 import admin_store
+import guru_jadwal_tetap_peringatan as tetap
 import jadwal_admin_http as jah
 import jadwal_private as jp
 import jadwal_private_admin_pages as ui
@@ -89,7 +90,19 @@ def _halaman(penangan, principal) -> str:
     with _buka() as kon:
         slot = jp.daftar_slot_admin(kon, sekarang, sah)
         antrean = jp.antrean_admin(kon, sekarang, sah)
-    return ui.halaman(slot, antrean, guru, _token(penangan, principal, slot, antrean))
+    return ui.halaman(slot, antrean, guru, _token(penangan, principal, slot, antrean),
+                      luar_jam=_slot_luar_jam(slot))
+
+
+def _slot_luar_jam(slot) -> frozenset:
+    """Id slot aktif (tidak dibatalkan) yang punya pertemuan di luar jam tetap guru.
+
+    Jadwal tetap tiap guru dibaca sekali per permintaan.
+    """
+    blok_per_guru = {guru: tetap.blok_aktif(guru) for guru in {s.guru_id for s in slot}}
+    return frozenset(s.slot_id for s in slot
+                     if s.status != ui.STATUS_DIBATALKAN
+                     and tetap.slot_luar_jam_dengan_blok(blok_per_guru[s.guru_id], s.mulai))
 
 
 # --- GET ------------------------------------------------------------------------------------

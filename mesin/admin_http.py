@@ -541,6 +541,9 @@ def tangani_get(penangan, jalur):
     import admin_jurnal_koreksi_http
     if admin_jurnal_koreksi_http.tangani_get(penangan, jalur):
         return True
+    import admin_jadwal_tetap_http
+    if admin_jadwal_tetap_http.tangani_get(penangan, jalur):
+        return True
     if admin_kurikulum_merdeka_http.tangani_get(penangan, jalur):
         return True
     if admin_pembayaran_http.tangani_get(penangan, jalur):
@@ -1172,6 +1175,9 @@ def _tangani_post_admin(penangan, jalur):
     import admin_kode_anak_http
     import admin_jurnal_koreksi_http
     if admin_jurnal_koreksi_http.tangani_post(penangan, jalur):
+        return True
+    import admin_jadwal_tetap_http
+    if admin_jadwal_tetap_http.tangani_post(penangan, jalur):
         return True
     if harian_langganan_admin_http.tangani_post(penangan, jalur):
         return True

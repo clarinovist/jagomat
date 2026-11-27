@@ -683,3 +683,30 @@ def test_tautan_tugas_tampil_saat_gerbang_menyala(server, jadwal, monkeypatch):
     # Assert
     assert kode == 200
     assert 'href="/guru/tugas"' in isi
+
+
+# --- tautan "Jadwal tetap saya" mengikuti gerbang jadwal tetap guru -------------------------
+
+def test_tautan_jadwal_tetap_tidak_tampil_saat_gerbang_mati(server, jadwal):
+    # Arrange: gerbang jadwal tetap guru MATI secara bawaan di kode.
+
+    # Act
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+
+    # Assert
+    assert kode == 200
+    assert "/guru/jadwal-tetap" not in isi
+
+
+def test_tautan_jadwal_tetap_tampil_saat_gerbang_menyala(server, jadwal, monkeypatch):
+    # Arrange
+    import guru_jadwal_tetap_aturan
+    monkeypatch.setattr(guru_jadwal_tetap_aturan, "GURU_JADWAL_TETAP_AKTIF", True)
+
+    # Act
+    kode, isi, _ = server.minta("/guru/jadwal", auth=AKUN_A)
+
+    # Assert
+    assert kode == 200
+    assert 'href="/guru/jadwal-tetap"' in isi
+    assert "Jadwal tetap saya" in isi

@@ -32,6 +32,10 @@ COPY_SLOT_KOSONG = "Belum ada slot Private."
 COPY_BATAL = "Batalkan slot ini? Slot yang dibatalkan tidak bisa dipilih orang tua lagi."
 COPY_TOLAK = "Tolak pengajuan ini? Orang tua bisa memilih slot lain."
 GURU_TIDAK_AKTIF = "Guru tidak aktif"
+COPY_LUAR_JAM_SLOT = "Di luar jam tetap guru"
+COPY_LUAR_JAM_SLOT_PERINGATAN = ("Ada slot di luar jam tetap guru. "
+                                 "Jadwal tetap hanya acuan; tidak ada slot yang diblokir.")
+STATUS_DIBATALKAN = "dibatalkan"
 STATUS_BISA_BATAL = frozenset({"terbuka"})  # slot yang sedang diajukan harus ditolak/diputuskan dulu (server menolak batal)
 LABEL_STATUS = {
     "terbuka": "Terbuka",
@@ -117,19 +121,29 @@ def _tombol_batal(slot, token: Mapping) -> str:
             % (RUTE_SLOT_BATAL, _e(COPY_BATAL), _hidden(token["batal"][slot.slot_id]), slot.slot_id))
 
 
-def _baris_slot(slot, guru: Mapping[str, str], token: Mapping) -> str:
+def _baris_slot(slot, guru: Mapping[str, str], token: Mapping, *, luar_jam: bool = False) -> str:
+    status = LABEL_STATUS.get(slot.status, slot.status)
+    if luar_jam:
+        status += " · " + COPY_LUAR_JAM_SLOT
     return ('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
             % (_e(_nama_guru(guru, slot.guru_id)), _e(waktu_wib(slot.mulai)),
-               _e(LABEL_STATUS.get(slot.status, slot.status)), _tombol_batal(slot, token)))
+               _e(status), _tombol_batal(slot, token)))
 
 
-def _kartu_daftar(slot: Sequence, guru: Mapping[str, str], token: Mapping) -> str:
-    baris = "".join(_baris_slot(s, guru, token) for s in slot)
-    return vp._tabel(JUDUL_DAFTAR, ("Guru", "Mulai (WIB)", "Status", "Aksi"), baris, COPY_SLOT_KOSONG)
+def _kartu_daftar(slot: Sequence, guru: Mapping[str, str], token: Mapping, *,
+                  luar_jam: frozenset = frozenset()) -> str:
+    baris = "".join(_baris_slot(s, guru, token, luar_jam=s.slot_id in luar_jam) for s in slot)
+    catatan = ('<p class="admin-catatan" role="note">%s</p>' % _e(COPY_LUAR_JAM_SLOT_PERINGATAN)
+               if luar_jam else "")
+    return catatan + vp._tabel(JUDUL_DAFTAR, ("Guru", "Mulai (WIB)", "Status", "Aksi"), baris, COPY_SLOT_KOSONG)
 
 
-def halaman(slot: Sequence, antrean: Sequence, guru: Mapping[str, str], token: Mapping) -> str:
-    """Petunjuk, kartu slot baru, pengajuan orang tua, dan daftar slot (tanpa nama anak atau orang tua)."""
+def halaman(slot: Sequence, antrean: Sequence, guru: Mapping[str, str], token: Mapping, *,
+            luar_jam: frozenset = frozenset()) -> str:
+    """Petunjuk, kartu slot baru, pengajuan orang tua, dan daftar slot (tanpa nama anak atau orang tua).
+
+    `luar_jam`: id slot yang punya pertemuan di luar jam tetap guru (ditandai, tidak diblokir).
+    """
     petunjuk = '<p class="admin-meta">%s</p>' % _e(COPY_PETUNJUK)
     return (petunjuk + _kartu_slot_baru(guru, token["buat"])
-            + _kartu_antrean(antrean, guru, token) + _kartu_daftar(slot, guru, token))
+            + _kartu_antrean(antrean, guru, token) + _kartu_daftar(slot, guru, token, luar_jam=luar_jam))

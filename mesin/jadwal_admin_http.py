@@ -16,6 +16,7 @@ import admin_pesanan_pages as daftar_ui
 import admin_security
 import admin_store
 import auth
+import guru_jadwal_tetap_peringatan as tetap
 import jadwal_admin_pages as ui
 import jadwal_dasar as jd
 import kelas_dasar as dasar
@@ -124,6 +125,7 @@ def _get_kelompok(penangan, principal) -> None:
         guru = guru_map()
         with _buka() as kon:
             detail = js.detail_kelompok(kon, kid)
+        detail = {**detail, "sesi": tetap.tandai(detail["sesi"], detail["kelompok"]["guru_id"])}
         tokens = {
             "ubah": bentuk_token(penangan, principal, AKSI_UBAH, {"kelompok_id": kid}),
             "sesi_ubah": bentuk_token(penangan, principal, AKSI_SESI_UBAH, {"kelompok_id": kid}),
