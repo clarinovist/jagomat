@@ -90,17 +90,10 @@ a.ortu-tombol-pinggir-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .ortu-harga-st b {{ font: 800 {T.UKURAN_JUDUL_STITCH}/1.1 {T.FONT_HEADLINE}; color: {T.TEKS_PUTIH}; }}
 .ortu-tidak-kembali-st {{ margin: 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5;
   color: {T.TEKS_DI_NAVY_REDUP}; }}
-.ortu-tautan-baris-pesanan-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2} {T.SP_4}; }}
-a.ortu-tautan-kecil-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH};
-  font: 700 {T.UKURAN_BADAN_LAYAR}/1.2 {T.FONT_HEADLINE}; color: {T.AKSEN_MURID_AMBER}; text-decoration: underline; }}
-a.ortu-tautan-kecil-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .ortu-kelas-st {{ display: grid; gap: {T.SP_2}; }}
 .ortu-kelas-st > p {{ margin: 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5; color: {T.TEKS_VARIAN}; }}
-a.ortu-opsi-kelas-st {{ display: grid; gap: {T.SP_1}; min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} {T.SP_4};
-  background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU};
-  color: {T.TEKS_JUDUL}; text-decoration: none; }}
-a.ortu-opsi-kelas-st b {{ font: 800 {T.UKURAN_BADAN_LAYAR}/1.3 {T.FONT_HEADLINE}; }}
-a.ortu-opsi-kelas-st span {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
-a.ortu-opsi-kelas-st:hover {{ border-color: {T.AKSEN_TEAL_TUA}; }}
-a.ortu-opsi-kelas-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.ortu-opsi-kelas-st {{ display: grid; gap: {T.SP_1}; padding: {T.SP_3} {T.SP_4}; background: {T.LATAR_KARTU};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; color: {T.TEKS_JUDUL}; }}
+.ortu-opsi-kelas-st b {{ font: 800 {T.UKURAN_BADAN_LAYAR}/1.3 {T.FONT_HEADLINE}; }}
+.ortu-opsi-kelas-st span {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
 """

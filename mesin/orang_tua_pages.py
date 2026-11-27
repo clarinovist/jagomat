@@ -42,7 +42,6 @@ RUTE_PIN = RUTE + "/pin"
 RUTE_ATUR = RUTE_PIN + "/atur"
 RUTE_HAPUS = RUTE_PIN + "/hapus"
 RUTE_PAKET = kelas_pages.RUTE
-RUTE_LANGGANAN = harian_langganan_pages.RUTE
 
 COPY_JUDUL = "Halaman Ayah/Bunda"
 COPY_ALIS = "UNTUK AYAH/BUNDA"
@@ -70,8 +69,6 @@ COPY_PESANAN_BAYAR = "Buka Peta Kemampuan · %s"
 COPY_PESANAN_LIHAT_STATUS = "Lihat status pembayaran"
 COPY_PESANAN_LUNAS_TERBIT = "Lunas · laporan terbit"
 COPY_BUKA_LAPORAN = "Buka laporan lengkap"
-COPY_LIHAT_KELAS = "Lihat kelas"
-COPY_LANGGANAN = "Langganan"
 COPY_POTONGAN = "Potongan deposit Peta %s untuk tagihan bulan pertama"
 COPY_DAFTAR_KELAS = "Daftar kelas"
 OPSI_KELAS = ((katalog.KODE_PRIVATE, "Private"), (katalog.KODE_MINI, "Mini Class"))
@@ -236,10 +233,10 @@ def _kalimat_potongan(nominal_bayar, purna) -> str:
 
 
 def _opsi_kelas(nama: str, harga_rupiah) -> str:
-    """Pilihan kelas sebagai tautan ke /murid/paket; tanpa angka bila harga tidak terbaca (galat baca)."""
+    """Pilihan kelas sebagai informasi, bukan tautan; tanpa angka bila harga tidak terbaca (galat baca)."""
     angka = (f'<span>{_e(pesanan_transfer_pages.rupiah(harga_rupiah))} <small>per bulan</small></span>'
              if harga_rupiah is not None else "")
-    return f'<a class="ortu-opsi-kelas-st" href="{RUTE_PAKET}"><b>{_e(nama)}</b>{angka}</a>'
+    return f'<div class="ortu-opsi-kelas-st"><b>{_e(nama)}</b>{angka}</div>'
 
 
 def _blok_kelas(nominal_bayar, purna, harga_kelas: dict) -> str:
@@ -271,18 +268,8 @@ def _blok_laporan_lama(laporan, status_pesanan) -> str:
     return _blok_laporan(laporan)
 
 
-def _tautan_sekunder(tautan_paket: bool, tautan_langganan: bool) -> str:
-    """Tautan kecil di kartu gelap: Lihat kelas (bila tautan paket aktif) dan Langganan (bila Latihan Harian aktif)."""
-    tautan = []
-    if tautan_paket:
-        tautan.append(f'<a class="ortu-tautan-kecil-st" href="{RUTE_PAKET}">{_e(COPY_LIHAT_KELAS)}</a>')
-    if tautan_langganan:
-        tautan.append(f'<a class="ortu-tautan-kecil-st" href="{RUTE_LANGGANAN}">{_e(COPY_LANGGANAN)}</a>')
-    return f'<div class="ortu-tautan-baris-pesanan-st">{"".join(tautan)}</div>' if tautan else ""
-
-
-def _kartu_sebelum_bayar(status, tautan_paket: bool, tautan_langganan: bool) -> str:
-    """Sebelum bayar (Usulan A): kartu gelap, harga sekali bayar, SATU tombol ke pesanan, tautan kecil bila aktif.
+def _kartu_sebelum_bayar(status) -> str:
+    """Sebelum bayar (Usulan A): kartu gelap, harga sekali bayar, dan SATU tombol ke pesanan (tanpa tautan lain).
 
     `status` None untuk pembeli tanpa pesanan; untuk pesanan belum bayar, kedaluwarsa, atau ditolak, lencana
     statusnya ikut tampil, dan kalimat status ikut tampil untuk kedaluwarsa dan ditolak.
@@ -296,8 +283,7 @@ def _kartu_sebelum_bayar(status, tautan_paket: bool, tautan_langganan: bool) -> 
             f'<p class="ortu-harga-st"><b>{_e(harga)}</b> sekali bayar</p>'
             f'<p>{_e(COPY_PESANAN_HARGA_SUB)}</p>'
             f'<a class="ceria-tombol" href="{_e(_href_pesanan())}">{_e(COPY_PESANAN_BAYAR % harga)}</a>'
-            f'<p class="ortu-tidak-kembali-st">{_e(COPY_PESANAN_TIDAK_KEMBALI)}</p>'
-            f'{_tautan_sekunder(tautan_paket, tautan_langganan)}</section>')
+            f'<p class="ortu-tidak-kembali-st">{_e(COPY_PESANAN_TIDAK_KEMBALI)}</p></section>')
 
 
 def _kartu_status_tanpa_bayar(status: str) -> str:
@@ -308,13 +294,12 @@ def _kartu_status_tanpa_bayar(status: str) -> str:
 
 
 def _blok_pesanan(status, cek_selesai: bool, purna=None, laporan_terbit: bool = False, *,
-                  tautan_paket: bool = False, tautan_langganan: bool = False, harga_kelas=None,
-                  nominal_bayar=None) -> str:
+                  tautan_paket: bool = False, harga_kelas=None, nominal_bayar=None) -> str:
     """Kartu Peta Kemampuan di halaman orang tua (F1): sebelum bayar (gelap), setelah lunas (A2), atau status.
 
     `laporan_terbit`: True bila laporan Peta anak sudah terbit (`data.peta` ada); jangkar "Buka laporan lengkap" ikut.
     `purna` (`KeadaanPurna` atau None): janji terbit dan tautan rincian deposit bila ada.
-    `tautan_paket` / `tautan_langganan`: tautan ke /murid/paket dan /murid/langganan hanya bila sakelarnya aktif.
+    `tautan_paket`: blok pilihan kelas di kartu lunas hanya bila sakelar paket aktif.
     `harga_kelas` dan `nominal_bayar`: lihat `_kartu_lunas`; None berarti tanpa angka dan tanpa kalimat potongan.
 
     Tanpa pesanan dan cek belum selesai, kartu tidak tampil. Pesanan menunggu pemeriksaan tidak ditawari bayar lagi.
@@ -324,9 +309,9 @@ def _blok_pesanan(status, cek_selesai: bool, purna=None, laporan_terbit: bool = 
     if status in STATUS_PESANAN_TANPA_TINDAKAN:
         return _kartu_status_tanpa_bayar(status)
     if status in STATUS_PESANAN_BUTUH_BAYAR:
-        return _kartu_sebelum_bayar(status, tautan_paket, tautan_langganan)
+        return _kartu_sebelum_bayar(status)
     if cek_selesai:
-        return _kartu_sebelum_bayar(None, tautan_paket, tautan_langganan)
+        return _kartu_sebelum_bayar(None)
     return ""
 
 
@@ -440,12 +425,18 @@ def _kaki() -> str:
     return (f'<p class="ortu-kaki-st">{_e(COPY_PIN_CATATAN)}</p><p class="ortu-kaki-st">{_e(COPY_KALIMAT)}</p>')
 
 
+def _kartu_kelas_ortu(data, tautan_paket: bool) -> str:
+    """Kartu kelas lama hanya bila belum lunas; setelah lunas, blok kelas di kartu Peta (A2) jadi pintunya."""
+    lunas = data.status_pesanan == pesanan_pages.STATUS_SUDAH_DIBAYAR
+    return kelas_pages.kartu_orang_tua() if tautan_paket and not lunas else ""
+
+
 def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan_paket: bool = False,
                 masa_paket=(), tagihan_paket=(), kartu_kode: str = "", guru=None, harga_kelas=None) -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
     Urutan: banner perpanjang Latihan Harian, banner tagihan Latihan Harian belum dibayar, banner paket belajar
-    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), kartu kode anak untuk guru (`kartu_kode`, kosong bila tidak tampil), laporan Guru, kehadiran dan jurnal serta tugas dari Guru (`guru`, kosong bila tidak tampil), PIN (lipat).
+    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket` dan belum lunas; lunas memakai blok kelas di kartu Peta), kartu kode anak untuk guru (`kartu_kode`, kosong bila tidak tampil), laporan Guru, kehadiran dan jurnal serta tugas dari Guru (`guru`, kosong bila tidak tampil), PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     banner_paket = (kelas_pages.banner_tagihan(tagihan_paket, data.nama_anak)
@@ -458,12 +449,11 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan
         + _hero_ringkasan(data.nama_anak, data.harian)
         + _blok_cek(data.hasil_cek, data.nama_anak)
         + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna,
-                        data.peta is not None, tautan_paket=tautan_paket,
-                        tautan_langganan=data.langganan is not None, harga_kelas=harga_kelas,
+                        data.peta is not None, tautan_paket=tautan_paket, harga_kelas=harga_kelas,
                         nominal_bayar=data.nominal_bayar)
         + peta_laporan_ortu_pages.blok_peta(data.peta)
         + _blok_harian(data.harian)
-        + harian_langganan_pages.kartu_orang_tua(data.langganan) + (kelas_pages.kartu_orang_tua() if tautan_paket else "")
+        + harian_langganan_pages.kartu_orang_tua(data.langganan) + _kartu_kelas_ortu(data, tautan_paket)
         + kartu_kode + _blok_laporan_lama(data.laporan, data.status_pesanan)
         + _blok_guru(guru) + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )

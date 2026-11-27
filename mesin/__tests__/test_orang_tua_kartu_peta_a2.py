@@ -12,6 +12,7 @@ from dataclasses import replace
 import admin_store_core
 import funnel_pages
 import harga
+import harian_langganan_ringkas
 import orang_tua_data
 import orang_tua_http
 import orang_tua_pages as halaman
@@ -52,7 +53,7 @@ def test_sebelum_bayar_menampilkan_harga_dan_satu_tombol_utama_ke_pesanan():
 
 
 def test_sebelum_bayar_tanpa_form_button_atau_input():
-    html = _sebelum_bayar(tautan_paket=True, tautan_langganan=True, harga_kelas=HARGA)
+    html = _sebelum_bayar(tautan_paket=True, harga_kelas=HARGA)
     assert "<form" not in html and "<button" not in html and "<input" not in html
 
 
@@ -62,15 +63,11 @@ def test_sebelum_bayar_memuat_kalimat_resmi_tidak_dapat_dikembalikan_harfiah_dar
     assert kalimat in _sebelum_bayar()
 
 
-def test_sebelum_bayar_tanpa_tautan_sekunder_bila_paket_dan_langganan_mati():
-    html = _sebelum_bayar(tautan_paket=False, tautan_langganan=False, harga_kelas=HARGA)
-    assert "Lihat kelas" not in html and "Langganan" not in html and f'href="{RUTE_PAKET}"' not in html
-
-
-def test_sebelum_bayar_menautkan_lihat_kelas_dan_langganan_bila_aktif():
-    html = _sebelum_bayar(tautan_paket=True, tautan_langganan=True, harga_kelas=HARGA)
-    assert f'href="{RUTE_PAKET}">Lihat kelas</a>' in html
-    assert f'href="{RUTE_LANGGANAN}">Langganan</a>' in html
+def test_sebelum_bayar_tanpa_tautan_kelas_atau_langganan_walau_paket_dan_langganan_aktif():
+    # Satu pintu per kartu: kelas dan langganan dibuka lewat kartu yang sudah ada di halaman, bukan dari kartu gelap.
+    html = _sebelum_bayar(tautan_paket=True, harga_kelas=HARGA)
+    assert "Lihat kelas" not in html and "Langganan" not in html
+    assert f'href="{RUTE_PAKET}"' not in html and f'href="{RUTE_LANGGANAN}"' not in html
 
 
 def test_status_butuh_bayar_memakai_kartu_gelap_dengan_lencana_status_tanpa_kalimat_qris():
@@ -138,12 +135,13 @@ def test_lunas_tanpa_tautan_paket_tanpa_pilihan_kelas_tetapi_chip_dan_laporan_te
     assert "Private" not in html and "Potongan deposit" not in html
 
 
-def test_pilihan_kelas_berupa_tautan_ke_paket_dengan_harga_dari_harga_kelas():
+def test_pilihan_kelas_berupa_informasi_dengan_harga_dan_satu_pintu_daftar_kelas():
     html = _lunas(tautan_paket=True, harga_kelas=HARGA, nominal_bayar=49000)
-    assert f'<a class="ortu-opsi-kelas-st" href="{RUTE_PAKET}"><b>Private</b>' in html
-    assert f'<a class="ortu-opsi-kelas-st" href="{RUTE_PAKET}"><b>Mini Class</b>' in html
+    assert '<div class="ortu-opsi-kelas-st"><b>Private</b>' in html
+    assert '<div class="ortu-opsi-kelas-st"><b>Mini Class</b>' in html
+    assert html.count('class="ortu-opsi-kelas-st"') == 2 and '<a class="ortu-opsi-kelas-st"' not in html
     assert rupiah(640000) in html and rupiah(300000) in html
-    assert html.count(f'href="{RUTE_PAKET}"') == 3  # dua opsi + satu tombol Daftar kelas
+    assert html.count(f'href="{RUTE_PAKET}"') == 1  # satu-satunya pintu kelas: tombol Daftar kelas
 
 
 def test_pilihan_kelas_tanpa_form_button_dan_tanpa_kata_terlarang():
@@ -205,3 +203,32 @@ def test_harga_kelas_memetakan_harga_aktif_private_dan_mini(monkeypatch):
     monkeypatch.setattr(orang_tua_http.admin_store, "buka_baca", kon_palsu)
     monkeypatch.setattr(harga, "harga_aktif", lambda _kon, kode: HARGA[kode])
     assert orang_tua_http._harga_kelas() == HARGA
+
+
+# --- halaman penuh: satu pintu kelas, tanpa kartu kelas ganda ---------------------------------
+
+LANGGANAN = harian_langganan_ringkas.Ringkasan("langganan", "2026-12-23T03:00:00", 2, None)
+
+
+def _kartu_pesanan_dari(html: str) -> str:
+    awal = html.index('id="ortu-pesanan"')
+    return html[awal:html.index("</section>", awal)]
+
+
+def test_halaman_penuh_lunas_dengan_paket_hanya_satu_pintu_kelas_tanpa_kartu_kelas_ganda():
+    data = DataOrangTua("Anak Sintetis", {"status": "belum_mulai"}, None, pesanan_pages.STATUS_SUDAH_DIBAYAR,
+                        langganan=LANGGANAN, purna=KEADAAN_AKTIF, nominal_bayar=49000)
+    html = halaman.halaman_isi(data, False, tautan_paket=True, harga_kelas=HARGA).decode()
+    assert _kartu_pesanan_dari(html).count(f'href="{RUTE_PAKET}"') == 1
+    assert html.count(f'href="{RUTE_PAKET}"') == 1
+    assert 'id="ortu-paket"' not in html  # kartu kelas lama tidak tampil ganda di samping blok kelas Peta
+
+
+def test_halaman_penuh_belum_bayar_tanpa_tautan_kelas_atau_langganan_di_kartu_pesanan():
+    data = DataOrangTua("Anak Sintetis", {"status": "belum_mulai"}, None, pesanan_pages.STATUS_BELUM_BAYAR,
+                        langganan=LANGGANAN)
+    html = halaman.halaman_isi(data, False, tautan_paket=True, harga_kelas=HARGA).decode()
+    kartu = _kartu_pesanan_dari(html)
+    assert "Buka Peta Kemampuan · Rp49.000" in kartu
+    assert f'href="{RUTE_PAKET}"' not in kartu and f'href="{RUTE_LANGGANAN}"' not in kartu
+    assert 'id="ortu-paket"' in html  # belum lunas: kartu kelas lama tetap menjadi pintu kelas
