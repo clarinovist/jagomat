@@ -20,7 +20,10 @@ import jadwal_admin_http as jah
 import jadwal_private as jp
 import jadwal_private_admin_pages as ui
 import jadwal_private_dasar as dsr
+import jadwal_private_pola as jpp
+import jadwal_private_pola_setujui as jpps
 import jadwal_store as js
+import kelas_dasar as kd
 import pesanan_alur as alur
 
 _log = logging.getLogger(__name__)
@@ -30,10 +33,13 @@ AKSI_SLOT_BUAT = "jadwal_private_slot_buat"
 AKSI_SLOT_BATAL = "jadwal_private_slot_batal"
 AKSI_SETUJUI = "jadwal_private_setujui"
 AKSI_TOLAK = "jadwal_private_tolak"
+AKSI_POLA_SETUJUI = "jadwal_private_pola_setujui"
+AKSI_POLA_TOLAK = "jadwal_private_pola_tolak"
 KUNCI_TINJAUAN_ID = "target_id"
 FIELD_ID = "id"
 FORM_BUAT = frozenset({"guru_id", "tanggal", "jam"})
 FORM_ID = frozenset({FIELD_ID})
+FORM_POLA_SETUJUI = frozenset({FIELD_ID, "guru_id", "tanggal"})
 COPY_KONFLIK_BUAT = ("Slot tidak bisa dibuat: guru dan waktu mulai yang sama sudah ada. "
                      "Tidak ada yang diubah.")
 COPY_KONFLIK_BATAL = ("Slot tidak bisa dibatalkan: masih ada pengajuan orang tua. Tolak pengajuannya dulu. "
@@ -42,6 +48,9 @@ COPY_KONFLIK_SETUJUI = ("Pengajuan tidak bisa disetujui: sudah basi (waktu mulai
                         "aktif, paket sudah berjadwal, atau slot sudah terisi) atau sudah diputuskan. "
                         "Pengajuan sudah basi: gunakan Tolak. Tidak ada yang diubah.")
 COPY_KONFLIK_TOLAK = "Pengajuan sudah diputuskan sebelumnya. Muat ulang halaman. Tidak ada yang diubah."
+COPY_KONFLIK_POLA_SETUJUI = ("Pola tidak bisa disetujui: sudah diputuskan, paket sudah berjadwal, masa akses tidak "
+                             "cukup, atau pertemuan pertama kurang dari 24 jam lagi. Tidak ada yang diubah.")
+COPY_KONFLIK_POLA_TOLAK = "Pola sudah diputuskan sebelumnya. Muat ulang halaman. Tidak ada yang diubah."
 COPY_ISIAN = ("Isian jadwal private tidak sah: periksa guru, tanggal, dan jam (waktu mulai tidak boleh sudah lewat). "
               "Tidak ada yang diubah.")
 COPY_LAYANAN = "Jadwal private belum siap di server. Coba lagi beberapa saat; tidak ada yang diubah."
@@ -70,7 +79,7 @@ def _kirim(penangan, principal, isi: str, kode: int = 200) -> None:
         kode, skrip=True)
 
 
-def _token(penangan, principal, slot, antrean) -> dict:
+def _token(penangan, principal, slot, antrean, pola) -> dict:
     def bentuk(aksi_nama: str, isi: dict):
         return jah.bentuk_token(penangan, principal, aksi_nama, isi)
 
@@ -80,6 +89,8 @@ def _token(penangan, principal, slot, antrean) -> dict:
                   for s in slot if s.status in ui.STATUS_BISA_BATAL},
         "setujui": {e.pengajuan_id: bentuk(AKSI_SETUJUI, {KUNCI_TINJAUAN_ID: e.pengajuan_id}) for e in antrean},
         "tolak": {e.pengajuan_id: bentuk(AKSI_TOLAK, {KUNCI_TINJAUAN_ID: e.pengajuan_id}) for e in antrean},
+        "pola_setujui": {e.pola.id: bentuk(AKSI_POLA_SETUJUI, {KUNCI_TINJAUAN_ID: e.pola.id}) for e in pola},
+        "pola_tolak": {e.pola.id: bentuk(AKSI_POLA_TOLAK, {KUNCI_TINJAUAN_ID: e.pola.id}) for e in pola},
     }
 
 
@@ -90,8 +101,9 @@ def _halaman(penangan, principal) -> str:
     with _buka() as kon:
         slot = jp.daftar_slot_admin(kon, sekarang, sah)
         antrean = jp.antrean_admin(kon, sekarang, sah)
-    return ui.halaman(slot, antrean, guru, _token(penangan, principal, slot, antrean),
-                      luar_jam=_slot_luar_jam(slot))
+    pola = jpp.antrean_admin(kd.ke_baku(sekarang))
+    return ui.halaman(slot, antrean, guru, _token(penangan, principal, slot, antrean, pola),
+                      luar_jam=_slot_luar_jam(slot), pola=pola)
 
 
 def _slot_luar_jam(slot) -> frozenset:
@@ -159,6 +171,25 @@ def _tolak(penangan, principal) -> None:
     h._redirect(penangan, ui.RUTE)
 
 
+def _setujui_pola(penangan, principal) -> None:
+    """Pola disetujui: guru dan tanggal mulai dari form (diperiksa domain), id dari tinjauan."""
+    tinjauan, data = jah._terima(penangan, principal, AKSI_POLA_SETUJUI)
+    aksi.wajib_field(data, FORM_POLA_SETUJUI)
+    pid = _target(tinjauan, data)
+    with _buka(tulis=True) as kon:
+        jpps.setujui(kon, principal.id_akun, pid, data["guru_id"], data["tanggal"], alur.waktu_sekarang(),
+                     _guru_sah())
+    h._redirect(penangan, ui.RUTE)
+
+
+def _tolak_pola(penangan, principal) -> None:
+    tinjauan, data = jah._terima(penangan, principal, AKSI_POLA_TOLAK)
+    aksi.wajib_field(data, FORM_ID)
+    pid = _target(tinjauan, data)
+    jpp.tolak(principal.id_akun, pid, alur.waktu_sekarang())
+    h._redirect(penangan, ui.RUTE)
+
+
 def _dengan_galat_layanan(fungsi) -> None:
     """Berkas private rusak / skema tak dikenal menjadi galat layanan (503), dicatat hanya nama tipenya."""
     try:
@@ -178,6 +209,8 @@ _AKSI_POST = {
     ui.RUTE_SLOT_BATAL: (_batal_slot, COPY_KONFLIK_BATAL),
     ui.RUTE_SETUJUI: (_setujui, COPY_KONFLIK_SETUJUI),
     ui.RUTE_TOLAK: (_tolak, COPY_KONFLIK_TOLAK),
+    ui.RUTE_POLA_SETUJUI: (_setujui_pola, COPY_KONFLIK_POLA_SETUJUI),
+    ui.RUTE_POLA_TOLAK: (_tolak_pola, COPY_KONFLIK_POLA_TOLAK),
 }
 
 

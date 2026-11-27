@@ -2,7 +2,9 @@
 
 DB ini sengaja terpisah dari admin-control.db (pola guru_status_jurnal): berkas dibuat lazy 0600 saat tulis pertama,
 baca tidak pernah membuat berkas (berkas belum ada = kosong), PRAGMA user_version = 1, tanpa WAL. Aturan
-`alasan_basi` murni (tanpa DB) dipakai ulang oleh baca dan tulis supaya penentu basi hanya satu.
+`alasan_basi` murni (tanpa DB) dipakai ulang oleh baca dan tulis supaya penentu basi hanya satu. Tabel tambahan
+(`DDL_TAMBAHAN`, pola 2 hari) bersifat aditif: dipasang tiap tulis, tidak menaikkan user_version, dan dibaca lewat
+`ada_tabel` supaya berkas v1 lama tetap sah.
 """
 from __future__ import annotations
 
@@ -70,6 +72,39 @@ _DDL = (
 ALASAN_LEWAT = "waktu mulai sudah lewat"
 ALASAN_TERHALANG = "anak sudah punya jadwal di paket lain"
 ALASAN_TERLALU_DEKAT = "waktu mulai kurang dari 24 jam lagi"
+# Pola hibrida (2 hari + 1 jam, disetujui tim): hari 0=Senin..5=Sabtu (Minggu tidak dibuka); jam WIB dari daftar
+# mockup Daftar Kelas (27 Nov 2026, layar 3A).
+HARI_BOLEH = frozenset(range(0, 6))
+JAM_BOLEH = ("15:00", "16:00", "17:00", "19:00")
+_HARI_SQL = "BETWEEN %d AND %d" % (min(HARI_BOLEH), max(HARI_BOLEH))
+_JAM_SQL = ", ".join("'%s'" % jam for jam in JAM_BOLEH)
+_DDL_POLA = (
+    "CREATE TABLE IF NOT EXISTS private_pola_pengajuan (\n"
+    "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+    "    order_id TEXT NOT NULL,\n"
+    "    hari_a INTEGER NOT NULL CHECK(hari_a %s),\n"
+    "    hari_b INTEGER NOT NULL CHECK(hari_b %s AND hari_b > hari_a),\n"
+    "    jam TEXT NOT NULL CHECK(jam IN (%s)),\n"
+    "    status TEXT NOT NULL CHECK(status IN ('diajukan','disetujui','ditolak','dibatalkan')),\n"
+    "    dibuat TEXT NOT NULL,\n"
+    "    diubah TEXT NOT NULL,\n"
+    "    diputuskan_oleh TEXT\n"
+    ")" % (_HARI_SQL, _HARI_SQL, _JAM_SQL),
+    "CREATE UNIQUE INDEX IF NOT EXISTS private_pola_pengajuan_aktif ON private_pola_pengajuan(order_id)\n"
+    "WHERE status = 'diajukan'",
+    "CREATE INDEX IF NOT EXISTS private_pola_pengajuan_order ON private_pola_pengajuan(order_id, id)",
+    "CREATE TRIGGER IF NOT EXISTS private_pola_pengajuan_transisi BEFORE UPDATE ON private_pola_pengajuan\n"
+    "WHEN NOT (OLD.status = 'diajukan' AND NEW.status IN ('disetujui','ditolak','dibatalkan')\n"
+    "          AND NEW.id IS OLD.id AND NEW.order_id IS OLD.order_id AND NEW.hari_a IS OLD.hari_a\n"
+    "          AND NEW.hari_b IS OLD.hari_b AND NEW.jam IS OLD.jam AND NEW.dibuat IS OLD.dibuat)\n"
+    "BEGIN SELECT RAISE(ABORT, 'status pola hanya boleh berubah dari diajukan'); END",
+)
+# Daftar DDL tambahan: tiap fitur menambah grup baru di sini. Semua statement IF NOT EXISTS (aditif, idempoten) dan
+# VERSI_SKEMA TIDAK dinaikkan: image lama menolak setiap versi selain 0/1 (503 / kartu hilang), sedangkan tabel
+# ekstra tidak terbaca olehnya. Berkas tanpa tabel baru tetap terbaca lewat `ada_tabel`.
+# APPEND-ONLY: grup yang sudah dirilis JANGAN diedit. IF NOT EXISTS berarti perubahan pada grup lama tidak pernah
+# sampai ke berkas yang sudah ada; fitur baru (mis. daftar tunggu Mini) menambah grup sendiri di akhir tuple ini.
+DDL_TAMBAHAN = (_DDL_POLA,)
 
 
 class GalatJadwalPrivate(Exception):
@@ -197,9 +232,22 @@ def _periksa_versi(kon, buat: bool) -> None:
     kon.execute("PRAGMA user_version = %d" % VERSI_SKEMA)
 
 
+def pasang_tambahan(kon) -> None:
+    """Pasang `DDL_TAMBAHAN` (IF NOT EXISTS) di dalam transaksi tulis yang sudah berjalan. Dipanggil tiap tulis."""
+    for kelompok in DDL_TAMBAHAN:
+        for ddl in kelompok:
+            kon.execute(ddl)
+
+
+def ada_tabel(kon, nama: str) -> bool:
+    """Tabel ada di berkas ini? Berkas v1 lama belum punya tabel tambahan sampai tulis pertama."""
+    return kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (nama,)).fetchone() is not None
+
+
 @contextmanager
 def dengan_tulis(path, *, buat: bool = False):
-    """Satu transaksi `BEGIN IMMEDIATE` pada DB private. `buat` hanya untuk buat_slot; tulis lain tidak membuat berkas.
+    """Satu transaksi `BEGIN IMMEDIATE` pada DB private. `buat` hanya untuk buat_slot dan ajukan pola (setelah cek
+    kepemilikan); tulis lain tidak membuat berkas.
 
     Galat sqlite pada koneksi private dibungkus GalatJadwalPrivate; galat domain (JadwalKonflik, dll.) lolos utuh,
     termasuk dari penempatan admin-control yang ikut transaksi ini. Gagal = rollback.
@@ -211,6 +259,7 @@ def dengan_tulis(path, *, buat: bool = False):
     try:
         kon.execute("BEGIN IMMEDIATE")
         _periksa_versi(kon, buat)
+        pasang_tambahan(kon)
         yield kon
         kon.execute("COMMIT")
     except BaseException as galat:

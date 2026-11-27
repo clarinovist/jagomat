@@ -163,6 +163,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/kelas/private/slot/batal", "admin"),  # Jadwal Private: batalkan slot (id dari tinjauan)
     ("/admin/kelas/private/setujui", "admin"),  # Jadwal Private: setujui pengajuan (id dari tinjauan)
     ("/admin/kelas/private/tolak", "admin"),  # Jadwal Private: tolak pengajuan (id dari tinjauan)
+    ("/admin/kelas/private/pola/setujui", "admin"),  # Jadwal Private pola: setujui (guru + tanggal; id dari tinjauan)
+    ("/admin/kelas/private/pola/tolak", "admin"),  # Jadwal Private pola: tolak (id dari tinjauan)
     ("/admin/kelas/kode-anak", "admin"),  # 3b-5: kode anak (buat/ganti/cabut) di detail order Paket Belajar; token + cookie, tanpa sandi ulang
     ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
@@ -190,6 +192,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/paket/hapus", "murid"),  # Paket Belajar: POST hapus tagihan belum bayar tanpa bukti; sakelar mati = jalur murid asing
     ("/murid/paket/jadwal-private/ajukan", "murid"),  # Jadwal Private: POST ajukan slot (token + slot); sakelar mati = jalur murid asing
     ("/murid/paket/jadwal-private/batal", "murid"),  # Jadwal Private: POST batal pengajuan (token); sakelar mati = jalur murid asing
+    ("/murid/paket/jadwal-private/pola", "murid"),  # Jadwal Private pola: POST 2 hari + 1 jam (token); sakelar mati = jalur murid asing
+    ("/murid/paket/jadwal-private/pola/batal", "murid"),  # Jadwal Private pola: POST batal pilihan (token); sakelar mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),

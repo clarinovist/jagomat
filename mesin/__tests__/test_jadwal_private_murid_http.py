@@ -21,6 +21,7 @@ import database
 import jadwal_private as jp
 import jadwal_store as js
 import kelas_putusan
+import kelas_private_pages as priv
 import kelas_store
 import pin_orang_tua_store as pin_store
 import schema_jadwal
@@ -29,9 +30,12 @@ from bukti_kit import JPEG, PNG
 from harian_kit import SANDI, Murid
 from kelas_http_kit import (ADMIN, AWAL, M, baca_admin, bukti_terakhir, buat, buat_dan_unggah, buat_murid, halaman,
                             jam, kidup, kirim, kmati, minta_mentah, server, token)
+from support_pages import halaman_pesan_murid
 
 AJUKAN = M + "/jadwal-private/ajukan"
 BATAL = M + "/jadwal-private/batal"
+POLA = M + "/jadwal-private/pola"
+POLA_BATAL = M + "/jadwal-private/pola/batal"
 AKSI_AJUKAN = "jadwal_private_ajukan:"
 AKSI_BATAL = "jadwal_private_batal"
 JUDUL = "Jadwal Private"
@@ -81,6 +85,11 @@ def _form_batal(murid) -> dict:
     return {"token": token(murid.akun, AKSI_BATAL)}
 
 
+def _form_pola(murid, hari=(1, 3), jam="16:00") -> dict:
+    """Form pola bertoken: satu kunci `hari_N=1` per hari yang dicentang, plus `jam`."""
+    return {"token": token(murid.akun, priv.AKSI_POLA), "jam": jam, **{"hari_%d" % h: "1" for h in hari}}
+
+
 def _teks(isi: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", isi.rsplit("</style>", 1)[-1]))
 
@@ -98,6 +107,18 @@ def _pengajuan() -> list:
         return [dict(b) for b in kon.execute("SELECT id,order_id,slot_id,status FROM private_pengajuan ORDER BY id")]
 
 
+def _pola() -> list:
+    """Baris pola dari DB private (kosong bila berkas atau tabel pola belum ada)."""
+    if not Path(_berkas_private()).exists():
+        return []
+    with closing(sqlite3.connect(_berkas_private())) as kon:
+        kon.row_factory = sqlite3.Row
+        if kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='private_pola_pengajuan'").fetchone() is None:
+            return []
+        return [dict(b) for b in kon.execute(
+            "SELECT id,order_id,hari_a,hari_b,jam,status FROM private_pola_pengajuan ORDER BY id")]
+
+
 def _keadaan() -> tuple:
     """Keadaan yang tidak boleh berubah saat aksi ditolak: pengajuan, penempatan, dan jumlah pertemuan."""
     return (_pengajuan(), baca_admin("SELECT * FROM jadwal_penempatan"),
@@ -112,7 +133,7 @@ def test_kartu_hanya_untuk_private_aktif_tanpa_jadwal(siap, jam):  # noqa: F811
     jam.maju_jam(1)                                              # urutan order sama waktu: beri jeda
     _aktifkan(siap, siap.b, "private", PNG)
     t = _teks(halaman(siap, siap.b))
-    assert JUDUL in t and TEKS_SLOT in t and "Ajukan" in t and "2x seminggu" in t
+    assert JUDUL in t and "Hari (pilih 2)" in t and "Ajukan" in t and "2x seminggu" in t
 
 
 def test_halaman_tidak_memuat_nama_guru_id_guru_atau_sandi(siap):
@@ -123,30 +144,74 @@ def test_halaman_tidak_memuat_nama_guru_id_guru_atau_sandi(siap):
     assert "guru-b" not in _teks(isi) and _guru_id() not in isi and SANDI not in isi
 
 
-def test_ajukan_lalu_menunggu_dan_pilihan_kedua_menggantikan(siap):
+def test_pola_ajukan_dua_hari_menunggu_lalu_pilihan_kedua_menggantikan(siap):
     oid = _aktifkan(siap, siap.a)
-    s1, s2 = _slot(), _slot(pukul="11:00")
-    kode, _isi, tajuk = kirim(siap, AJUKAN, siap.a, _form_ajukan(siap.a, s1))
+    kode, _isi, tajuk = kirim(siap, POLA, siap.a, _form_pola(siap.a, (1, 3), "16:00"))
     assert (kode, tajuk["Location"]) == (303, M)
-    assert [(p["order_id"], p["slot_id"], p["status"]) for p in _pengajuan()] == [(oid, s1, "diajukan")]
+    assert [(p["order_id"], p["hari_a"], p["hari_b"], p["jam"], p["status"]) for p in _pola()] == [
+        (oid, 1, 3, "16:00", "diajukan")]
     t = _teks(halaman(siap, siap.a))
-    assert "menunggu persetujuan tim" in t and "Batalkan pilihan" in t and "Ganti ke waktu ini" in t and TEKS_SLOT in t
-    assert kirim(siap, AJUKAN, siap.a, _form_ajukan(siap.a, s2))[0] == 303
-    assert [(p["slot_id"], p["status"]) for p in _pengajuan()] == [(s1, "dibatalkan"), (s2, "diajukan")]
+    assert "Selasa &amp; Kamis pukul 16.00 WIB" in t and "menunggu persetujuan tim" in t and "Batalkan pilihan" in t
+    assert kirim(siap, POLA, siap.a, _form_pola(siap.a, (0, 5), "19:00"))[0] == 303
+    assert [p["status"] for p in _pola()] == ["dibatalkan", "diajukan"]
 
 
-def test_pengajuan_basi_tampil_sebagai_tidak_bisa_dipakai_bukan_menunggu(siap):
-    import guru_status
+def test_pola_ditolak_tim_tampil_sebagai_pilihan_tidak_bisa_dipakai(siap):
     import kelas_private_pages as kp
+    import jadwal_private_pola as jpp
+    _aktifkan(siap, siap.a)
+    kirim(siap, POLA, siap.a, _form_pola(siap.a))
+    jpp.tolak(ADMIN, _pola()[0]["id"], AWAL)
+    t = _teks(halaman(siap, siap.a))
+    assert "menunggu persetujuan" not in t and "Batalkan pilihan" not in t
+    assert _teks(kp.COPY_POLA_DITOLAK) in t
+
+
+def test_slot_lama_menunggu_tetap_tampil_lalu_pola_baru_membatalkannya(siap):
     _aktifkan(siap, siap.a)
     s1 = _slot()
     kirim(siap, AJUKAN, siap.a, _form_ajukan(siap.a, s1))
-    assert "menunggu persetujuan tim" in _teks(halaman(siap, siap.a))
-    akun = auth.cari_akun("guru-b")
-    guru_status.nonaktifkan(akun["id_akun"], auth.revisi_auth(akun), "admin-uji", int(time.time()))  # slot jadi basi
     t = _teks(halaman(siap, siap.a))
-    assert "menunggu persetujuan" not in t and "Batalkan pilihan" not in t
-    assert _teks(kp.COPY_DITOLAK) in t
+    assert "Pilihan waktu sebelumnya" in t and "Batalkan pilihan" in t
+    assert kirim(siap, POLA, siap.a, _form_pola(siap.a))[0] == 303
+    assert [p["status"] for p in _pengajuan()] == ["dibatalkan"]
+    assert [p["status"] for p in _pola()] == ["diajukan"]
+    t = _teks(halaman(siap, siap.a))
+    assert "Pilihan waktu sebelumnya" not in t and "menunggu persetujuan tim" in t
+
+
+def test_pola_batal_dengan_token_aksi_lain_ditolak_lalu_batal_sah(siap):
+    _aktifkan(siap, siap.a)
+    kirim(siap, POLA, siap.a, _form_pola(siap.a))
+    assert kirim(siap, POLA_BATAL, siap.a, {"token": token(siap.a.akun, priv.AKSI_POLA)})[0] == 403
+    assert kirim(siap, POLA_BATAL, siap.a, {"token": token(siap.a.akun, priv.AKSI_POLA_BATAL)})[0] == 303
+    assert [p["status"] for p in _pola()] == ["dibatalkan"]
+    t = _teks(halaman(siap, siap.a))
+    assert "menunggu persetujuan" not in t and "Ajukan" in t
+
+
+def test_pola_isian_tidak_sah_400_tanpa_efek(siap):
+    _aktifkan(siap, siap.a)
+    sebelum = _pola()
+    tiga_hari = {**_form_pola(siap.a), "hari_5": "1"}
+    minggu = {**_form_pola(siap.a), "hari_6": "1"}
+    jam_asing = {**_form_pola(siap.a), "jam": "18:00"}
+    for isian in (tiga_hari, minggu, jam_asing):
+        kode, isi, _tajuk = kirim(siap, POLA, siap.a, isian)
+        assert kode == 400 and "Pilih dua hari yang berbeda" in isi
+    assert _pola() == sebelum
+
+
+def test_pola_bukan_pemilik_404_identik_tanpa_efek(siap):
+    _aktifkan(siap, siap.a)                      # hanya anak A punya order Private
+    pemilik_kedua = _murid_kedua_anak_sama(siap.a)  # akun lain yang terhubung ke anak A
+    sebelum = _pola()
+    tanpa_order = kirim(siap, POLA, siap.b, _form_pola(siap.b))
+    kedua = kirim(siap, POLA, pemilik_kedua, _form_pola(pemilik_kedua))
+    badan_404 = halaman_pesan_murid("404", "<h1>Halaman tidak ada</h1>").decode("utf-8")  # 404 murid rute ini
+    assert tanpa_order[0] == kedua[0] == 404
+    assert tanpa_order[1] == kedua[1] == badan_404          # identik: tidak ada beda antara tak punya order dan bukan pemilik
+    assert _pola() == sebelum
 
 
 def test_batal_mengembalikan_pilihan_ke_daftar(siap):

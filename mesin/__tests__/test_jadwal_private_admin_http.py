@@ -20,6 +20,7 @@ import admin_store
 import auth
 import jadwal_admin_http as jah
 import jadwal_private as jp
+import jadwal_private_pola as jpp
 import jadwal_store as js
 import kelas_kit
 import pesanan
@@ -285,3 +286,36 @@ def test_antrean_dan_halaman_fail_safe_saat_berkas_private_rusak(siap, admin):
     assert A._item_pengajuan_private(admin_store.BAWAAN, SEKARANG_EPOCH) == ()
     kode, _isi, _ = minta_admin(siap, RUTE, admin)
     assert kode == 503
+
+
+# --- pola orang tua (2 hari + 1 jam) --------------------------------------------------------
+
+def _ajukan_pola(siswa=1) -> int:
+    """Pola Kamis & Jumat jam 15.00 WIB dari akun orang tua sintetis; tanggal usulan 26 Nov."""
+    with js.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        return jpp.ajukan(kon, AKUN_ORANG_TUA, siswa, {"hari_3": "1", "hari_4": "1", "jam": "15:00"}, SEKARANG)
+
+
+def test_pola_tampil_dengan_tanggal_usulan_lalu_setujui_menempatkan_delapan_pertemuan(siap, admin):
+    oid = _aktif(1)
+    pid = _ajukan_pola(1)
+    kode, isi, _ = minta_admin(siap, RUTE, admin)
+    assert kode == 200 and "Pola orang tua" in isi and "Kamis &amp; Jumat pukul 15.00 WIB" in isi
+    assert 'value="2026-11-26"' in isi and 'action="%s"' % ui.RUTE_POLA_SETUJUI in isi
+    data = _form_target(admin, "jadwal_private_pola_setujui", pid)
+    data.update({"guru_id": _guru_id(), "tanggal": "2026-11-26"})
+    kode, _isi, tajuk = minta_admin(siap, ui.RUTE_POLA_SETUJUI, admin, data)
+    assert kode == 303 and tajuk["Location"] == RUTE
+    assert _baris_privat("SELECT status FROM private_pola_pengajuan WHERE id=?", (pid,))[0]["status"] == "disetujui"
+    assert _penempatan(oid) == 1
+    assert baca_admin("SELECT COUNT(*) AS n FROM jadwal_pertemuan WHERE order_id=?", (oid,))[0]["n"] == 8
+
+
+def test_pola_tolak_lewat_http_ubah_status_ditolak_tanpa_penempatan(siap, admin):
+    _aktif(1)
+    pid = _ajukan_pola(1)
+    kode, _isi, tajuk = minta_admin(siap, ui.RUTE_POLA_TOLAK, admin,
+                                    _form_target(admin, "jadwal_private_pola_tolak", pid))
+    assert kode == 303 and tajuk["Location"] == RUTE
+    assert _baris_privat("SELECT status FROM private_pola_pengajuan WHERE id=?", (pid,))[0]["status"] == "ditolak"
+    assert _jumlah_penempatan() == 0

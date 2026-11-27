@@ -47,6 +47,7 @@ import jadwal_anak_baca
 import jadwal_dasar
 import jadwal_pilih
 import jadwal_private_murid_http as jpm
+import jadwal_private_pola_http as jpp
 import jadwal_store
 import kalender_ics
 import kelas_batal
@@ -97,7 +98,7 @@ COPY_BERKAS = {"kosong": COPY_BERKAS_KOSONG, "besar": COPY_BERKAS_BESAR, "tipe":
                "terbaca": COPY_BERKAS_TAK_TERBACA}
 _GET = frozenset({halaman.RUTE, halaman.RUTE_TAGIHAN, halaman.RUTE_HAPUS, halaman.RUTE_KALENDER})
 _POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_HAPUS, halaman.RUTE_JADWAL,
-                   priv.RUTE_AJUKAN, priv.RUTE_BATAL})
+                   priv.RUTE_AJUKAN, priv.RUTE_BATAL, priv.RUTE_POLA, priv.RUTE_POLA_BATAL})
 KUNCI_FORM_JADWAL = frozenset({"token", "kelompok"})
 _GALAT_LAYANAN = (d.PesananError, sqlite3.Error, OSError, bukti_berkas.BuktiBerkasError, ValueError,
                   admin_store_core.StoreBelumSiap)
@@ -225,7 +226,7 @@ def _badan_get(penangan, principal, siswa_id: int, rekening: str):
         pilihan, privat = (), ""
     else:
         pilihan = _pilihan_jadwal(principal.id_akun, siswa_id, kini)
-        privat = jpm.kartu_untuk(principal.id_akun, siswa_id, kini, token_untuk)
+        privat = jpp.kartu_untuk(principal.id_akun, siswa_id, kini, token_untuk)
     return halaman.halaman_pilih_paket(kartu, tagihan, token_untuk, kabar=kabar, jadwal=jadwal,
                                        pilihan_jadwal=pilihan, privat=privat, dibatalkan=dibatalkan,
                                        boleh_hapus=tampil_hapus)
@@ -565,7 +566,8 @@ def _post_bukti(penangan, principal, siswa_id: int) -> None:
 
 
 _POST_HALAMAN = {halaman.RUTE_BUAT: _post_buat, halaman.RUTE_BUKTI: _post_bukti, halaman.RUTE_HAPUS: _post_hapus,
-                 halaman.RUTE_JADWAL: _post_jadwal, priv.RUTE_AJUKAN: jpm.post_ajukan, priv.RUTE_BATAL: jpm.post_batal}
+                 halaman.RUTE_JADWAL: _post_jadwal, priv.RUTE_AJUKAN: jpm.post_ajukan, priv.RUTE_BATAL: jpm.post_batal,
+                 priv.RUTE_POLA: jpp.post_ajukan, priv.RUTE_POLA_BATAL: jpp.post_batal}
 
 
 def tangani_post(penangan, jalur: str) -> bool:
