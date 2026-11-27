@@ -99,7 +99,8 @@ def test_query_tidak_dikenal_di_halaman_jurnal_404(siap, admin):
 
 # --- konten ---------------------------------------------------------------------------------
 
-def test_admin_melihat_banner_belum_aktif_saat_cutoff_kosong(siap, admin):
+def test_admin_melihat_banner_belum_aktif_saat_cutoff_kosong(siap, admin, monkeypatch):
+    monkeypatch.setattr(aturan, "PERTEMUAN_WAJIB_SEJAK", None)  # cutoff produksi kini terisi; tes ini menguji keadaan kosong
     kode, isi, _ = minta_admin(siap, RUTE, admin)
     assert kode == 200
     assert "Jurnal pertemuan" in isi

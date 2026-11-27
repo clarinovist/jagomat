@@ -1,6 +1,7 @@
 """Gerbang KODE_ANAK_AKTIF mati: ketiga permukaan kode anak tidak ada lewat HTTP (Fase 3b-6).
 
-Berkas ini TIDAK termasuk BERKAS_GERBANG_KODE_ANAK_NYALA di conftest.py, jadi gerbang tetap mati di sini. Tiap kasus
+Berkas ini TIDAK termasuk BERKAS_GERBANG_KODE_ANAK_NYALA di conftest.py; gerbang diatur sendiri lewat monkeypatch
+(nilai bawaan kode kini True sejak c25453b, jadi keadaan mati selalu dipatok eksplisit). Tiap kasus
 dibuktikan dengan kontrol positif (gerbang dinyalakan lewat monkeypatch dan permukaan ada), lalu keadaan mati. Token
 form diambil saat gerbang menyala karena form tidak dirender saat mati; token HMAC itu tetap sah setelahnya. Penolakan
 mati harus identik byte demi byte dengan rute tak dikenal atau 404 kepemilikan, dan tidak membuat `guru-tautan.db`.
