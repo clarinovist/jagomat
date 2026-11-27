@@ -105,12 +105,6 @@ def ambil(kode: str) -> PaketBelajar:
     raise ValueError("kode paket belajar tidak dikenal")
 
 
-def _periksa_bool(nama: str, nilai) -> bool:
-    if not isinstance(nilai, bool):
-        raise ValueError(f"{nama} harus bool")
-    return nilai
-
-
 def paket_dengan_harga(kode: str, harga_bulanan: int) -> PaketBelajar:
     """Salinan paket katalog dengan harga BULANAN dari harga aktif admin; katalog sendiri tidak berubah.
 
@@ -126,18 +120,25 @@ def _periksa_harga(nilai) -> int:
     return nilai
 
 
-def hitung_rincian(kode: str, *, deposit_aktif: bool, harga_paket: Optional[int] = None) -> Rincian:
-    """Nominal tagihan: harga paket dikurangi deposit Peta bila aktif; hasil selalu > 0.
+def _periksa_potongan(nilai) -> int:
+    if type(nilai) is not int or nilai < 0:
+        raise ValueError("potongan deposit harus bilangan bulat tidak negatif")
+    return nilai
 
+
+def hitung_rincian(kode: str, *, potongan_deposit: int, harga_paket: Optional[int] = None) -> Rincian:
+    """Nominal tagihan: harga paket dikurangi `potongan_deposit`; hasil selalu > 0.
+
+    `potongan_deposit` = nominal bayar order Peta yang dipotong (0 = tanpa deposit), dibaca pemanggil dari
+    `pesanan_order.rupiah`. Apakah nilai itu sah bagi CHECK tagihan dijaga `kelas_rincian`, bukan di sini.
     `harga_paket` None = harga katalog; selain itu harga bulanan aktif (wajib bilangan bulat positif asli).
     `potongan_diskon` selalu 0: diskon anak kedua sudah dihapus (25 Nov 2026). Kolomnya dipertahankan di
     `kelas_tagihan` agar skema dan tagihan lama tetap utuh.
     """
     paket = ambil(kode)
-    deposit = _periksa_bool("deposit_aktif", deposit_aktif)
+    potongan = _periksa_potongan(potongan_deposit)
     harga = paket.harga if harga_paket is None else _periksa_harga(harga_paket)
-    potongan_deposit = RUPIAH_DEPOSIT if deposit else 0
-    nominal = harga - potongan_deposit
+    nominal = harga - potongan
     if nominal <= 0:
         raise ValueError("nominal tagihan harus positif")
-    return Rincian(paket.kode, harga, potongan_deposit, 0, nominal)
+    return Rincian(paket.kode, harga, potongan, 0, nominal)

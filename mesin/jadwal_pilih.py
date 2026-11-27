@@ -27,7 +27,8 @@ class PilihanKelompok:
     kelompok_id: str
     nama: str
     mulai: str          # pertemuan aktif berikutnya, UTC baku
-    sisa: int           # kursi yang masih kosong
+    sisa: int           # kursi yang masih kosong (0 bila penuh)
+    penuh: bool = False  # terbuka tetapi kursinya habis: tampil sebagai "penuh", tidak bisa dipilih
 
 
 PESAN_BUKAN_MILIK_GURU = "kelompok sudah dipindah ke guru lain sejak permintaan diajukan"
@@ -61,13 +62,14 @@ def _order_mini_tanpa_jadwal(kon, akun_id: str, siswa_id: int, kini: str):
     return None
 
 
-def _kelompok_bisa_dimasuki(kon, kelompok: dict, order_id: str, kini: str) -> Optional[str]:
-    """Pertemuan berikutnya kelompok bila order ini boleh masuk (terbuka, ada kursi, muat dalam akses), selain itu None."""
+def _kelompok_terbuka(kon, kelompok: dict, order_id: str, kini: str) -> Optional[str]:
+    """Pertemuan berikutnya kelompok bila order ini boleh melihatnya (belum ditutup, muat dalam akses), selain itu None.
+
+    Kursi TIDAK diperiksa di sini: kelompok penuh tetap tampil (`penuh`), dan `pilih_kelompok` tetap menolaknya.
+    """
     kid = kelompok["id"]
     berikut = js._pertemuan_mendatang(kon, kid, kini)
     if berikut is None or js._jumlah_sudah_mulai(kon, kid, kini) >= js.TUTUP_SETELAH_PERTEMUAN_MULAI:
-        return None
-    if js._isi_kelompok(kon, kid) >= kelompok["kuota"]:
         return None
     batas = js._batas_akses_order(kon, order_id)
     terakhir = js._pertemuan_aktif_terakhir(kon, kid)
@@ -76,10 +78,17 @@ def _kelompok_bisa_dimasuki(kon, kelompok: dict, order_id: str, kini: str) -> Op
     return berikut
 
 
-def pilihan_untuk(kon, akun_id, siswa_id, sekarang) -> Tuple[PilihanKelompok, ...]:
-    """Kelompok yang boleh dipilih anak ini sekarang; kosong bila tidak ada order Mini aktif yang belum ditempatkan.
+def _pilihan(kon, kelompok: dict, berikut: str) -> PilihanKelompok:
+    isi = js._isi_kelompok(kon, kelompok["id"])
+    penuh = isi >= kelompok["kuota"]
+    return PilihanKelompok(kelompok["id"], kelompok["nama"], berikut, max(0, kelompok["kuota"] - isi), penuh)
 
-    Anak milik akun lain -> PesananTidakDitemukan. Hanya baca.
+
+def pilihan_untuk(kon, akun_id, siswa_id, sekarang) -> Tuple[PilihanKelompok, ...]:
+    """Kelompok terbuka untuk anak ini sekarang, termasuk yang penuh (`penuh=True`, tidak bisa dipilih).
+
+    Kosong bila tidak ada order Mini aktif yang belum ditempatkan. Kelompok yang sudah ditutup atau tidak muat dalam
+    masa akses tidak pernah masuk. Anak milik akun lain -> PesananTidakDitemukan. Hanya baca.
     """
     d.periksa_koneksi(kon)
     d.periksa_akun_id(akun_id)
@@ -92,10 +101,9 @@ def pilihan_untuk(kon, akun_id, siswa_id, sekarang) -> Tuple[PilihanKelompok, ..
     hasil = []
     for baris in kon.execute("SELECT id,nama,kuota FROM jadwal_kelompok ORDER BY nama,id").fetchall():
         kelompok = dict(baris)
-        berikut = _kelompok_bisa_dimasuki(kon, kelompok, order["id"], kini)
+        berikut = _kelompok_terbuka(kon, kelompok, order["id"], kini)
         if berikut is not None:
-            hasil.append(PilihanKelompok(kelompok["id"], kelompok["nama"], berikut,
-                                         kelompok["kuota"] - js._isi_kelompok(kon, kelompok["id"])))
+            hasil.append(_pilihan(kon, kelompok, berikut))
     return tuple(sorted(hasil, key=lambda p: (p.mulai, p.nama, p.kelompok_id)))
 
 

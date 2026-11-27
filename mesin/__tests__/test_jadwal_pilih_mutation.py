@@ -34,10 +34,9 @@ KASUS = (
         ("    kelas_store._wajib_anak_milik(kon, akun_id, siswa_id)\n    order = _order_mini_tanpa_jadwal(kon, akun_id, siswa_id, kini)\n    if order is None:\n        return ()",
          "    order = _order_mini_tanpa_jadwal(kon, akun_id, siswa_id, kini)\n    if order is None:\n        return ()"),
     ], TES_DOMAIN, "test_tanpa_order_mini_aktif_yang_belum_ditempatkan_tidak_ada_pilihan"),
-    ("daftar_menawarkan_kelompok_penuh", DOMAIN, [
-        ("    if js._isi_kelompok(kon, kid) >= kelompok[\"kuota\"]:\n        return None\n    batas",
-         "    batas"),
-    ], TES_DOMAIN, "test_sisa_kuota_berkurang_dan_kelompok_penuh_tidak_ditawarkan"),
+    ("daftar_kelompok_penuh_tidak_ditandai_penuh", DOMAIN, [
+        ("    penuh = isi >= kelompok[\"kuota\"]\n", "    penuh = False\n"),
+    ], TES_DOMAIN, "test_kelompok_penuh_tetap_tampil_bertanda_penuh_dan_tidak_bisa_dipilih"),
     ("daftar_menawarkan_kelompok_ditutup", DOMAIN, [
         ("    if berikut is None or js._jumlah_sudah_mulai(kon, kid, kini) >= js.TUTUP_SETELAH_PERTEMUAN_MULAI:\n        return None",
          "    if berikut is None:\n        return None"),

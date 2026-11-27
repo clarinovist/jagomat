@@ -3,7 +3,8 @@
 Titik masuk GET `/murid/paket` (SELALU daftar paket; di atasnya satu kartu per tagihan terbuka), GET `/murid/paket/tagihan?kode=`
 (halaman tagihan satu paket), GET `/murid/paket/hapus?kode=` (konfirmasi hapus), POST `/murid/paket/buat` (buat tagihan, atau
 memulihkan tagihan yang baru dihapus), POST `/murid/paket/bukti?kode=` (unggah bukti), POST `/murid/paket/hapus` (hapus tagihan
-belum bayar) dan `/murid/paket/jadwal` (orang tua memilih kelompok Mini sekali saja; aturan di `jadwal_pilih`). Pola sama dengan
+belum bayar) dan `/murid/paket/jadwal` (orang tua memilih kelompok Mini sekali saja; aturan di `jadwal_pilih`) dan GET
+`/murid/paket/kalender.ics` (jadwal pertemuan anak sebagai berkas iCalendar; tanpa jadwal = 404 identik). Pola sama dengan
 `harian_langganan_murid_http`; beda utama: tabel `kelas_*` ada di admin-control.db (bukan DB belajar), jadi semua baca/tulis lewat
 `kelas_store.buka(admin_store.BAWAAN)` dan DB belajar hanya dipakai untuk memetakan akun murid ke siswanya. Aturan yang
 ditegakkan di sini, bukan di halaman:
@@ -36,15 +37,18 @@ import hashlib
 import sqlite3
 import urllib.parse
 
+import admin_security
 import admin_store
 import admin_store_core
 import bukti_berkas
 import bukti_multipart
 import database
+import jadwal_anak_baca
 import jadwal_dasar
 import jadwal_pilih
 import jadwal_private_murid_http as jpm
 import jadwal_store
+import kalender_ics
 import kelas_batal
 import kelas_berkas as berkas
 import kelas_catatan as cat
@@ -83,13 +87,15 @@ COPY_GAGAL_HAPUS = "Tagihan ini belum bisa dihapus. Bila sudah ada bukti transfe
 COPY_GAGAL_PILIH_JADWAL = ("Kelompok itu belum bisa dipilih. Mungkin sudah penuh atau ditutup, atau jadwal anak sudah ditentukan. "
                           "Muat ulang halaman, atau hubungi tim bila masih perlu bantuan.")
 COPY_TIRAI_TERTUTUP = tirai_aksi.COPY_TERTUTUP
-COPY_TIRAI_KABAR = "Halaman ini terkunci PIN. Minta Ayah/Bunda membuka halaman orang tua dulu sebelum memilih paket, jadwal, atau mengunggah bukti."
+COPY_TIRAI_KABAR = ("Halaman ini terkunci PIN. Minta Ayah/Bunda membuka Halaman Ayah/Bunda dulu sebelum memilih paket, "
+                    "jadwal, atau mengunggah bukti.")
+COPY_DEPOSIT_TIDAK_SAH = "Tagihan belum bisa dibuat sekarang. Coba lagi nanti atau hubungi tim."
 COPY_KODE_HABIS = "Tagihan belum bisa dibuat sekarang. Coba lagi nanti atau hubungi tim."
 COPY_TIDAK_TERIMA = "Tidak ada tagihan yang sedang menerima bukti. Daftar paket dulu, atau waktu pembayaran sudah habis."
 COPY_BATAS_BUKTI = "Batas bukti untuk tagihan ini sudah tercapai. Hubungi tim bila masih perlu bantuan."
 COPY_BERKAS = {"kosong": COPY_BERKAS_KOSONG, "besar": COPY_BERKAS_BESAR, "tipe": COPY_TIPE_TIDAK_DIDUKUNG,
                "terbaca": COPY_BERKAS_TAK_TERBACA}
-_GET = frozenset({halaman.RUTE, halaman.RUTE_TAGIHAN, halaman.RUTE_HAPUS})
+_GET = frozenset({halaman.RUTE, halaman.RUTE_TAGIHAN, halaman.RUTE_HAPUS, halaman.RUTE_KALENDER})
 _POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_HAPUS, halaman.RUTE_JADWAL,
                    priv.RUTE_AJUKAN, priv.RUTE_BATAL})
 KUNCI_FORM_JADWAL = frozenset({"token", "kelompok"})
@@ -289,7 +295,50 @@ def _get_hapus(penangan, principal, siswa_id: int, jalur_penuh: str = "") -> Non
     _kirim_get(penangan, lambda: _badan_hapus(principal, siswa_id, kode, token_untuk))
 
 
-_GET_HALAMAN = {halaman.RUTE: _get_halaman, halaman.RUTE_TAGIHAN: _get_tagihan, halaman.RUTE_HAPUS: _get_hapus}
+# --- GET kalender ------------------------------------------------------------------------------
+
+def _jadwal_kalender(akun_id: str, siswa_id: int, kini: str):
+    """(kunci order, jadwal) penempatan order aktif terbaru anak ini, atau None. Baca-saja; galat baca = None."""
+    try:
+        with jadwal_store.buka(admin_store.BAWAAN) as kon:
+            order_id = jadwal_anak_baca.order_penempatan_murid(kon, akun_id, siswa_id, kini)
+            jadwal = None if order_id is None else jadwal_store.jadwal_untuk_murid(kon, order_id)
+    except (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError, d.PesananError):
+        return None
+    return None if jadwal is None else (order_id, jadwal)
+
+
+def _header_kalender(panjang: int) -> dict:
+    return {**admin_security.header_privat(), "Content-Type": "text/calendar; charset=utf-8",
+            "Content-Length": str(panjang), "Vary": "Cookie", "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": 'attachment; filename="%s"' % kalender_ics.NAMA_BERKAS}
+
+
+def _kirim_kalender(penangan, isi: bytes) -> None:
+    penangan.send_response(200)
+    for nama, nilai in _header_kalender(len(isi)).items():
+        penangan.send_header(nama, nilai)
+    penangan.end_headers()
+    penangan.wfile.write(isi)
+
+
+def _get_kalender(penangan, principal, siswa_id: int, jalur_penuh: str = "") -> None:
+    """Jadwal pertemuan anak sebagai berkas .ics. Tanpa jadwal = 404 identik rute tak dikenal; data rusak = 503 tanpa rincian."""
+    kini = dasar.ke_baku(alur.waktu_sekarang())
+    ada = _jadwal_kalender(principal.id_akun, siswa_id, kini)
+    if ada is None:
+        _tidak_ada(penangan)
+        return
+    try:
+        isi = kalender_ics.bangun(ada[0], ada[1], kini)
+    except (ValueError, KeyError):
+        _info(penangan, "Belum bisa diproses", COPY_BELUM_SIAP, KODE_TIDAK_SIAP)
+        return
+    _kirim_kalender(penangan, isi)
+
+
+_GET_HALAMAN = {halaman.RUTE: _get_halaman, halaman.RUTE_TAGIHAN: _get_tagihan, halaman.RUTE_HAPUS: _get_hapus,
+                halaman.RUTE_KALENDER: _get_kalender}
 
 
 def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
@@ -328,6 +377,8 @@ def _form_buat(penangan, principal, aksi: str = halaman.AKSI_BUAT):
 def _galat_buat(penangan, galat: Exception) -> None:
     if isinstance(galat, dasar.KodeUnikHabis):
         _info(penangan, "Tagihan belum bisa dibuat", COPY_KODE_HABIS, KODE_BENTROK)
+    elif isinstance(galat, dasar.DepositTidakSah):  # sebelum cabang PesananKonflik: bukan soal "menunggu pembayaran"
+        _info(penangan, "Tagihan belum bisa dibuat", COPY_DEPOSIT_TIDAK_SAH, KODE_TIDAK_SIAP)
     elif isinstance(galat, d.PesananTidakDitemukan):
         _tidak_ada(penangan)
     elif isinstance(galat, d.PesananKonflik):

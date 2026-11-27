@@ -66,6 +66,10 @@ class DepositTidakAktif(KelasKonflik):
     """Deposit yang dipotongkan di tagihan tidak lagi bisa dipakai saat lunas; tidak ada yang ditulis."""
 
 
+class DepositTidakSah(KelasKonflik):
+    """Nominal order Peta yang akan dipotong tidak sama dengan nilai yang diizinkan CHECK tagihan; tagihan tidak dibuat (fail-closed)."""
+
+
 class TagihanTidakSah(KelasKonflik):
     """Hitungan tagihan tersimpan tidak konsisten (nominal/total); tidak pernah disetujui."""
 

@@ -22,7 +22,7 @@ KATALOG = "mesin/paket_belajar_katalog.py"
 BACA_HARGA = "    harga_paket = harga.harga_aktif(kon, kode_paket)\n"
 KARTU_HARGA = "        paket_kartu = katalog.paket_dengan_harga(paket.kode, rincian.harga_dasar)\n"
 TAGIHAN_TERSIMPAN = 'ks.rincian_dari_baris(order["paket"], tagihan), tagihan["kode_unik"],'
-TAGIHAN_HARGA_AKTIF = ('katalog.hitung_rincian(order["paket"], deposit_aktif=False, '
+TAGIHAN_HARGA_AKTIF = ('katalog.hitung_rincian(order["paket"], potongan_deposit=0, '
                        'harga_paket=harga_mutasi.harga_aktif(kon, order["paket"])), tagihan["kode_unik"],')
 
 KASUS = (

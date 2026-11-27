@@ -7,6 +7,7 @@ import pytest
 
 import kelas_pages as halaman
 import paket_belajar_katalog as k
+from jadwal_pilih import PilihanKelompok
 
 AKHIR = "2026-12-23T03:00:00"
 KEDALUWARSA = "2026-11-25T03:00:00"
@@ -20,12 +21,16 @@ def _token(aksi):
 
 
 def _kartu(kode, *, deposit=False, terbuka=False):
-    return k.KartuPaket(k.ambil(kode), k.hitung_rincian(kode, deposit_aktif=deposit), terbuka)
+    return k.KartuPaket(k.ambil(kode), k.hitung_rincian(kode, potongan_deposit=_potongan(deposit)), terbuka)
+
+
+def _potongan(deposit: bool) -> int:
+    return k.RUPIAH_DEPOSIT if deposit else 0
 
 
 def _tagihan(kode=k.KODE_PRIVATE, status=k.STATUS_BELUM_BAYAR, *, deposit=False, unik=427,
              bukti=0, berakhir=None):
-    r = k.hitung_rincian(kode, deposit_aktif=deposit)
+    r = k.hitung_rincian(kode, potongan_deposit=_potongan(deposit))
     return k.TagihanKelas(ORDER, kode, r, unik, r.nominal + unik, status, KEDALUWARSA, bukti, berakhir)
 
 
@@ -125,7 +130,7 @@ def test_pilih_tanpa_kartu_tidak_pecah():
 def test_tagihan_polos_memuat_harga_total_kode_unik_dan_jendela():
     teks = _teks(_tagih(_tagihan()))
     assert "Rp640.000" in teks and "Rp640.427" in teks and "427" in teks
-    assert "25 November 2026" in teks
+    assert "25 November 2026" in teks and "Bayar dalam 24 jam sejak tagihan dibuat." in teks
 
 
 def test_tagihan_deposit_menunjukkan_potongan_tanpa_diskon():
@@ -223,6 +228,22 @@ def test_kartu_jadwal_memuat_lokasi_delapan_pertemuan_waktu_wib_dan_label_dibata
 def test_tanpa_jadwal_tidak_ada_kartu_jadwal():
     assert "Jadwal pertemuan" not in _teks(_pilih(_dua_kartu()))
     assert "Jadwal pertemuan" not in _teks(_pilih(_dua_kartu(), jadwal=None))
+
+
+def test_kelompok_penuh_tampil_sebagai_penuh_tanpa_form_dan_semua_penuh_diberi_kabar():
+    penuh = PilihanKelompok("klp_" + "1" * 32, "Mini A", "2026-11-26T02:00:00", 0, True)
+    isi = _pilih(_dua_kartu(), pilihan_jadwal=(penuh,))
+    teks = _teks(isi)
+    assert "Mini A" in teks and "penuh" in teks and "Semua kelompok sedang penuh." in teks
+    assert 'name="kelompok"' not in isi and "Pilih kelompok ini" not in teks
+
+
+def test_kelompok_terbuka_tetap_punya_form_dan_tanpa_kabar_penuh():
+    terbuka = PilihanKelompok("klp_" + "2" * 32, "Mini B", "2026-11-26T02:00:00", 3, False)
+    penuh = PilihanKelompok("klp_" + "1" * 32, "Mini A", "2026-11-26T02:00:00", 0, True)
+    isi = _pilih(_dua_kartu(), pilihan_jadwal=(terbuka, penuh))
+    assert 'value="klp_' + "2" * 32 + '"' in isi and 'value="klp_' + "1" * 32 + '"' not in isi
+    assert "sisa 3 kursi" in _teks(isi) and "Semua kelompok sedang penuh." not in _teks(isi)
 
 
 def test_kartu_jadwal_escape_lokasi_dan_tanpa_skrip():

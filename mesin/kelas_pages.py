@@ -20,6 +20,7 @@ from typing import Callable, Mapping, Optional, Sequence
 import harian_langganan_dasar as h
 import harian_langganan_style
 import jadwal_tautan as jt
+import kelas_dasar as dasar
 import kelas_masa as km
 import paket_belajar_katalog as k
 import pesanan_murid_pages
@@ -34,6 +35,7 @@ RUTE_BUKTI = RUTE + "/bukti"
 RUTE_TAGIHAN = RUTE + "/tagihan"
 RUTE_HAPUS = RUTE + "/hapus"
 RUTE_JADWAL = RUTE + "/jadwal"
+RUTE_KALENDER = RUTE + "/kalender.ics"
 AKSI_JADWAL = "jadwal_pilih:"
 AKSI_BUAT = "kelas_buat:"
 AKSI_HAPUS = "kelas_hapus:"
@@ -60,6 +62,10 @@ COPY_JUDUL_PILIH_JADWAL = "Pilih jadwal kelas"
 COPY_PENGANTAR_PILIH_JADWAL = ("Pembayaran sudah disetujui. Pilih kelompok belajar untuk anak. Pilihan hanya bisa sekali; "
                                "bila perlu pindah, hubungi tim.")
 COPY_TOMBOL_PILIH_JADWAL = "Pilih kelompok ini"
+COPY_PENUH = "penuh"
+COPY_SEMUA_PENUH = "Semua kelompok sedang penuh."
+COPY_SIMPAN_KALENDER = "Simpan ke kalender"
+COPY_BAYAR_DALAM = "Bayar dalam %d jam sejak tagihan dibuat."
 COPY_TAUTAN_KELAS = "Tautan kelas"
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
@@ -187,29 +193,46 @@ def _baris_lokasi(lokasi: str) -> str:
     return _baris_tautan(lokasi.strip())
 
 
+def _tautan_kalender() -> str:
+    """Tautan unduh berkas .ics (tanpa JS); hanya tampil bersama kartu jadwal yang sudah terpasang."""
+    return f'<p><a href="{RUTE_KALENDER}">{_e(COPY_SIMPAN_KALENDER)}</a></p>'
+
+
 def _kartu_jadwal(jadwal: Optional[dict]) -> str:
-    """Kartu 'Jadwal pertemuan': lokasi (atau tautan kelas) lalu pertemuan berurut. Tanpa guru atau id apa pun."""
+    """Kartu 'Jadwal pertemuan': lokasi (atau tautan kelas), pertemuan berurut, lalu tautan kalender. Tanpa guru atau id."""
     if jadwal is None:
         return ""
     sesi = "".join(_baris_pertemuan(x) for x in jadwal["sesi"])
-    return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris_lokasi(jadwal['lokasi'])}{sesi}")
+    return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris_lokasi(jadwal['lokasi'])}{sesi}{_tautan_kalender()}")
 
 
 def _form_pilih_jadwal(pilihan, token_untuk: TokenUntuk) -> str:
-    """Satu kelompok: nama, pertemuan pertama (WIB), sisa kursi, dan tombol pilih. Tanpa guru atau lokasi."""
-    ringkas = f"{pilihan.nama} · mulai {waktu_wib(pilihan.mulai)} · sisa {int(pilihan.sisa)} kursi"
+    """Satu kelompok: nama, pertemuan pertama (WIB), sisa kursi, dan tombol pilih. Kelompok penuh hanya teks (tanpa form).
+
+    Tanpa guru atau lokasi.
+    """
+    ringkas = f"{pilihan.nama} · mulai {waktu_wib(pilihan.mulai)}"
+    if pilihan.penuh:
+        return _p(f"{ringkas} · {COPY_PENUH}", "lg-ket")
+    ringkas += f" · sisa {int(pilihan.sisa)} kursi"
     return (f'<form method="post" action="{RUTE_JADWAL}">{_p(ringkas, "lg-ket")}'
             f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_JADWAL + pilihan.kelompok_id))}">'
             f'<input type="hidden" name="kelompok" value="{_e(pilihan.kelompok_id)}">'
             f'{_tombol(COPY_TOMBOL_PILIH_JADWAL)}</form>')
 
 
-def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk) -> str:
-    """Kartu 'Pilih jadwal kelas' untuk Mini aktif yang belum ditempatkan (butir QA #4); kosong = tanpa kartu."""
+def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk, html_tambahan: str = "") -> str:
+    """Kartu 'Pilih jadwal kelas' untuk Mini aktif yang belum ditempatkan (butir QA #4); kosong = tanpa kartu.
+
+    Bila semua kelompok penuh, kartu tetap tampil dengan kabar penuh. `html_tambahan` = titik sambung untuk fitur
+    lanjutan (daftar tunggu, F2c); tidak ada tombol di sini.
+    """
     if not pilihan:
         return ""
     daftar = "".join(_form_pilih_jadwal(x, token_untuk) for x in pilihan)
-    return _kartu(f"<h2>{_e(COPY_JUDUL_PILIH_JADWAL)}</h2>{_p(COPY_PENGANTAR_PILIH_JADWAL, 'lg-kecil')}{daftar}")
+    kabar = _p(COPY_SEMUA_PENUH, "lg-kecil") if all(x.penuh for x in pilihan) else ""
+    return _kartu(f"<h2>{_e(COPY_JUDUL_PILIH_JADWAL)}</h2>{_p(COPY_PENGANTAR_PILIH_JADWAL, 'lg-kecil')}"
+                  f"{daftar}{kabar}{html_tambahan}")
 
 
 def _boleh_hapus_tagihan(tagihan: k.TagihanKelas, boleh_hapus: bool) -> bool:
@@ -299,14 +322,20 @@ def _isi_uang_selesai(status: str) -> str:
     return ""
 
 
+def _baris_batas(tagihan: k.TagihanKelas) -> str:
+    """Batas bayar: waktu berakhir (WIB) dan jendela bayar dari pembuatan tagihan; kosong bila tagihan tak berbatas."""
+    if not tagihan.kedaluwarsa:
+        return ""
+    return _baris("Batas waktu", waktu_wib(tagihan.kedaluwarsa)) + _p(COPY_BAYAR_DALAM % dasar.KEDALUWARSA_JAM, "lg-kecil")
+
+
 def _isi_uang(tagihan: k.TagihanKelas, rekening: str, token_untuk: TokenUntuk) -> str:
     if tagihan.status in (k.STATUS_AKTIF, k.STATUS_KEDALUWARSA, k.STATUS_DIBATALKAN):
         return _isi_uang_selesai(tagihan.status)
     isi = (f'<p class="lg-kecil">{_e(COPY_LABEL_NOMINAL)}</p>'
            f'<p class="lg-nominal"><strong>{_e(rupiah(tagihan.total))}</strong></p>'
            f'<p class="lg-tulis">{_e(COPY_TULIS_TRANSFER)}</p><hr class="lg-pemisah">'
-           f'{_rekening(rekening)}'
-           f'{_baris("Batas waktu", waktu_wib(tagihan.kedaluwarsa)) if tagihan.kedaluwarsa else ""}')
+           f'{_rekening(rekening)}{_baris_batas(tagihan)}')
     if tagihan.status in _BOLEH_UNGGAH:
         isi += _p(COPY_ATURAN, "lg-kecil") + _form_unggah(token_untuk(AKSI_BUKTI + tagihan.kode_paket),
                                                           tagihan.status == k.STATUS_DITOLAK, tagihan.kode_paket)

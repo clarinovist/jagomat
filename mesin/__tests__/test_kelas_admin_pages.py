@@ -16,7 +16,7 @@ def _item(kode=k.KODE_PRIVATE, total=591_427, siswa=7654321):
 
 
 def _tagihan(status=k.STATUS_MENUNGGU):
-    r = k.hitung_rincian(k.KODE_PRIVATE, deposit_aktif=True)
+    r = k.hitung_rincian(k.KODE_PRIVATE, potongan_deposit=k.RUPIAH_DEPOSIT)
     return k.TagihanKelas(ORDER, k.KODE_PRIVATE, r, 427, r.nominal + 427, status, "2026-11-25T03:00:00", 1, None)
 
 

@@ -289,7 +289,7 @@ def _blok_serah(k: Konteks) -> str:
         return (
             f'<a class="cta putih" href="{esc(TUJUAN_ORANG_TUA)}">Tanya Ayah/Bunda</a>'
             f'<a class="cta putih" href="{esc(TUJUAN_BERANDA_ANAK)}">Kembali ke beranda</a>'
-            '<p class="serah">Ayah/Bunda membuka halaman orang tua untuk melihat hasilnya.</p>'
+            '<p class="serah">Ayah/Bunda membuka hasilnya lewat Halaman Ayah/Bunda.</p>'
         )
     return (
         '<p class="serah">Tunjukkan layar ini ke Ayah/Bunda. '

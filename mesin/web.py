@@ -112,6 +112,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/murid/paket", "murid"),  # Paket Belajar 1 Bulan (exact, selalu daftar paket); sakelar PAKET_BELAJAR mati = jalur murid asing
     ("/murid/paket/tagihan", "murid"),  # Paket Belajar: halaman tagihan per kode (?kode=); sakelar mati = jalur murid asing
     ("/murid/paket/hapus", "murid"),  # Paket Belajar: konfirmasi hapus tagihan (?kode=); sakelar mati = jalur murid asing
+    ("/murid/paket/kalender.ics", "murid"),  # Paket Belajar: unduh jadwal pertemuan anak (.ics); tanpa jadwal = 404 murid
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),

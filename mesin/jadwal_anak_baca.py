@@ -62,6 +62,18 @@ def _sesi_mendatang(pertemuan: list, kini: str) -> Optional[sqlite3.Row]:
     return None
 
 
+def order_penempatan_murid(kon, akun_id, siswa_id, kini) -> Optional[str]:
+    """order_id penempatan order AKTIF terbaru milik (akun, anak) ini, atau None (pemilihan sama dengan `jadwal_terbaru_murid`).
+
+    Dipakai pembuat berkas kalender sebagai kunci UID stabil per order. Hanya SELECT.
+    """
+    d.periksa_koneksi(kon)
+    d.periksa_akun_id(akun_id)
+    dasar.periksa_siswa_id(siswa_id)
+    penempatan = _penempatan_terbaru(kon, akun_id, siswa_id, dasar.ke_baku(kini))
+    return None if penempatan is None else penempatan["order_id"]
+
+
 def sesi_berikutnya_murid(kon, akun_id, siswa_id, kini) -> Optional[dict]:
     """`{"guru_id", "ke", "mulai", "menit", "berlangsung"}` untuk sesi berikutnya anak ini, atau None.
 
