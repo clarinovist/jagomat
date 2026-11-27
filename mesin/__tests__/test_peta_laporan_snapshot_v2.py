@@ -293,11 +293,12 @@ def test_jalur_otomatis_menerbitkan_laporan_versi_dua(kon):
 
 
 def test_laporan_v2_tampil_di_blok_peta_tanpa_grid_mentah():
-    """Renderer orang tua (versi 1) hanya membaca kunci yang dikenalnya; grid dan waktu tak tercetak mentah."""
+    """Renderer orang tua menampilkan grid ber-label; daftar mentah dan nama kunci waktu tak tercetak."""
     html = halaman.blok_peta({"isi": _isi_v2(), "catatan": CATATAN, "diterbitkan": "2026-11-24 15:00:00"})
     assert str(_isi_v2()["skor"]) in html
     assert str(GRID_POLA) not in html
-    assert "menit_total" not in html and "grid" not in html.lower()
+    assert "menit_total" not in html and "rata_detik" not in html
+    assert "Nomor 1: benar" in html and "Nomor 6: dilewati" in html and "Nomor 3: salah" in html
 
 
 def test_jalur_otomatis_tanpa_waktu_mulai_tetap_terbit_tanpa_perkiraan(kon):

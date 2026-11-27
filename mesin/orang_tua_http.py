@@ -39,6 +39,7 @@ import pesanan_alur as alur
 import pin_orang_tua_store as pin_store
 import tirai_orang_tua as tirai
 from orang_tua_style import RUTE
+from peta_browser import SKRIP_CETAK
 from support_pages import halaman_pesan_murid
 
 _log = logging.getLogger(__name__)
@@ -88,7 +89,7 @@ def _kunci_laju(penangan, siswa_id: int) -> tuple:
 
 
 def _kirim(penangan, isi: bytes, kode: int = 200) -> None:
-    penangan._kirim_privat(isi, kode, skrip_sandi=True)
+    penangan._kirim_privat(isi, kode, skrip_sandi=True, skrip_cetak=SKRIP_CETAK.encode() in isi)
 
 
 def _alihkan(penangan, tujuan: str) -> None:

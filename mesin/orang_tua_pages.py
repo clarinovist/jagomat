@@ -33,6 +33,7 @@ from funnel_style import GAYA_FUNNEL
 from murid_shell import PANAH_KEMBALI, aksi_topbar, bungkus_murid, kepala_murid, topbar_murid
 from orang_tua_style import GAYA_ORTU, RUTE
 from parent_report_page import GAYA_LO
+from peta_style_laporan_v2 import GAYA_PETA_V2
 from playful_style import GAYA_CERIA
 from purna import VOUCHER_AKTIF
 from style_stitch import gaya_stitch
@@ -150,7 +151,7 @@ def _kepala() -> str:
 
 
 def _dokumen(badan: str, ceria: bool = False) -> bytes:
-    css = gaya_stitch() + GAYA_FUNNEL + GAYA_LO + GAYA_ORTU + (GAYA_CERIA if ceria else "")
+    css = gaya_stitch() + GAYA_FUNNEL + GAYA_LO + GAYA_ORTU + GAYA_PETA_V2 + (GAYA_CERIA if ceria else "")
     topbar = topbar_murid(aksi_topbar("/murid", "Kembali", PANAH_KEMBALI))
     return (
         '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">'

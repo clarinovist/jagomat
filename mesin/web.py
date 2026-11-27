@@ -230,6 +230,14 @@ def izin_gaya_font(isi: bytes) -> str:
     return _GAYA_FONT_GOOGLE if b"fonts.googleapis.com" in isi else _GAYA_FONT_LOKAL
 
 
+def _hash_skrip(teks: str) -> str:
+    """Sumber CSP `'sha256-…'` untuk isi `<script>` polos (sama dengan hash yang dihitung browser)."""
+    import base64
+    import hashlib
+
+    return "'sha256-" + base64.b64encode(hashlib.sha256(teks.encode()).digest()).decode("ascii") + "'"
+
+
 def csp_tautan(isi: bytes) -> str:
     """CSP untuk halaman bearer `/mulai/<token>` (anak tanpa login).
 
@@ -310,11 +318,12 @@ class Penangan(BaseHTTPRequestHandler):
         self.wfile.write(isi)
 
     def _kirim_privat(self, isi: bytes, kode: int = 200, *, beranda_guru: bool = False,
-                      skrip_sandi: bool = False) -> None:
+                      skrip_sandi: bool = False, skrip_cetak: bool = False) -> None:
         """Respons privat; enhancement terdaftar berhash dengan izin koneksi terbatas.
 
         `skrip_sandi` (opt-in, halaman murid dengan input PIN) ikut mengizinkan hash `SKRIP_MATA_SANDI`
-        yang sudah disetujui, supaya toggle mata tetap jalan di bawah CSP ketat ini.
+        yang sudah disetujui, supaya toggle mata tetap jalan di bawah CSP ketat ini. `skrip_cetak` (opt-in,
+        blok Peta versi 2 di halaman orang tua) mengizinkan hash `SKRIP_CETAK` yang sudah disetujui.
         """
         import assistant_browser
         from offline_browser import HASH_OFFLINE
@@ -331,6 +340,9 @@ class Penangan(BaseHTTPRequestHandler):
             from teacher_style import SKRIP_MATA_SANDI
             hash_sandi = "'sha256-" + base64.b64encode(hashlib.sha256(SKRIP_MATA_SANDI.encode()).digest()).decode() + "'"
             izin_skrip = izin_skrip.replace("script-src ", "script-src " + hash_sandi + " ", 1)
+        if skrip_cetak:
+            from peta_browser import SKRIP_CETAK
+            izin_skrip = izin_skrip.replace("script-src ", "script-src " + _hash_skrip(SKRIP_CETAK) + " ", 1)
         # Halaman privat: tanpa host pihak ketiga; font merek same-origin dari /aset/.
         izin_gaya = "style-src 'unsafe-inline'; font-src 'self'; "
         if beranda_guru:
