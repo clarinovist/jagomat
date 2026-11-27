@@ -135,7 +135,7 @@ def _get_kelompok(penangan, principal) -> None:
         return h._galat(penangan, 403, daftar_ui.COPY_GALAT_FORM)
     except _GALAT_LAYANAN:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
-    _kirim(penangan, principal, ui.halaman_kelompok(detail, guru, tokens))
+    _kirim(penangan, principal, ui.halaman_kelompok(detail, guru, tokens, kini=alur.waktu_sekarang()))
 
 
 def tangani_get(penangan, jalur) -> bool:

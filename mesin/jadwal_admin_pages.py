@@ -6,6 +6,7 @@ Token CSRF/tinjauan disuntik pemanggil per aksi; tanpa sandi ulang karena ini pe
 from __future__ import annotations
 
 import html
+from datetime import datetime
 from typing import Mapping, Optional, Sequence
 
 import admin_verifikasi_pages as vp
@@ -38,6 +39,9 @@ COPY_LEPAS = ("Lepas penempatan anak ini? Private hanya bisa dilepas sebelum per
               "Perpanjangan tidak perlu dilepas dulu: penempatan lama yang aksesnya sudah berakhir dipensiunkan otomatis.")
 COPY_BATAL = "Batalkan pertemuan ini? Pertemuan tetap tercatat sebagai dibatalkan dan bisa diaktifkan lagi."
 COPY_AKTIFKAN = "Aktifkan lagi pertemuan yang dibatalkan ini?"
+RUTE_JURNAL = "/admin/jadwal/jurnal/%d"
+COPY_TAUTAN_JURNAL = "Jurnal dan kehadiran"
+FORMAT_WAKTU_BAKU = "%Y-%m-%dT%H:%M:%S"
 
 
 def _e(nilai) -> str:
@@ -127,13 +131,25 @@ def _aksi_sesi(sesi: Mapping, token_ubah, token_batal) -> str:
            0 if dibatalkan else 1, kelas_tombol, "Aktifkan" if dibatalkan else "Batalkan"))
 
 
-def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: bool) -> str:
+def _waktu_baku(baku: str) -> datetime:
+    return datetime.strptime(baku, FORMAT_WAKTU_BAKU)
+
+
+def _tautan_jurnal(sesi: Mapping, kini: Optional[str]) -> str:
+    """Tautan koreksi untuk pertemuan yang sudah mulai dan tidak dibatalkan; kosong bila tidak berlaku."""
+    if kini is None or bool(sesi["dibatalkan"]) or _waktu_baku(sesi["mulai"]) > _waktu_baku(kini):
+        return ""
+    return '<a class="admin-tautan" href="%s">%s</a>' % (RUTE_JURNAL % int(sesi["id"]), _e(COPY_TAUTAN_JURNAL))
+
+
+def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: bool,
+                kini: Optional[str] = None) -> str:
     baris = []
     for s in sesi:
         status = "Dibatalkan" if s["dibatalkan"] else "Aktif"
         if s.get("bentrok"):
             status += " · " + COPY_BENTROK_SESI
-        aksi = _aksi_sesi(s, token_ubah, token_batal) if bisa_ubah else ""
+        aksi = (_aksi_sesi(s, token_ubah, token_batal) if bisa_ubah else "") + _tautan_jurnal(s, kini)
         baris.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>"
                      % (s["ke"], _e(_waktu(s["mulai"])), _e(status), aksi))
     peringatan = ('<p class="admin-catatan" role="note">%s</p>' % _e(COPY_BENTROK_PERINGATAN)
@@ -142,7 +158,8 @@ def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: 
                                   "".join(baris), COPY_SESI_KOSONG)
 
 
-def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) -> str:
+def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping, *,
+                     kini: Optional[str] = None) -> str:
     """Detail kelompok: ringkasan, form ubah, anggota, dan delapan pertemuan."""
     b = detail["kelompok"]
     ubah = (
@@ -168,7 +185,7 @@ def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) 
         % (_e(b["nama"]), _e(b["lokasi"]), _e(katalog.ambil(b["paket"]).nama),
            _e(guru.get(b["guru_id"], "Akun guru tidak aktif")), detail["terisi"], b["kuota"])
         + ubah + tabel_anggota
-        + _baris_sesi(detail["sesi"], tokens["sesi_ubah"], tokens["sesi_batal"], bisa_ubah=True))
+        + _baris_sesi(detail["sesi"], tokens["sesi_ubah"], tokens["sesi_batal"], bisa_ubah=True, kini=kini))
 
 
 def _sisa_kelompok(daftar: Sequence[Mapping]) -> str:
@@ -183,7 +200,8 @@ def _sisa_kelompok(daftar: Sequence[Mapping]) -> str:
 
 
 def blok_penempatan(order: Mapping, ringkas: Optional[Mapping], kelompok: Sequence[Mapping],
-                    guru: Mapping[str, str], bisa_tempatkan: bool, tokens: Mapping) -> str:
+                    guru: Mapping[str, str], bisa_tempatkan: bool, tokens: Mapping, *,
+                    kini: Optional[str] = None) -> str:
     """Kartu di detail order: penempatan, ringkasan, dan jadwal Private."""
     if ringkas is None:
         if not bisa_tempatkan:
@@ -214,12 +232,12 @@ def blok_penempatan(order: Mapping, ringkas: Optional[Mapping], kelompok: Sequen
             '<button class="admin-tombol" type="submit">Buat 8 pertemuan Private</button></form></section>'
             % (_hidden(tokens["tempatkan"]), _opsi_guru(guru)))
     if ringkas["kelompok_id"]:
-        sesi = _baris_sesi(ringkas["sesi"], None, None, bisa_ubah=False)
+        sesi = _baris_sesi(ringkas["sesi"], None, None, bisa_ubah=False, kini=kini)
         isi = ('<p>Kelompok <a class="admin-tautan" href="%s?id=%s">%s</a> · Tautan: %s · Guru %s</p>'
                % (RUTE_KELOMPOK, _e(ringkas["kelompok_id"]), _e(ringkas["kelompok_nama"]),
                   _e(ringkas["kelompok_lokasi"]), _e(guru.get(ringkas["kelompok_guru"], "Akun guru tidak aktif"))))
     else:
-        sesi = _baris_sesi(ringkas["sesi"], tokens["sesi_ubah"], tokens["sesi_batal"], bisa_ubah=True)
+        sesi = _baris_sesi(ringkas["sesi"], tokens["sesi_ubah"], tokens["sesi_batal"], bisa_ubah=True, kini=kini)
         isi = ('<p>Private · %s · Guru %s</p>'
                % (_e(ringkas["lokasi"]), _e(guru.get(ringkas["guru_id"], "Akun guru tidak aktif"))))
     lepas = ('<form method="post" action="/admin/kelas/penempatan/lepas" data-konfirmasi="%s">%s'

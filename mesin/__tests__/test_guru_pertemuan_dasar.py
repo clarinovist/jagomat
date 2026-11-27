@@ -541,3 +541,109 @@ def test_check_skema_menolak_baris_mentah_yang_tidak_sah(berkas, tabel, ubah):
     with pytest.raises(sqlite3.IntegrityError):
         _insert_mentah(berkas, tabel, baris)
     assert _jumlah(berkas, tabel) == 1
+
+
+# --- riwayat (untuk koreksi admin 2b): semua baris, urut id, dengan peran dan pelaku ---------
+
+def test_riwayat_tanpa_berkas_kosong_dan_tidak_membuat_berkas(berkas):
+    # Act
+    hasil = D.riwayat(KUNCI, MULAI, path=berkas)
+
+    # Assert
+    assert hasil == {"jurnal": [], "hadir": []}
+    assert not berkas.exists()
+
+
+def test_riwayat_memuat_baris_guru_lalu_admin_berurutan(berkas):
+    # Arrange: guru mencatat, lalu admin mengoreksi topik dan satu status.
+    _catat(berkas, hadir={ORDER_A: "hadir", ORDER_B: "izin"})
+    _catat(berkas, peran="admin", oleh=ID_ADMIN, pada=PADA_LAIN, topik=TOPIK_LAIN,
+           hadir={ORDER_A: "tidak_hadir", ORDER_B: "izin"})
+
+    # Act
+    hasil = D.riwayat(KUNCI, MULAI, path=berkas)
+
+    # Assert
+    assert [(b["topik"], b["peran"], b["oleh"], b["pada"]) for b in hasil["jurnal"]] == [
+        (TOPIK, "guru", ID_GURU, PADA),
+        (TOPIK_LAIN, "admin", ID_ADMIN, PADA_LAIN),
+    ]
+    assert [(b["order_id"], b["status"], b["peran"]) for b in hasil["hadir"]] == [
+        (ORDER_A, "hadir", "guru"),
+        (ORDER_B, "izin", "guru"),
+        (ORDER_A, "tidak_hadir", "admin"),
+    ]
+    assert [b["id"] for b in hasil["jurnal"]] == sorted(b["id"] for b in hasil["jurnal"])
+    assert [b["id"] for b in hasil["hadir"]] == sorted(b["id"] for b in hasil["hadir"])
+
+
+def test_riwayat_hanya_memuat_pertemuan_kunci_dan_mulai_itu(berkas):
+    # Arrange
+    _catat(berkas)
+    _catat(berkas, kunci=KUNCI_LAIN, topik=TOPIK_LAIN)
+    _catat(berkas, mulai=MULAI_LAIN, topik=TOPIK_LAIN)
+
+    # Act
+    hasil = D.riwayat(KUNCI, MULAI, path=berkas)
+
+    # Assert
+    assert [b["topik"] for b in hasil["jurnal"]] == [TOPIK]
+    assert len(hasil["hadir"]) == 1
+
+
+def test_riwayat_kirim_ulang_identik_tidak_menambah_baris(berkas):
+    # Arrange
+    _catat(berkas)
+    _catat(berkas, peran="admin", oleh=ID_ADMIN, pada=PADA_LAIN)
+
+    # Act
+    hasil = D.riwayat(KUNCI, MULAI, path=berkas)
+
+    # Assert
+    assert len(hasil["jurnal"]) == 1 and len(hasil["hadir"]) == 1
+
+
+def test_riwayat_hasil_hanya_berisi_kolom_yang_didefinisikan(berkas):
+    # Arrange
+    _catat(berkas)
+
+    # Act
+    hasil = D.riwayat(KUNCI, MULAI, path=berkas)
+
+    # Assert
+    assert set(hasil) == {"jurnal", "hadir"}
+    assert set(hasil["jurnal"][0]) == {"id", "topik", "oleh", "peran", "pada"}
+    assert set(hasil["hadir"][0]) == {"id", "order_id", "status", "oleh", "peran", "pada"}
+
+
+def test_riwayat_menolak_kunci_atau_waktu_tidak_sah_tanpa_membuat_berkas(berkas):
+    # Act / Assert
+    with pytest.raises(ValueError):
+        D.riwayat("bukan-kunci", MULAI, path=berkas)
+    with pytest.raises(ValueError):
+        D.riwayat(KUNCI, "2026-1-5T10:00:00", path=berkas)
+    assert not berkas.exists()
+
+
+def test_riwayat_versi_skema_asing_ditolak(berkas):
+    # Arrange
+    with closing(sqlite3.connect(str(berkas))) as kon:
+        kon.execute("PRAGMA user_version = 99")
+        kon.execute("CREATE TABLE x (a INTEGER)")
+        kon.commit()
+
+    # Act / Assert
+    with pytest.raises(D.GalatCatatan):
+        D.riwayat(KUNCI, MULAI, path=berkas)
+
+
+def test_riwayat_tidak_menulis_apa_pun(berkas):
+    # Arrange
+    _catat(berkas)
+    sebelum = (_jumlah(berkas, "pertemuan_jurnal"), _jumlah(berkas, "pertemuan_hadir"))
+
+    # Act
+    D.riwayat(KUNCI, MULAI, path=berkas)
+
+    # Assert
+    assert (_jumlah(berkas, "pertemuan_jurnal"), _jumlah(berkas, "pertemuan_hadir")) == sebelum

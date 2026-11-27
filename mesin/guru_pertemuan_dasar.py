@@ -322,6 +322,32 @@ def terkini(kunci: str, mulai: str, *, path=None) -> Dict[str, object]:
     return _baca_berkas(_path_db(path), _keadaan_kosong(), lambda kon: _baca_keadaan(kon, kunci, mulai))
 
 
+_SQL_RIWAYAT_JURNAL = ("SELECT id, topik, oleh, peran, pada FROM pertemuan_jurnal "
+                       "WHERE kunci = ? AND mulai = ? ORDER BY id")
+_SQL_RIWAYAT_HADIR = ("SELECT id, order_id, status, oleh, peran, pada FROM pertemuan_hadir "
+                      "WHERE kunci = ? AND mulai = ? ORDER BY id")
+
+
+def _baca_riwayat(kon, kunci: str, mulai: str) -> Dict[str, List[dict]]:
+    """Semua baris jurnal dan hadir untuk (kunci, mulai), urut id naik, sebagai dict baru (tanpa objek DB)."""
+    jurnal = [{"id": i, "topik": t, "oleh": o, "peran": p, "pada": w}
+              for i, t, o, p, w in kon.execute(_SQL_RIWAYAT_JURNAL, (kunci, mulai)).fetchall()]
+    hadir = [{"id": i, "order_id": oi, "status": s, "oleh": o, "peran": p, "pada": w}
+             for i, oi, s, o, p, w in kon.execute(_SQL_RIWAYAT_HADIR, (kunci, mulai)).fetchall()]
+    return {"jurnal": jurnal, "hadir": hadir}
+
+
+def riwayat(kunci: str, mulai: str, *, path=None) -> Dict[str, List[dict]]:
+    """Riwayat lengkap (peran, pelaku, waktu) untuk (kunci, mulai); HANYA untuk permukaan admin (koreksi 2b).
+
+    Tiap tabel urut `id` naik; baris pertama guru, koreksi menyusul sebagai baris baru (append-only). Tidak membuat
+    berkas; berkas tak ada atau kosong menghasilkan daftar kosong; versi skema asing -> `GalatCatatan`.
+    """
+    _periksa_kunci_waktu(kunci, mulai)
+    kosong = {"jurnal": [], "hadir": []}
+    return _baca_berkas(_path_db(path), kosong, lambda kon: _baca_riwayat(kon, kunci, mulai))
+
+
 def _salin_pasangan(pasangan: Iterable[Tuple[str, str]]) -> List[Tuple[str, str]]:
     hasil = []
     for item in pasangan:

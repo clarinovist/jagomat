@@ -171,7 +171,8 @@ def _get_detail(penangan, principal) -> None:
                                               ("sesi_ubah", jadwal_http.AKSI_SESI_UBAH, {"order_id": order_id}),
                                               ("sesi_batal", jadwal_http.AKSI_SESI_BATAL, {"order_id": order_id}))}
             isi += jadwal_ui.blok_penempatan({"paket": detail["kode_paket"]}, ringkas, kelompok, guru,
-                                             detail["status"] == dasar.STATUS_AKTIF, tokens)
+                                             detail["status"] == dasar.STATUS_AKTIF, tokens,
+                                             kini=alur.waktu_sekarang())
     isi += kode_anak.blok_html(penangan, principal, order_id)
     _kirim(penangan, principal, isi)
 
