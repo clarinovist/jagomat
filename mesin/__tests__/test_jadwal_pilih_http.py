@@ -128,7 +128,8 @@ def test_kelompok_penuh_ditolak_409(siap, jam):  # noqa: F811
     isi = halaman(siap, siap.b)                                  # kelompok penuh tampil sebagai "penuh", tanpa tombol
     assert JUDUL in teks(isi) and "Mini A" in teks(isi) and "penuh" in teks(isi)
     assert "Semua kelompok sedang penuh." in teks(isi) and "Pilih kelompok ini" not in teks(isi)
-    assert 'name="kelompok" value="%s"' % kid not in isi
+    assert 'action="/murid/paket/jadwal"' not in isi             # tanpa form pilih; hanya tombol daftar tunggu (F2c)
+    assert 'action="/murid/paket/tunggu"' in isi
 
 
 def test_sakelar_mati_rute_jadwal_menjawab_seperti_rute_lain(siap, monkeypatch):

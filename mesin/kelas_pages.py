@@ -15,7 +15,7 @@ Aturan isi:
 from __future__ import annotations
 
 import html
-from typing import Callable, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Callable, Mapping, Optional, Sequence
 
 import harian_langganan_dasar as h
 import harian_langganan_style
@@ -29,14 +29,21 @@ from format_tanggal import tanggal_pendek
 from pesanan_transfer_pages import COPY_ATURAN, COPY_LABEL_BERKAS, rupiah, waktu_wib
 from playful_style import GAYA_CERIA
 
+if TYPE_CHECKING:  # hanya untuk anotasi: tidak menarik DB/domain saat modul render dimuat
+    from jadwal_tunggu_mini import StatusTunggu
+
 RUTE = "/murid/paket"
 RUTE_BUAT = RUTE + "/buat"
 RUTE_BUKTI = RUTE + "/bukti"
 RUTE_TAGIHAN = RUTE + "/tagihan"
 RUTE_HAPUS = RUTE + "/hapus"
 RUTE_JADWAL = RUTE + "/jadwal"
+RUTE_TUNGGU = RUTE + "/tunggu"
+RUTE_TUNGGU_KELUAR = RUTE + "/tunggu/keluar"
 RUTE_KALENDER = RUTE + "/kalender.ics"
 AKSI_JADWAL = "jadwal_pilih:"
+AKSI_TUNGGU = "jadwal_tunggu_masuk:"
+AKSI_TUNGGU_KELUAR = "jadwal_tunggu_keluar"
 AKSI_BUAT = "kelas_buat:"
 AKSI_HAPUS = "kelas_hapus:"
 AKSI_BUKTI = "kelas_bukti:"
@@ -64,6 +71,10 @@ COPY_PENGANTAR_PILIH_JADWAL = ("Pembayaran sudah disetujui. Pilih kelompok belaj
 COPY_TOMBOL_PILIH_JADWAL = "Pilih kelompok ini"
 COPY_PENUH = "penuh"
 COPY_SEMUA_PENUH = "Semua kelompok sedang penuh."
+COPY_TOMBOL_TUNGGU = "Masuk daftar tunggu"
+COPY_TOMBOL_TUNGGU_KELUAR = "Keluar dari daftar tunggu"
+COPY_TUNGGU_SAYA = "Anda di daftar tunggu kelompok %s. Urutan %d."
+COPY_TUNGGU_PINDAH = "Anak hanya bisa di satu daftar tunggu. Masuk daftar lain menggantikan daftar ini."
 COPY_SIMPAN_KALENDER = "Simpan ke kalender"
 COPY_BAYAR_DALAM = "Bayar dalam %d jam sejak tagihan dibuat."
 COPY_TAUTAN_KELAS = "Tautan kelas"
@@ -206,33 +217,56 @@ def _kartu_jadwal(jadwal: Optional[dict]) -> str:
     return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris_lokasi(jadwal['lokasi'])}{sesi}{_tautan_kalender()}")
 
 
-def _form_pilih_jadwal(pilihan, token_untuk: TokenUntuk) -> str:
-    """Satu kelompok: nama, pertemuan pertama (WIB), sisa kursi, dan tombol pilih. Kelompok penuh hanya teks (tanpa form).
+def _baris_tunggu(pilihan, token_untuk: TokenUntuk, tunggu: Optional["StatusTunggu"]) -> str:
+    """Daftar tunggu di bawah satu kelompok: status anak bila menunggu di sini, atau tombol masuk bila kelompok penuh.
 
-    Tanpa guru atau lokasi.
+    `tunggu` None = daftar tunggu tidak bisa dibaca: tanpa tombol apa pun (kartu pilih tetap utuh).
+    """
+    if tunggu is None:
+        return ""
+    saya = tunggu.saya
+    if saya is not None and saya.kelompok_id == pilihan.kelompok_id:
+        return (_p(COPY_TUNGGU_SAYA % (pilihan.nama, saya.urutan))
+                + f'<form method="post" action="{RUTE_TUNGGU_KELUAR}">'
+                f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_TUNGGU_KELUAR))}">'
+                f'{_tombol(COPY_TOMBOL_TUNGGU_KELUAR)}</form>')
+    if not pilihan.penuh:
+        return ""
+    return (f'<form method="post" action="{RUTE_TUNGGU}">'
+            f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_TUNGGU + pilihan.kelompok_id))}">'
+            f'<input type="hidden" name="kelompok" value="{_e(pilihan.kelompok_id)}">'
+            f'{_tombol(COPY_TOMBOL_TUNGGU)}</form>')
+
+
+def _form_pilih_jadwal(pilihan, token_untuk: TokenUntuk, tunggu: Optional["StatusTunggu"] = None) -> str:
+    """Satu kelompok: nama, pertemuan pertama (WIB), sisa kursi, dan tombol pilih. Kelompok penuh tanpa form pilih.
+
+    `tunggu` menambah baris daftar tunggu (lihat `_baris_tunggu`). Tanpa guru atau lokasi.
     """
     ringkas = f"{pilihan.nama} · mulai {waktu_wib(pilihan.mulai)}"
     if pilihan.penuh:
-        return _p(f"{ringkas} · {COPY_PENUH}", "lg-ket")
+        return _p(f"{ringkas} · {COPY_PENUH}", "lg-ket") + _baris_tunggu(pilihan, token_untuk, tunggu)
     ringkas += f" · sisa {int(pilihan.sisa)} kursi"
     return (f'<form method="post" action="{RUTE_JADWAL}">{_p(ringkas, "lg-ket")}'
             f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_JADWAL + pilihan.kelompok_id))}">'
             f'<input type="hidden" name="kelompok" value="{_e(pilihan.kelompok_id)}">'
-            f'{_tombol(COPY_TOMBOL_PILIH_JADWAL)}</form>')
+            f'{_tombol(COPY_TOMBOL_PILIH_JADWAL)}</form>' + _baris_tunggu(pilihan, token_untuk, tunggu))
 
 
-def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk, html_tambahan: str = "") -> str:
+def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk, html_tambahan: str = "",
+                        tunggu: Optional["StatusTunggu"] = None) -> str:
     """Kartu 'Pilih jadwal kelas' untuk Mini aktif yang belum ditempatkan (butir QA #4); kosong = tanpa kartu.
 
-    Bila semua kelompok penuh, kartu tetap tampil dengan kabar penuh. `html_tambahan` = titik sambung untuk fitur
-    lanjutan (daftar tunggu, F2c); tidak ada tombol di sini.
+    Bila semua kelompok penuh, kartu tetap tampil dengan kabar penuh. `tunggu` (F2c) menambah tombol daftar tunggu per
+    kelompok penuh; None = tanpa tombol. `html_tambahan` = titik sambung tanpa tombol.
     """
     if not pilihan:
         return ""
-    daftar = "".join(_form_pilih_jadwal(x, token_untuk) for x in pilihan)
+    daftar = "".join(_form_pilih_jadwal(x, token_untuk, tunggu) for x in pilihan)
     kabar = _p(COPY_SEMUA_PENUH, "lg-kecil") if all(x.penuh for x in pilihan) else ""
+    pindah = _p(COPY_TUNGGU_PINDAH, "lg-kecil") if tunggu is not None and tunggu.saya is not None else ""
     return _kartu(f"<h2>{_e(COPY_JUDUL_PILIH_JADWAL)}</h2>{_p(COPY_PENGANTAR_PILIH_JADWAL, 'lg-kecil')}"
-                  f"{daftar}{kabar}{html_tambahan}")
+                  f"{daftar}{kabar}{pindah}{html_tambahan}")
 
 
 def _boleh_hapus_tagihan(tagihan: k.TagihanKelas, boleh_hapus: bool) -> bool:
@@ -255,7 +289,8 @@ def _kartu_tagihan(tagihan: k.TagihanKelas, boleh_hapus: bool) -> str:
 def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan_terbuka: Sequence[k.TagihanKelas],
                         token_untuk: TokenUntuk, galat: str = "", kabar: str = "",
                         jadwal: Optional[dict] = None, pilihan_jadwal: Sequence = (), privat: str = "", *,
-                        dibatalkan: Optional[Mapping[str, str]] = None, boleh_hapus: bool = False) -> bytes:
+                        dibatalkan: Optional[Mapping[str, str]] = None, boleh_hapus: bool = False,
+                        tunggu: Optional["StatusTunggu"] = None) -> bytes:
     """Halaman /murid/paket: SELALU daftar paket; di atasnya satu kartu per tagihan terbuka.
 
     `tagihan_terbuka` = tagihan belum bayar, menunggu, atau ditolak milik anak (`kelas_store.tagihan_terbuka_semua`).
@@ -263,10 +298,11 @@ def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan_terbuka: Sequence
     `boleh_hapus` = tautan hapus boleh tampil (tabel catatan terpasang dan tirai tidak menahan).
     `jadwal` (bacaan `jadwal_store.jadwal_untuk_murid`) menambah kartu jadwal pertemuan; None = tanpa kartu.
     `pilihan_jadwal` (`jadwal_pilih.pilihan_untuk`) menambah kartu pilih kelompok; kosong = tanpa kartu.
+    `tunggu` (`jadwal_tunggu_mini.status_tunggu`) menambah tombol daftar tunggu di kartu pilih; None = tanpa tombol.
     `privat` (kartu Jadwal Private dari `kelas_private_pages`) menambah kartu di bawahnya; "" = tanpa kartu.
     """
     pesan = ((_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "") + _kartu_jadwal(jadwal)
-             + _kartu_pilih_jadwal(pilihan_jadwal, token_untuk) + privat)
+             + _kartu_pilih_jadwal(pilihan_jadwal, token_untuk, tunggu=tunggu) + privat)
     kartu_tagihan = "".join(_kartu_tagihan(t, boleh_hapus) for t in tagihan_terbuka)
     sapa = C.maskot_bicara("menunjuk", COPY_SAPA)
     judul = f'<div class="lg-pilih-judul"><h2>Pilih paket</h2>{_p(COPY_PENGANTAR)}</div>'
