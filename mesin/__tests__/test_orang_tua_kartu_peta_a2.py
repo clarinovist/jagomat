@@ -81,6 +81,17 @@ def test_status_butuh_bayar_memakai_kartu_gelap_dengan_lencana_status_tanpa_kali
         assert "QRIS" not in html, status
 
 
+def test_kedaluwarsa_dan_ditolak_menampilkan_kalimat_status_di_kartu_gelap():
+    for status in (pesanan_pages.STATUS_KEDALUWARSA, pesanan_pages.STATUS_DITOLAK):
+        html = halaman._blok_pesanan(status, True)
+        assert pesanan_pages.COPY_STATUS[status][1] in html, status
+
+
+def test_belum_bayar_tanpa_kalimat_status_karena_kalimatnya_memuat_qris():
+    html = halaman._blok_pesanan(pesanan_pages.STATUS_BELUM_BAYAR, True)
+    assert pesanan_pages.COPY_STATUS[pesanan_pages.STATUS_BELUM_BAYAR][1] not in html
+
+
 def test_status_tanpa_bayar_lagi_tetap_kartu_status_tanpa_tawaran_beli():
     for status in STATUS_TANPA_BAYAR_LAGI:
         html = halaman._blok_pesanan(status, True)

@@ -83,6 +83,8 @@ STATUS_PESANAN_TANPA_TINDAKAN = frozenset((
 STATUS_PESANAN_BUTUH_BAYAR = frozenset((
     pesanan_pages.STATUS_BELUM_BAYAR, pesanan_pages.STATUS_KEDALUWARSA, pesanan_pages.STATUS_DITOLAK,
 ))
+# Kalimat status ikut tampil di kartu gelap; kalimat "belum bayar" memuat instruksi QRIS dan tidak ikut.
+STATUS_PESANAN_KALIMAT_KARTU = frozenset((pesanan_pages.STATUS_KEDALUWARSA, pesanan_pages.STATUS_DITOLAK))
 COPY_PESANAN_TERBIT = "Pembayaran diterima. Laporan Peta Kemampuan sudah tersedia di halaman ini."
 COPY_PESANAN_DISIAPKAN = "Pembayaran diterima. Laporan sedang disiapkan."
 COPY_PESANAN_LIHAT_DEPOSIT = "Lihat potongan & rincian pesanan"
@@ -283,11 +285,12 @@ def _kartu_sebelum_bayar(status, tautan_paket: bool, tautan_langganan: bool) -> 
     """Sebelum bayar (Usulan A): kartu gelap, harga sekali bayar, SATU tombol ke pesanan, tautan kecil bila aktif.
 
     `status` None untuk pembeli tanpa pesanan; untuk pesanan belum bayar, kedaluwarsa, atau ditolak, lencana
-    statusnya ikut tampil.
+    statusnya ikut tampil, dan kalimat status ikut tampil untuk kedaluwarsa dan ditolak.
     """
     lencana = C.lencana(pesanan_pages.COPY_STATUS[status][0], "kuning") if status else ""
+    kalimat = f'<p>{_e(pesanan_pages.COPY_STATUS[status][1])}</p>' if status in STATUS_PESANAN_KALIMAT_KARTU else ""
     harga = pesanan_transfer_pages.rupiah(pesanan_dasar.RUPIAH_PAKET)
-    return (f'<section class="ceria-ortu ortu-pesanan-st" id="ortu-pesanan">{lencana}'
+    return (f'<section class="ceria-ortu ortu-pesanan-st" id="ortu-pesanan">{lencana}{kalimat}'
             f'<p class="ceria-alis">{_e(COPY_PESANAN_LANGKAH)}</p>'
             f'<h2 class="ceria-judul">{_e(COPY_PESANAN_JUDUL)}</h2>'
             f'<p class="ortu-harga-st"><b>{_e(harga)}</b> sekali bayar</p>'
