@@ -9,7 +9,7 @@ import paket_belajar_katalog as k
 RENTANG_KODE = 999
 HARGA_PRODUK_LAIN = (49_000, 39_000, 349_000)  # Peta (+kode 1..999), Latihan Harian bulanan, tahunan
 DEPOSIT_PETA = 49_000
-PAKET_DAN_DEPOSIT = tuple(itertools.product((k.KODE_PRIVATE, k.KODE_MINI), (False, True)))
+PAKET_DAN_POTONGAN = tuple(itertools.product((k.KODE_PRIVATE, k.KODE_MINI), (0, DEPOSIT_PETA)))
 
 
 def _rentang_total(nominal):
@@ -17,7 +17,7 @@ def _rentang_total(nominal):
 
 
 def _nominal_semua_kombinasi():
-    return {k.hitung_rincian(kode, deposit_aktif=dep).nominal for kode, dep in PAKET_DAN_DEPOSIT}
+    return {k.hitung_rincian(kode, potongan_deposit=potongan).nominal for kode, potongan in PAKET_DAN_POTONGAN}
 
 
 def test_private_80rb_x_8_pertemuan_online_60_menit():
@@ -35,24 +35,24 @@ def test_kode_tak_dikenal_ditolak():
         k.ambil("harian")
 
 
-@pytest.mark.parametrize("kode,deposit,diharapkan", [
-    (k.KODE_PRIVATE, False, 640_000),
-    (k.KODE_PRIVATE, True, 591_000),
-    (k.KODE_MINI, False, 300_000),
-    (k.KODE_MINI, True, 251_000),
+@pytest.mark.parametrize("kode,potongan,diharapkan", [
+    (k.KODE_PRIVATE, 0, 640_000),
+    (k.KODE_PRIVATE, DEPOSIT_PETA, 591_000),
+    (k.KODE_MINI, 0, 300_000),
+    (k.KODE_MINI, DEPOSIT_PETA, 251_000),
 ])
-def test_nominal_sesuai_keputusan_pemilik(kode, deposit, diharapkan):
-    assert k.hitung_rincian(kode, deposit_aktif=deposit).nominal == diharapkan
+def test_nominal_sesuai_keputusan_pemilik(kode, potongan, diharapkan):
+    assert k.hitung_rincian(kode, potongan_deposit=potongan).nominal == diharapkan
 
 
 def test_deposit_memotong_bulan_pertama_mini_tanpa_diskon():
-    r = k.hitung_rincian(k.KODE_MINI, deposit_aktif=True)
+    r = k.hitung_rincian(k.KODE_MINI, potongan_deposit=DEPOSIT_PETA)
     assert (r.potongan_deposit, r.potongan_diskon, r.nominal) == (DEPOSIT_PETA, 0, 251_000)
 
 
 def test_rincian_konsisten_harga_dikurangi_deposit_tanpa_diskon():
-    for kode, dep in PAKET_DAN_DEPOSIT:
-        r = k.hitung_rincian(kode, deposit_aktif=dep)
+    for kode, potongan in PAKET_DAN_POTONGAN:
+        r = k.hitung_rincian(kode, potongan_deposit=potongan)
         assert r.potongan_diskon == 0
         assert r.nominal == r.harga_dasar - r.potongan_deposit - r.potongan_diskon > 0
 
@@ -60,13 +60,13 @@ def test_rincian_konsisten_harga_dikurangi_deposit_tanpa_diskon():
 def test_diskon_anak_kedua_sudah_dihapus_dari_katalog():
     assert not hasattr(k, "DISKON_ANAK_KEDUA_PERSEN")
     with pytest.raises(TypeError):
-        k.hitung_rincian(k.KODE_MINI, deposit_aktif=False, anak_kedua=True)
+        k.hitung_rincian(k.KODE_MINI, potongan_deposit=0, anak_kedua=True)
 
 
-@pytest.mark.parametrize("salah", [1, 0, None, "ya", ""])
-def test_penanda_deposit_harus_bool_ketat(salah):
+@pytest.mark.parametrize("salah", [-1, True, False, 49_000.0, "49000", None])
+def test_potongan_deposit_harus_bilangan_bulat_tak_negatif_ketat(salah):
     with pytest.raises(ValueError):
-        k.hitung_rincian(k.KODE_MINI, deposit_aktif=salah)
+        k.hitung_rincian(k.KODE_MINI, potongan_deposit=salah)
 
 
 def test_rentang_nominal_tak_beririsan_lintas_produk():

@@ -1,7 +1,8 @@
 """Rincian nominal tagihan kelas untuk satu pembeli: deposit Peta aktif (SELECT saja).
 
 Nominal HANYA dihitung di server dari katalog (`paket_belajar_katalog.hitung_rincian`) dan deposit yang dibaca di
-sini; tidak ada angka dari form.
+sini; tidak ada angka dari form. Potongan deposit = nominal bayar order Peta (`pesanan_order.rupiah`) yang dipotong,
+bukan nominal transfer; bila nominal itu tidak sama dengan nilai yang diizinkan CHECK tagihan, tagihan gagal tertutup.
 
 Deposit aktif = order Peta MILIK akun pembeli untuk anak ini (`pesanan_order` UNIQUE per anak; `akun_id` wajib sama)
 yang keadaan purna-nya `aktif` (lunas, tidak direfund, tidak ditahan, belum dipakai, belum 90 hari). Purna belum
@@ -15,6 +16,7 @@ from __future__ import annotations
 from typing import Optional, Tuple
 
 import harga
+import kelas_dasar as k
 import kelas_status as ks
 import paket_belajar_katalog as katalog
 import purna
@@ -56,6 +58,20 @@ def deposit_masih_tersedia(kon, akun_id: str, siswa_id: int, kode_paket: str, de
     return aktif and not _deposit_dipegang_lain(kon, akun_id, siswa_id, kode_paket, deposit_order, kini)
 
 
+def nominal_deposit(kon, order_id: str) -> int:
+    """Nominal bayar order Peta (`pesanan_order.rupiah`) yang dipotongkan ke tagihan; fail-closed bila tidak sesuai.
+
+    Nilai yang diizinkan = `katalog.RUPIAH_DEPOSIT`, sama dengan CHECK `kelas_tagihan.potongan_deposit IN (0, ...)` di
+    `schema_kelas` (DDL TIDAK diubah). Mengubah harga Peta kelak butuh rebuild tabel `kelas_tagihan` (Kritis, sidik
+    kontrak). Mengubah konstanta saja membuat tagihan baru gagal dengan `DepositTidakSah`, bukan potongan diam-diam.
+    """
+    baris = kon.execute("SELECT rupiah FROM pesanan_order WHERE order_id=?", (order_id,)).fetchone()
+    nominal = None if baris is None else baris["rupiah"]
+    if type(nominal) is not int or nominal != katalog.RUPIAH_DEPOSIT:
+        raise k.DepositTidakSah("nominal deposit Peta tidak sesuai nilai tagihan")
+    return nominal
+
+
 def rincian_untuk(kon, akun_id: str, siswa_id: int, kode_paket: str, kini: str,
                   abaikan_order: Optional[str] = None) -> Tuple[katalog.Rincian, Optional[str]]:
     """(rincian, order_id Peta yang dipotongkan atau None) untuk tagihan BARU paket ini pada `kini`.
@@ -69,5 +85,6 @@ def rincian_untuk(kon, akun_id: str, siswa_id: int, kode_paket: str, kini: str,
             kon, akun_id, siswa_id, kode_paket, deposit, kini, abaikan_order):
         deposit = None
     harga_paket = harga.harga_aktif(kon, kode_paket)
-    rincian = katalog.hitung_rincian(kode_paket, deposit_aktif=deposit is not None, harga_paket=harga_paket)
+    potongan = 0 if deposit is None else nominal_deposit(kon, deposit)
+    rincian = katalog.hitung_rincian(kode_paket, potongan_deposit=potongan, harga_paket=harga_paket)
     return rincian, (deposit if rincian.potongan_deposit > 0 else None)

@@ -185,25 +185,25 @@ def test_tagihan_terbuka_lama_tetap_terbaca_saat_skema_harga_rusak(db_harga_kela
 # --- unit katalog (fungsi murni, tanpa DB): API baru, merah sebagai TypeError/AttributeError -------------
 
 def test_hitung_rincian_memakai_harga_paket_yang_diberikan():
-    rincian = katalog.hitung_rincian("mini", deposit_aktif=False, harga_paket=MINI_BARU)
+    rincian = katalog.hitung_rincian("mini", potongan_deposit=0, harga_paket=MINI_BARU)
     assert (rincian.harga_dasar, rincian.potongan_deposit, rincian.nominal) == (MINI_BARU, 0, MINI_BARU)
 
 
 def test_hitung_rincian_tanpa_harga_paket_tetap_harga_katalog():
-    assert katalog.hitung_rincian("mini", deposit_aktif=True, harga_paket=None) == \
-        katalog.hitung_rincian("mini", deposit_aktif=True)
-    assert katalog.hitung_rincian("mini", deposit_aktif=True).nominal == 251_000
+    assert katalog.hitung_rincian("mini", potongan_deposit=DEPOSIT_PETA, harga_paket=None) == \
+        katalog.hitung_rincian("mini", potongan_deposit=DEPOSIT_PETA)
+    assert katalog.hitung_rincian("mini", potongan_deposit=DEPOSIT_PETA).nominal == 251_000
 
 
 @pytest.mark.parametrize("nilai", [True, False, 0, -1, 320_000.0, "320000"])
 def test_hitung_rincian_menolak_harga_paket_bukan_bilangan_bulat_positif(nilai):
     with pytest.raises(ValueError):
-        katalog.hitung_rincian("mini", deposit_aktif=False, harga_paket=nilai)
+        katalog.hitung_rincian("mini", potongan_deposit=0, harga_paket=nilai)
 
 
 def test_hitung_rincian_menolak_nominal_tidak_positif_setelah_deposit():
     with pytest.raises(ValueError):
-        katalog.hitung_rincian("mini", deposit_aktif=True, harga_paket=DEPOSIT_PETA)
+        katalog.hitung_rincian("mini", potongan_deposit=DEPOSIT_PETA, harga_paket=DEPOSIT_PETA)
 
 
 def test_paket_dengan_harga_menyalin_tanpa_mengubah_katalog():

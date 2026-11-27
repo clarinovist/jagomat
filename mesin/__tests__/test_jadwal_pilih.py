@@ -49,12 +49,16 @@ def test_pilihan_memuat_nama_waktu_dan_sisa_tanpa_guru_atau_lokasi(kon):
     assert not hasattr(pilihan, "guru_id") and not hasattr(pilihan, "lokasi")
 
 
-def test_sisa_kuota_berkurang_dan_kelompok_penuh_tidak_ditawarkan(kon):
+def test_kelompok_penuh_tetap_tampil_bertanda_penuh_dan_tidak_bisa_dipilih(kon):
     kelas_kit.lunas(kon, siswa=7, n=1)
     kelas_kit.lunas(kon, siswa=8, n=2)
     kid = kelompok(kon, kuota=1)
     jp.pilih_kelompok(kon, AKUN_A, 8, kid, KINI)
-    assert jp.pilihan_untuk(kon, AKUN_A, 7, KINI) == ()
+    (pilihan,) = jp.pilihan_untuk(kon, AKUN_A, 7, KINI)
+    assert (pilihan.kelompok_id, pilihan.sisa, pilihan.penuh) == (kid, 0, True)
+    with pytest.raises(jd.JadwalPenuh):
+        jp.pilih_kelompok(kon, AKUN_A, 7, kid, KINI)
+    assert jumlah_penempatan(kon) == 1
 
 
 def test_kelompok_ditutup_atau_selesai_atau_lewat_akses_tidak_ditawarkan(kon):
