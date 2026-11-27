@@ -62,6 +62,16 @@ def _order_mini_tanpa_jadwal(kon, akun_id: str, siswa_id: int, kini: str):
     return None
 
 
+def order_mini_belum_ditempatkan(kon, akun_id, siswa_id, sekarang) -> Optional[str]:
+    """Id order Mini aktif yang belum ditempatkan milik (akun, anak), atau None. Syarat sama dengan `pilihan_untuk`."""
+    d.periksa_akun_id(akun_id)
+    dasar.periksa_siswa_id(siswa_id)
+    kini = dasar.ke_baku(sekarang)
+    kelas_store._wajib_anak_milik(kon, akun_id, siswa_id)
+    order = _order_mini_tanpa_jadwal(kon, akun_id, siswa_id, kini)
+    return None if order is None else order["id"]
+
+
 def _kelompok_terbuka(kon, kelompok: dict, order_id: str, kini: str) -> Optional[str]:
     """Pertemuan berikutnya kelompok bila order ini boleh melihatnya (belum ditutup, muat dalam akses), selain itu None.
 

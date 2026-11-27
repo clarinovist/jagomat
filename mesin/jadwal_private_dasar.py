@@ -99,12 +99,36 @@ _DDL_POLA = (
     "          AND NEW.hari_b IS OLD.hari_b AND NEW.jam IS OLD.jam AND NEW.dibuat IS OLD.dibuat)\n"
     "BEGIN SELECT RAISE(ABORT, 'status pola hanya boleh berubah dari diajukan'); END",
 )
+TUNGGU_STATUS_MENUNGGU = "menunggu"
+TUNGGU_STATUS_DIBATALKAN = "dibatalkan"
+TUNGGU_STATUS_DIHAPUS_ADMIN = "dihapus_admin"
+# Daftar tunggu Mini (keputusan Pemilik K2): satu entri 'menunggu' per order; penempatan TIDAK disimpan di sini
+# (dibaca dari admin-control saat tampil). Kelompok sengaja TEXT tanpa FK lintas DB.
+_DDL_TUNGGU = (
+    "CREATE TABLE IF NOT EXISTS tunggu_mini (\n"
+    "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+    "    order_id TEXT NOT NULL,\n"
+    "    kelompok_id TEXT NOT NULL CHECK(length(kelompok_id)=36 AND substr(kelompok_id,1,4)='klp_'),\n"
+    "    status TEXT NOT NULL CHECK(status IN ('menunggu','dibatalkan','dihapus_admin')),\n"
+    "    dibuat TEXT NOT NULL,\n"
+    "    diubah TEXT NOT NULL,\n"
+    "    diputuskan_oleh TEXT\n"
+    ")",
+    "CREATE UNIQUE INDEX IF NOT EXISTS tunggu_mini_aktif ON tunggu_mini(order_id)\n"
+    "WHERE status = 'menunggu'",
+    "CREATE INDEX IF NOT EXISTS tunggu_mini_kelompok ON tunggu_mini(kelompok_id, status, dibuat, id)",
+    "CREATE TRIGGER IF NOT EXISTS tunggu_mini_transisi BEFORE UPDATE ON tunggu_mini\n"
+    "WHEN NOT (OLD.status = 'menunggu' AND NEW.status IN ('dibatalkan','dihapus_admin')\n"
+    "          AND NEW.id IS OLD.id AND NEW.order_id IS OLD.order_id AND NEW.kelompok_id IS OLD.kelompok_id\n"
+    "          AND NEW.dibuat IS OLD.dibuat)\n"
+    "BEGIN SELECT RAISE(ABORT, 'status daftar tunggu hanya boleh berubah dari menunggu'); END",
+)
 # Daftar DDL tambahan: tiap fitur menambah grup baru di sini. Semua statement IF NOT EXISTS (aditif, idempoten) dan
 # VERSI_SKEMA TIDAK dinaikkan: image lama menolak setiap versi selain 0/1 (503 / kartu hilang), sedangkan tabel
 # ekstra tidak terbaca olehnya. Berkas tanpa tabel baru tetap terbaca lewat `ada_tabel`.
 # APPEND-ONLY: grup yang sudah dirilis JANGAN diedit. IF NOT EXISTS berarti perubahan pada grup lama tidak pernah
-# sampai ke berkas yang sudah ada; fitur baru (mis. daftar tunggu Mini) menambah grup sendiri di akhir tuple ini.
-DDL_TAMBAHAN = (_DDL_POLA,)
+# sampai ke berkas yang sudah ada; fitur baru menambah grup sendiri di akhir tuple ini.
+DDL_TAMBAHAN = (_DDL_POLA, _DDL_TUNGGU)
 
 
 class GalatJadwalPrivate(Exception):
@@ -246,8 +270,8 @@ def ada_tabel(kon, nama: str) -> bool:
 
 @contextmanager
 def dengan_tulis(path, *, buat: bool = False):
-    """Satu transaksi `BEGIN IMMEDIATE` pada DB private. `buat` hanya untuk buat_slot dan ajukan pola (setelah cek
-    kepemilikan); tulis lain tidak membuat berkas.
+    """Satu transaksi `BEGIN IMMEDIATE` pada DB private. `buat` hanya untuk buat_slot, ajukan pola, dan masuk daftar
+    tunggu Mini (setelah cek kepemilikan dan kelayakan); tulis lain tidak membuat berkas.
 
     Galat sqlite pada koneksi private dibungkus GalatJadwalPrivate; galat domain (JadwalKonflik, dll.) lolos utuh,
     termasuk dari penempatan admin-control yang ikut transaksi ini. Gagal = rollback.

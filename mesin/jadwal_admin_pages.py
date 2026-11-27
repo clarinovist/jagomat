@@ -9,6 +9,7 @@ import html
 from datetime import datetime
 from typing import Mapping, Optional, Sequence
 
+import admin_labels as L
 import admin_verifikasi_pages as vp
 import jadwal_dasar as jd
 import jadwal_private_admin_pages as pv
@@ -33,6 +34,14 @@ COPY_LUAR_JAM_SESI = "Di luar jam tetap guru"
 COPY_LUAR_JAM_PERINGATAN = ("Ada pertemuan di luar jam tetap guru. "
                             "Jadwal tetap hanya acuan; penyimpanan tidak diblokir.")
 COPY_TAUTAN_TETAP = "Jadwal tetap guru"
+RUTE_TUNGGU_HAPUS = RUTE_KELOMPOK + "/tunggu/hapus"
+COPY_TUNGGU_JUDUL = "Daftar tunggu Mini Class"
+COPY_TUNGGU_KOSONG = "Belum ada anak di daftar tunggu kelompok ini."
+COPY_TUNGGU_GAGAL = "Daftar tunggu belum bisa dibaca. Muat ulang halaman; penempatan tetap bisa dilakukan dari antrean."
+COPY_HAPUS_TUNGGU = ("Hapus anak ini dari daftar tunggu? Orang tua harus masuk daftar lagi bila masih mau menunggu "
+                     "kursi di kelompok ini.")
+COPY_TUNGGU_DITEMPATKAN = "sudah ditempatkan"
+COPY_TUNGGU_ANTRE = "menunggu kursi"
 RUTE_TETAP = "/admin/jadwal/tetap"
 KUNCI_LUAR_JAM = "luar_jam"
 STRIP = "—"
@@ -170,9 +179,34 @@ def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: 
                                                     "".join(baris), COPY_SESI_KOSONG)
 
 
+def _baris_tunggu(entri, token: Optional[Mapping]) -> str:
+    """Satu baris daftar tunggu. Hapus hanya untuk entri yang masih antre dan punya token (sesi cookie)."""
+    aksi = ""
+    if token is not None and not entri.sudah_ditempatkan:
+        aksi = ('<form method="post" action="%s" data-konfirmasi="%s">%s'
+                '<button class="admin-tombol admin-bahaya" type="submit">Hapus dari daftar tunggu</button></form>'
+                % (RUTE_TUNGGU_HAPUS, _e(COPY_HAPUS_TUNGGU), _hidden(token)))
+    urutan = STRIP if entri.urutan is None else str(entri.urutan)
+    keadaan = COPY_TUNGGU_DITEMPATKAN if entri.sudah_ditempatkan else COPY_TUNGGU_ANTRE
+    return ("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+            % (_e(urutan), L.referensi_pendek(entri.order_id), _e(_waktu(entri.dibuat)), _e(keadaan), aksi))
+
+
+def blok_tunggu(entri: Optional[Sequence], token_hapus: Mapping[int, Mapping]) -> str:
+    """Daftar tunggu kelompok: urutan, order ringkas, tanggal masuk, keadaan, dan hapus. `entri` None = tak terbaca."""
+    if entri is None:
+        return ('<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">%s</p></section>'
+                % (_e(COPY_TUNGGU_JUDUL), _e(COPY_TUNGGU_GAGAL)))
+    baris = "".join(_baris_tunggu(x, token_hapus.get(x.id)) for x in entri)
+    return vp._tabel(COPY_TUNGGU_JUDUL, ("Urutan", "Order", "Masuk", "Keadaan", ""), baris, COPY_TUNGGU_KOSONG)
+
+
 def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping, *,
-                     kini: Optional[str] = None) -> str:
-    """Detail kelompok: ringkasan, form ubah, anggota, dan delapan pertemuan."""
+                     kini: Optional[str] = None, tunggu: Optional[Sequence] = ()) -> str:
+    """Detail kelompok: ringkasan, form ubah, anggota, daftar tunggu, dan delapan pertemuan.
+
+    `tunggu` = entri daftar tunggu (`jadwal_tunggu_mini.daftar_admin`); None = berkas tak terbaca (pesan jujur, halaman utuh).
+    """
     b = detail["kelompok"]
     ubah = (
         '<section class="admin-kartu admin-form-pendek"><h2>Ubah kelompok</h2>'
@@ -196,7 +230,7 @@ def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping, 
         '<p><a class="admin-tautan" href="/admin/kelas">Kembali ke antrean</a></p></section>'
         % (_e(b["nama"]), _e(b["lokasi"]), _e(katalog.ambil(b["paket"]).nama),
            _e(guru.get(b["guru_id"], "Akun guru tidak aktif")), detail["terisi"], b["kuota"])
-        + ubah + tabel_anggota
+        + ubah + tabel_anggota + blok_tunggu(tunggu, tokens.get("hapus_tunggu", {}))
         + _baris_sesi(detail["sesi"], tokens["sesi_ubah"], tokens["sesi_batal"], bisa_ubah=True, kini=kini))
 
 

@@ -155,6 +155,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/kelas", "admin"),  # Paket Belajar: POST /setujui, /tolak; tinjauan bertanda tangan + sandi ulang
     ("/admin/kelas/kelompok", "admin"),  # Jadwal: buat kelompok Mini (+ 8 pertemuan)
     ("/admin/kelas/kelompok/ubah", "admin"),  # Jadwal: ubah nama/lokasi/guru/kuota kelompok
+    ("/admin/kelas/kelompok/tunggu/hapus", "admin"),  # Daftar tunggu Mini (F2c): hapus entri antre (tinjauan + CSRF; id dari tinjauan)
     ("/admin/kelas/penempatan", "admin"),  # Jadwal: tempatkan order aktif (kelompok/private)
     ("/admin/kelas/penempatan/lepas", "admin"),  # Jadwal: lepas penempatan + sesi private
     ("/admin/kelas/pertemuan", "admin"),  # Jadwal: ubah tanggal/jam satu pertemuan
@@ -194,6 +195,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/paket/jadwal-private/batal", "murid"),  # Jadwal Private: POST batal pengajuan (token); sakelar mati = jalur murid asing
     ("/murid/paket/jadwal-private/pola", "murid"),  # Jadwal Private pola: POST 2 hari + 1 jam (token); sakelar mati = jalur murid asing
     ("/murid/paket/jadwal-private/pola/batal", "murid"),  # Jadwal Private pola: POST batal pilihan (token); sakelar mati = jalur murid asing
+    ("/murid/paket/tunggu", "murid"),  # Daftar tunggu Mini (F2c): POST masuk (token + kelompok); sakelar mati = jalur murid asing
+    ("/murid/paket/tunggu/keluar", "murid"),  # Daftar tunggu Mini (F2c): POST keluar (token); sakelar mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),

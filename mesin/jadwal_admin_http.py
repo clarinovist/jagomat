@@ -19,6 +19,8 @@ import auth
 import guru_jadwal_tetap_peringatan as tetap
 import jadwal_admin_pages as ui
 import jadwal_dasar as jd
+import jadwal_private_dasar as dsr
+import jadwal_tunggu_mini as jtg
 import kelas_dasar as dasar
 import jadwal_store as js
 import jadwal_tautan as jt
@@ -31,7 +33,9 @@ AKSI_TEMPATKAN = "jadwal_tempatkan"
 AKSI_LEPAS = "jadwal_lepas"
 AKSI_SESI_UBAH = "jadwal_pertemuan_ubah"
 AKSI_SESI_BATAL = "jadwal_pertemuan_batal"
+AKSI_TUNGGU_HAPUS = "jadwal_tunggu_hapus"
 RUTE_KELOMPOK = ui.RUTE_KELOMPOK
+RUTE_TUNGGU_HAPUS = ui.RUTE_TUNGGU_HAPUS
 RUTE_PENEMPATAN = "/admin/kelas/penempatan"
 RUTE_LEPAS = "/admin/kelas/penempatan/lepas"
 RUTE_PERTEMUAN = "/admin/kelas/pertemuan"
@@ -114,6 +118,22 @@ def _guru_sah(guru: dict, nilai) -> str:
 
 # --- GET ------------------------------------------------------------------------------------
 
+def _daftar_tunggu(kon, kid: str):
+    """Entri daftar tunggu kelompok, atau None bila berkas private tak terbaca (halaman admin tetap tampil)."""
+    try:
+        return jtg.daftar_admin(kon, kid)
+    except (dsr.GalatJadwalPrivate, sqlite3.Error, OSError, ValueError):
+        return None
+
+
+def _token_hapus_tunggu(penangan, principal, kid: str, entri) -> dict:
+    """Token hapus per entri yang masih antre; tinjauan mengikat kelompok dan id entri. Tanpa entri terbaca = kosong."""
+    if not entri:
+        return {}
+    return {x.id: bentuk_token(penangan, principal, AKSI_TUNGGU_HAPUS, {"kelompok_id": kid, "tunggu_id": x.id})
+            for x in entri if not x.sudah_ditempatkan}
+
+
 def _get_kelompok(penangan, principal) -> None:
     if principal.metode != "cookie":
         return h._galat(penangan, 403, daftar_ui.COPY_GALAT_FORM)
@@ -125,11 +145,13 @@ def _get_kelompok(penangan, principal) -> None:
         guru = guru_map()
         with _buka() as kon:
             detail = js.detail_kelompok(kon, kid)
+            entri = _daftar_tunggu(kon, kid)
         detail = {**detail, "sesi": tetap.tandai(detail["sesi"], detail["kelompok"]["guru_id"])}
         tokens = {
             "ubah": bentuk_token(penangan, principal, AKSI_UBAH, {"kelompok_id": kid}),
             "sesi_ubah": bentuk_token(penangan, principal, AKSI_SESI_UBAH, {"kelompok_id": kid}),
             "sesi_batal": bentuk_token(penangan, principal, AKSI_SESI_BATAL, {"kelompok_id": kid}),
+            "hapus_tunggu": _token_hapus_tunggu(penangan, principal, kid, entri),
         }
     except jd.JadwalTidakDitemukan:
         return h._tidak_ada(penangan)
@@ -137,7 +159,7 @@ def _get_kelompok(penangan, principal) -> None:
         return h._galat(penangan, 403, daftar_ui.COPY_GALAT_FORM)
     except _GALAT_LAYANAN:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
-    _kirim(penangan, principal, ui.halaman_kelompok(detail, guru, tokens, kini=alur.waktu_sekarang()))
+    _kirim(penangan, principal, ui.halaman_kelompok(detail, guru, tokens, kini=alur.waktu_sekarang(), tunggu=entri))
 
 
 def tangani_get(penangan, jalur) -> bool:
@@ -254,10 +276,21 @@ def _batal_sesi(penangan, principal) -> None:
     h._redirect(penangan, _kembali_sesi(induk))
 
 
+def _hapus_tunggu(penangan, principal) -> None:
+    """Admin menghapus satu entri antre dari daftar tunggu; id dan kelompok dari tinjauan bertanda tangan (tanpa isian lain)."""
+    tinjauan, data = _terima(penangan, principal, AKSI_TUNGGU_HAPUS)
+    if data:
+        raise ValueError("isian hapus daftar tunggu tidak sah")
+    kid = jd.periksa_kelompok_id(tinjauan["data"].get("kelompok_id"))
+    jtg.hapus_admin(principal.id_akun, tinjauan["data"].get("tunggu_id"), alur.waktu_sekarang())
+    h._redirect(penangan, "%s?id=%s" % (RUTE_KELOMPOK, kid))
+
+
 def tangani_post(penangan, jalur) -> bool:
     fungsi = {RUTE_KELOMPOK: _buat, RUTE_KELOMPOK + "/ubah": _ubah,
               RUTE_PENEMPATAN: _tempatkan, RUTE_LEPAS: _lepas,
-              RUTE_PERTEMUAN: _ubah_sesi, RUTE_PERTEMUAN_BATAL: _batal_sesi}.get(jalur)
+              RUTE_PERTEMUAN: _ubah_sesi, RUTE_PERTEMUAN_BATAL: _batal_sesi,
+              RUTE_TUNGGU_HAPUS: _hapus_tunggu}.get(jalur)
     if fungsi is None:
         return False
     principal = h._principal_admin(penangan)
