@@ -9,6 +9,7 @@ from __future__ import annotations
 import admin_transfer_menunggu as menunggu
 import jadwal_private as jp
 import jadwal_private_dasar as dsr
+import jadwal_private_pola as jpp
 import jadwal_store as js
 
 GALAT_BACA_PRIVATE = menunggu.GALAT_BACA + (dsr.GalatJadwalPrivate, OSError, ValueError)
@@ -21,9 +22,9 @@ def guru_aktif() -> frozenset:
 
 
 def jumlah(path_admin, sekarang: float) -> int:
-    """Pengajuan Private yang masih hidup; galat baca apa pun = 0 (fail-safe)."""
+    """Pengajuan Private yang masih hidup (slot lama + pola 2 hari); galat baca apa pun = 0 (fail-safe)."""
     try:
         with js.buka(path_admin) as kon:
-            return jp.jumlah_menunggu(kon, sekarang, guru_aktif())
+            return jp.jumlah_menunggu(kon, sekarang, guru_aktif()) + jpp.jumlah_menunggu()
     except GALAT_BACA_PRIVATE:
         return 0

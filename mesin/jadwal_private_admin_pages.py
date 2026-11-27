@@ -11,6 +11,7 @@ from typing import Mapping, Sequence
 
 import admin_labels as L
 import admin_verifikasi_pages as vp
+from jadwal_private_pola_aturan import teks_pola
 from pesanan_transfer_pages import waktu_wib
 
 RUTE = "/admin/kelas/private"
@@ -18,11 +19,16 @@ RUTE_SLOT = RUTE + "/slot"
 RUTE_SLOT_BATAL = RUTE + "/slot/batal"
 RUTE_SETUJUI = RUTE + "/setujui"
 RUTE_TOLAK = RUTE + "/tolak"
+RUTE_POLA_SETUJUI = RUTE + "/pola/setujui"
+RUTE_POLA_TOLAK = RUTE + "/pola/tolak"
 RUTE_ORDER = "/admin/kelas/verifikasi"
 JUDUL = "Jadwal Private"
 SUBJUDUL = "Slot guru, pengajuan orang tua, dan daftar slot."
 JUDUL_SLOT = "Slot Private"
 JUDUL_ANTREAN = "Pengajuan orang tua"
+JUDUL_POLA = "Pola orang tua (2 hari + 1 jam)"
+COPY_POLA_KOSONG = "Belum ada pola dari orang tua."
+COPY_TOLAK_POLA = "Tolak pola ini? Orang tua bisa memilih hari dan jam lain."
 JUDUL_DAFTAR = "Daftar slot"
 COPY_PETUNJUK = ("Orang tua hanya melihat waktu, bukan nama guru. "
                  "Bentrok ditandai oleh tim di halaman kelas; tidak diblokir.")
@@ -113,6 +119,29 @@ def _kartu_antrean(antrean: Sequence, guru: Mapping[str, str], token: Mapping) -
     return vp._tabel(JUDUL_ANTREAN, ("Order", "Guru", "Mulai (WIB)", "Diajukan", "Aksi"), baris, COPY_ANTREAN_KOSONG)
 
 
+def _baris_pola(entri, guru: Mapping[str, str], token: Mapping) -> str:
+    """Satu pola: tautan order, pola, dan form setujui (guru + tanggal mulai) serta tolak. Tanpa nama anak/orang tua."""
+    pola = entri.pola
+    setujui = ('<form method="post" action="%s">%s<input type="hidden" name="id" value="%d">'
+               '<select name="guru_id" required>%s</select> '
+               '<input type="date" name="tanggal" value="%s" required>'
+               '<button class="admin-tombol" type="submit">Setujui</button></form>'
+               % (RUTE_POLA_SETUJUI, _hidden(token["pola_setujui"][pola.id]), pola.id, _opsi_guru(guru),
+                  _e(entri.tanggal_usulan)))
+    tolak = ('<form method="post" action="%s" data-konfirmasi="%s">%s<input type="hidden" name="id" value="%d">'
+             '<button class="admin-tombol admin-bahaya" type="submit">Tolak</button></form>'
+             % (RUTE_POLA_TOLAK, _e(COPY_TOLAK_POLA), _hidden(token["pola_tolak"][pola.id]), pola.id))
+    return ('<tr><td><a class="admin-tautan" href="%s?order=%s">%s</a></td><td>%s</td><td>%s</td>'
+            '<td><div class="admin-aksi-sesi-baris">%s%s</div></td></tr>'
+            % (RUTE_ORDER, _e(pola.order_id), L.referensi(pola.order_id),
+               _e(teks_pola(pola.hari_a, pola.hari_b, pola.jam)), _e(waktu_wib(pola.dibuat)), setujui, tolak))
+
+
+def _kartu_pola(entri_pola: Sequence, guru: Mapping[str, str], token: Mapping) -> str:
+    baris = "".join(_baris_pola(entri, guru, token) for entri in entri_pola)
+    return vp._tabel(JUDUL_POLA, ("Order", "Pola", "Diajukan", "Aksi"), baris, COPY_POLA_KOSONG)
+
+
 def _tombol_batal(slot, token: Mapping) -> str:
     if slot.status not in STATUS_BISA_BATAL:
         return ""
@@ -139,11 +168,13 @@ def _kartu_daftar(slot: Sequence, guru: Mapping[str, str], token: Mapping, *,
 
 
 def halaman(slot: Sequence, antrean: Sequence, guru: Mapping[str, str], token: Mapping, *,
-            luar_jam: frozenset = frozenset()) -> str:
-    """Petunjuk, kartu slot baru, pengajuan orang tua, dan daftar slot (tanpa nama anak atau orang tua).
+            luar_jam: frozenset = frozenset(), pola: Sequence = ()) -> str:
+    """Petunjuk, kartu slot baru, pengajuan orang tua, pola orang tua, dan daftar slot (tanpa nama anak/orang tua).
 
     `luar_jam`: id slot yang punya pertemuan di luar jam tetap guru (ditandai, tidak diblokir).
+    `pola`: entri pola 'diajukan' (token `pola_setujui` / `pola_tolak` per id pola).
     """
     petunjuk = '<p class="admin-meta">%s</p>' % _e(COPY_PETUNJUK)
     return (petunjuk + _kartu_slot_baru(guru, token["buat"])
-            + _kartu_antrean(antrean, guru, token) + _kartu_daftar(slot, guru, token, luar_jam=luar_jam))
+            + _kartu_antrean(antrean, guru, token) + _kartu_pola(pola, guru, token)
+            + _kartu_daftar(slot, guru, token, luar_jam=luar_jam))

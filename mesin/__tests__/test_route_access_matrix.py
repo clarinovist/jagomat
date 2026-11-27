@@ -129,6 +129,8 @@ _PROBE_POST = {
     "/admin/kelas/private/slot/batal": "/admin/kelas/private/slot/batal",
     "/admin/kelas/private/setujui": "/admin/kelas/private/setujui",
     "/admin/kelas/private/tolak": "/admin/kelas/private/tolak",
+    "/admin/kelas/private/pola/setujui": "/admin/kelas/private/pola/setujui",
+    "/admin/kelas/private/pola/tolak": "/admin/kelas/private/pola/tolak",
     "/admin/kurikulum/cp": "/admin/kurikulum/cp",
     "/admin/kurikulum/cp/kembalikan": "/admin/kurikulum/cp/kembalikan",
     "/admin/kurikulum/label": "/admin/kurikulum/label",
@@ -155,6 +157,8 @@ _PROBE_POST = {
     "/murid/paket/hapus": "/murid/paket/hapus",
     "/murid/paket/jadwal-private/ajukan": "/murid/paket/jadwal-private/ajukan",
     "/murid/paket/jadwal-private/batal": "/murid/paket/jadwal-private/batal",
+    "/murid/paket/jadwal-private/pola": "/murid/paket/jadwal-private/pola",
+    "/murid/paket/jadwal-private/pola/batal": "/murid/paket/jadwal-private/pola/batal",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
@@ -291,7 +295,8 @@ def test_tabel_akses_punya_probe():
     assert get["/murid/paket/kalender.ics"] == "murid" and "/murid/paket/kalender.ics" not in post
     assert urutan.index("/murid/paket/kalender.ics") == urutan.index("/murid/paket/hapus") + 1
     # Jadwal Private (orang tua): exact murid, tanpa entri GET; sakelar PAKET_BELAJAR mati = jalur murid asing.
-    for rute in ("/murid/paket/jadwal-private/ajukan", "/murid/paket/jadwal-private/batal"):
+    for rute in ("/murid/paket/jadwal-private/ajukan", "/murid/paket/jadwal-private/batal",
+                 "/murid/paket/jadwal-private/pola", "/murid/paket/jadwal-private/pola/batal"):
         assert post[rute] == "murid" and rute not in get
     # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
     assert get["/cek-kemampuan"] == "publik"
