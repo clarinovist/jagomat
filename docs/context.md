@@ -15,7 +15,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 | HTTP | `serve.py`, `web.py`, router `*_http.py`; murid/share dipisahkan dari guru/admin |
 | Metrik runtime | `metrik_runtime.py` (di memori, label rute daftar putih tanpa path mentah; p95 per rute, `locked`, CPU); dipasang di `do_GET`/`do_POST`, dilihat admin di `/admin/metrik` (JSON) dan satu baris stdout per 600 detik bila ada request |
 | Identitas | `auth.py`, `sessions.py`, `students.py`; guard principal/kepemilikan server-side |
-| Soal | `topics.py`, `topic_*.py`, `templates.py`, `generator.py`; parameter dan versi deterministik |
+| Soal | `topics.py`, `topic_*.py`, `templates.py`, `generator.py`, `generator_domain.py` (cache sidik jari domain per template/level, dipakai generator topik `unik_per_lembar` dan admin kurikulum; hasil seed→lembar harus identik); parameter dan versi deterministik |
 | Penyajian | `question_views.py`, `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py` |
 | Persistensi | `database.py`/`schema.py` sebagai façade; `*_store.py`, `*_schema.py` menjaga transaksi/provenance; `berkas_data.py` saat start: DB durable + sidecar 0600 dan WAL pulih bila berkas ada (tanpa DDL) |
 | Belajar/laporan | `diagnosis.py`; `learning_cycle.py` reducer murni tunggal; service/sessions mengorkestrasi; `reports.py`, `mastery_*`, `report_*` memproyeksi bukti |

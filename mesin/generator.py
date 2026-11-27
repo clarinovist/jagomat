@@ -17,6 +17,7 @@ import random
 from dataclasses import dataclass, replace
 
 from basic_numbers_versions import pastikan_template_dibuka
+from generator_domain import domain_sidik
 from templates import LEVEL, LEVEL_BAWAAN, Soal
 from topics import TOPIK_BAWAAN, Topik, ambil
 
@@ -143,27 +144,26 @@ def _soal_unik_per_lembar(paket, urutan, rng, level):
     hasil = []
     for tid in urutan:
         if tid not in domain_per_template:
-            parameter = paket.domain_parameter(tid, level)
-            if not parameter:
+            domain = domain_sidik(paket.templates[tid], paket.domain_parameter, tid, level)
+            if not domain.jumlah_parameter:
                 raise ValueError(f"{tid}: domain parameter kosong")
-            calon = (replace(paket.templates[tid](**p), level=level) for p in parameter)
-            domain = {s.tanda_tangan: s for s in calon if s.malrule}
-            if not domain:
+            if not domain.tanda:
                 raise RuntimeError(f"{tid}: domain tanpa malrule yang sah")
             domain_per_template[tid] = domain
             dipakai_per_template[tid] = set()
         domain = domain_per_template[tid]
         dipakai = dipakai_per_template[tid]
-        habis = len(dipakai) == len(domain)
+        habis = len(dipakai) == len(domain.tanda)
         for _ in range(_BATAS_UNDI_UNIK):
             soal = _soal_layak(paket, tid, rng, level)
-            if soal.tanda_tangan not in domain:
+            if soal.tanda_tangan not in domain.himpunan:
                 raise ValueError(f"{tid}: sampler keluar domain")
             if habis or soal.tanda_tangan not in dipakai:
                 break
         else:
-            sisa = tuple(s for tanda, s in domain.items() if tanda not in dipakai)
-            soal = rng.choice(sisa)
+            sisa = tuple(i for tanda, i in zip(domain.tanda, domain.indeks) if tanda not in dipakai)
+            parameter = paket.domain_parameter(tid, level)[rng.choice(sisa)]
+            soal = replace(paket.templates[tid](**parameter), level=level)
         dipakai.add(soal.tanda_tangan)
         hasil.append(soal)
     return tuple(hasil)

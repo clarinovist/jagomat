@@ -23,6 +23,7 @@ import basic_numbers_versions
 import cetakan_store
 import database
 import generator
+import generator_domain
 import kurikulum_katalog as kat
 import kurikulum_kelas as kk
 import topics
@@ -166,13 +167,8 @@ def _variasi_murni(topik_id: str, template_id: str, level: str) -> Tuple[int, st
 
 
 def _variasi_domain(paket, template_id: str, level: str) -> Tuple[int, str, str]:
-    tanda = {
-        s.tanda_tangan
-        for s in (replace(paket.templates[template_id](**p), level=level)
-                  for p in paket.domain_parameter(template_id, level))
-        if s.malrule
-    }
-    return len(tanda), JENIS_TEPAT, ""
+    domain = generator_domain.domain_sidik(paket.templates[template_id], paket.domain_parameter, template_id, level)
+    return len(domain.tanda), JENIS_TEPAT, ""
 
 
 def _variasi_sampel(topik_id: str, template_id: str, level: str) -> Tuple[int, str, str]:
