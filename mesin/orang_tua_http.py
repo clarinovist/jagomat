@@ -25,6 +25,7 @@ import admin_store
 import admin_store_core
 import daftar_anak_gate
 import database
+import harga
 import kelas_masa
 import kelas_store
 import laju_masuk
@@ -33,6 +34,7 @@ import orang_tua_guru
 import orang_tua_pages as halaman
 import orang_tua_tautan_http as tautan_kode
 import paket_belajar_gate
+import paket_belajar_katalog as katalog
 import pesanan_alur as alur
 import pin_orang_tua_store as pin_store
 import tirai_orang_tua as tirai
@@ -117,7 +119,8 @@ def _tampilkan(penangan, kon, ctx: _Konteks, *, kabar: str = "", galat: str = ""
     isi = halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat, tautan_paket=tautan,
                               masa_paket=_masa_paket(ctx) if tautan else (),
                               tagihan_paket=_tagihan_paket(ctx) if tautan else (),
-                              kartu_kode=_kartu_kode(ctx, ada_pin), guru=_guru_anak(kon, ctx))
+                              kartu_kode=_kartu_kode(ctx, ada_pin), guru=_guru_anak(kon, ctx),
+                              harga_kelas=_harga_kelas() if tautan else {})
     _kirim(penangan, isi, kode)
 
 
@@ -154,6 +157,19 @@ def _masa_paket(ctx: _Konteks) -> tuple:
             return kelas_masa.masa_paket_anak(kon_kelas, ctx.id_akun, ctx.siswa_id, alur.waktu_sekarang())
     except (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError):
         return ()
+
+
+KODE_KELAS = (katalog.KODE_PRIVATE, katalog.KODE_MINI)
+
+
+def _harga_kelas() -> dict:
+    """Harga aktif Private dan Mini untuk pilihan kelas (baca-saja, pola funnel_http). Galat baca = None per produk."""
+    try:
+        with admin_store.buka_baca(admin_store.BAWAAN) as kon:
+            return {kode: harga.harga_aktif(kon, kode) for kode in KODE_KELAS}
+    except (admin_store_core.StoreBelumSiap, OSError, RuntimeError, ValueError, sqlite3.Error) as galat:
+        _log.warning("harga kelas halaman orang tua tidak terbaca: %s", type(galat).__name__)
+        return {kode: None for kode in KODE_KELAS}
 
 
 def tangani_get(penangan, kon, siswa_id: int) -> bool:

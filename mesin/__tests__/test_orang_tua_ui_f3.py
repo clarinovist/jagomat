@@ -131,7 +131,7 @@ def test_pesanan_status_lencana_dan_satu_tombol():
     kartu = html[html.index('id="ortu-pesanan"'):]
     kartu = kartu[:kartu.index("</section>")]
     assert "ceria-lencana-kuning" in kartu and "Menunggu pembayaran" in kartu
-    assert kartu.count("<a ") == 1 and "Lanjutkan pembayaran atau lihat statusnya" in kartu
+    assert kartu.count("<a ") == 1 and "Buka Peta Kemampuan · Rp49.000" in kartu
 
 
 def test_pesanan_sudah_dibayar_tanpa_tombol():
@@ -281,6 +281,6 @@ def test_pesanan_yang_tidak_butuh_bayar_lagi_tidak_menyuruh_lanjutkan_pembayaran
 
 @pytest.mark.parametrize("status", [pesanan_pages.STATUS_BELUM_BAYAR, pesanan_pages.STATUS_KEDALUWARSA,
                                     pesanan_pages.STATUS_DITOLAK])
-def test_pesanan_yang_masih_butuh_tindakan_tetap_menyuruh_lanjutkan_pembayaran(status):
+def test_pesanan_yang_masih_butuh_tindakan_menawarkan_buka_peta_dengan_harga(status):
     kartu = _kartu_pesanan(status)
-    assert "Lanjutkan pembayaran atau lihat statusnya" in kartu and "Buka halaman pembayaran" in kartu
+    assert "Buka Peta Kemampuan · Rp49.000" in kartu and "Lanjutkan pembayaran" not in kartu

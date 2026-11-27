@@ -4,12 +4,12 @@ import pesanan_pages
 import pesanan_permukaan
 
 
-def test_tanpa_pesanan_dan_cek_selesai_menawarkan_lanjut_ke_pembayaran():
+def test_tanpa_pesanan_dan_cek_selesai_menawarkan_buka_peta_dengan_harga():
     # Arrange / Act
     html = halaman._blok_pesanan(None, True)
     # Assert
     assert 'href="%s"' % pesanan_permukaan.RUTE_MURID.status in html
-    assert "Lanjut ke pembayaran" in html
+    assert "Buka Peta Kemampuan · Rp49.000" in html
 
 
 def test_tanpa_pesanan_dan_cek_belum_selesai_kartu_tidak_tampil():

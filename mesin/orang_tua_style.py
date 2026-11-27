@@ -84,4 +84,16 @@ a.ortu-tombol-pinggir-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .ortu-peta-daftar-st {{ padding-left: {T.SP_5}; font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.5; color: {T.TEKS_UTAMA}; }}
 .ortu-peta-catatan-st p {{ font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.6; color: {T.TEKS_UTAMA}; overflow-wrap: anywhere; }}
 .ortu-kaki-st {{ margin: 0; text-align: center; font-size: {T.UKURAN_TEKS_CATATAN}; line-height: 1.5; color: {T.TEKS_VARIAN}; }}
+/* Kartu Peta (F1, Usulan A + A2): kartu gelap sebelum bayar, pilihan kelas setelah lunas. Warna hanya token. */
+.ortu-pesanan-st .ceria-lencana {{ align-self: flex-start; }}
+.ortu-harga-st {{ margin: 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.4; color: {T.TEKS_DI_NAVY}; }}
+.ortu-harga-st b {{ font: 800 {T.UKURAN_JUDUL_STITCH}/1.1 {T.FONT_HEADLINE}; color: {T.TEKS_PUTIH}; }}
+.ortu-tidak-kembali-st {{ margin: 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5;
+  color: {T.TEKS_DI_NAVY_REDUP}; }}
+.ortu-kelas-st {{ display: grid; gap: {T.SP_2}; }}
+.ortu-kelas-st > p {{ margin: 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5; color: {T.TEKS_VARIAN}; }}
+.ortu-opsi-kelas-st {{ display: grid; gap: {T.SP_1}; padding: {T.SP_3} {T.SP_4}; background: {T.LATAR_KARTU};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; color: {T.TEKS_JUDUL}; }}
+.ortu-opsi-kelas-st b {{ font: 800 {T.UKURAN_BADAN_LAYAR}/1.3 {T.FONT_HEADLINE}; }}
+.ortu-opsi-kelas-st span {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
 """
