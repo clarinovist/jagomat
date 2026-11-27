@@ -24,6 +24,7 @@ from datetime import datetime, timedelta
 
 import admin_store
 import cek_ringkasan_admin
+import cek_ringkasan_proses
 import database
 import pesanan
 import pesanan_admin_order as po
@@ -109,11 +110,18 @@ def baca_izin(siswa_id, sekarang, id_akun=None):
 
 
 def _isi_bila_layak(kon, izin, sekarang):
-    """Isi laporan dari bahan server, atau None bila bahan belum layak (dihapus, belum dinilai, tidak cocok)."""
+    """Isi laporan versi 2 dari bahan server, atau None bila bahan belum layak (dihapus, belum dinilai, tidak cocok).
+
+    Proses (grid per nomor, waktu) wajib terbaca: `proses` None berarti BELUM layak, bukan jatuh ke versi 1 diam-diam.
+    """
     try:
         ringkasan = cek_ringkasan_admin.ringkasan_untuk_order(
             kon, izin["siswa_id"], izin["cek_id"], izin["akun_id"], sekarang)
-        return snapshot.bangun(ringkasan)
+        proses = cek_ringkasan_proses.proses_untuk_order(
+            kon, izin["siswa_id"], izin["cek_id"], izin["akun_id"])
+        if proses is None:
+            return None
+        return snapshot.bangun(ringkasan, proses=proses)
     except ValueError:
         return None
 

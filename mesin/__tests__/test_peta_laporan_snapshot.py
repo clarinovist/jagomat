@@ -55,7 +55,7 @@ def test_kunci_isi_persis_dan_versi_satu():
     isi = snap.bangun(_ringkasan())
     assert set(isi) == KUNCI_PERSIS
     assert isi["versi"] == 1
-    assert set(snap.KUNCI_ISI) == KUNCI_PERSIS
+    assert set(snap.KUNCI_ISI[snap.VERSI_ISI_V1]) == KUNCI_PERSIS
 
 
 def test_isi_menyalin_nilai_yang_diizinkan_saja():
