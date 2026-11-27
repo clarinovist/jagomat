@@ -13,11 +13,15 @@ import pytest
 import admin_store as _admin_store
 import database
 import kelas_dasar
+import kelas_murid_http
 import kelas_putusan
 import kelas_store
 import paket_belajar_gate
+import pesanan
+import pesanan_dasar
 import pesanan_http
 import sessions
+from pesanan_kit import buat as buat_peta, terapkan as terapkan_peta
 from bukti_kit import JPEG, PDF, PNG, TEKS_PALSU
 from kelas_http_kit import (AWAL, BUAT, BUKTI, KOSONG, M, TABEL, ADMIN, baca_admin, berkas_kelas, bukti_terakhir,  # noqa: F401
                             buat, buat_dan_unggah, buat_murid, halaman, hitung, jam, kidup, kirim, kmati,
@@ -140,6 +144,19 @@ def test_buat_tagihan_nominal_dari_server_dan_halaman_tagihan(dua):
     assert "Bank Contoh" in t and "1234 5678 90" in t and "PT Contoh Sintetis" in t
     assert "Unggah bukti" in t and "Daftar paket ini" not in t and "Batas waktu" in t
     assert "Rp300.%03d" % o["kode_unik"] in t
+
+
+def test_buat_dan_halaman_gagal_tertutup_bila_nominal_peta_tak_sesuai(dua, monkeypatch):
+    """K4 fail-closed: order Peta lunas Rp59.000 bukan nilai CHECK. Buat = 503 aman tanpa tagihan; halaman paket = 503."""
+    monkeypatch.setattr(pesanan_dasar, "RUPIAH_PAKET", 59_000)
+    with pesanan.buka(_admin_store.BAWAAN, tulis_data=True) as kon:
+        order = buat_peta(kon, 1, akun=dua.a.id_akun, siswa=dua.a.siswa_id)
+        terapkan_peta(kon, order, 1, transaction_id="trx-sintetis-0001", gross_amount="59000.00")
+    sebelum = hitung(dua)
+    kode, isi, _ = buat(dua, dua.a, "mini")
+    assert kode == 503 and kelas_murid_http.COPY_DEPOSIT_TIDAK_SAH in isi
+    assert hitung(dua) == sebelum and sebelum["kelas_order"] == 0
+    assert minta_mentah(dua, M, dua.a.akun)[0] == 503
 
 
 def test_private_dengan_deposit_peta_dipotong_49_ribu(dua):
