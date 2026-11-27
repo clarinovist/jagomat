@@ -30,6 +30,7 @@ from bukti_kit import JPEG, PNG
 from harian_kit import SANDI, Murid
 from kelas_http_kit import (ADMIN, AWAL, M, baca_admin, bukti_terakhir, buat, buat_dan_unggah, buat_murid, halaman,
                             jam, kidup, kirim, kmati, minta_mentah, server, token)
+from support_pages import halaman_pesan_murid
 
 AJUKAN = M + "/jadwal-private/ajukan"
 BATAL = M + "/jadwal-private/batal"
@@ -205,9 +206,11 @@ def test_pola_bukan_pemilik_404_identik_tanpa_efek(siap):
     _aktifkan(siap, siap.a)                      # hanya anak A punya order Private
     pemilik_kedua = _murid_kedua_anak_sama(siap.a)  # akun lain yang terhubung ke anak A
     sebelum = _pola()
-    for murid in (siap.b, pemilik_kedua):
-        kode, isi, _tajuk = kirim(siap, POLA, murid, _form_pola(murid))
-        assert kode == 404 and "Halaman tidak ada" in isi
+    tanpa_order = kirim(siap, POLA, siap.b, _form_pola(siap.b))
+    kedua = kirim(siap, POLA, pemilik_kedua, _form_pola(pemilik_kedua))
+    badan_404 = halaman_pesan_murid("404", "<h1>Halaman tidak ada</h1>").decode("utf-8")  # 404 murid rute ini
+    assert tanpa_order[0] == kedua[0] == 404
+    assert tanpa_order[1] == kedua[1] == badan_404          # identik: tidak ada beda antara tak punya order dan bukan pemilik
     assert _pola() == sebelum
 
 
