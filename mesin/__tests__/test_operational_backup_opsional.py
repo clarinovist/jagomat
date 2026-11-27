@@ -13,6 +13,7 @@ import guru_pertemuan_bentuk
 import guru_pertemuan_dasar
 import guru_tautan_bentuk
 import guru_tautan_dasar
+import guru_tugas_bentuk
 import kurikulum_override
 
 SEED = {nama: False for nama in feature_switch.NAMA_SAKELAR}
@@ -61,6 +62,20 @@ def buat_kode_tautan(data):
         akun_id='akun_' + 'e' * 32, siswa_id=7, kode_hash='a' * 64, oleh='akun_' + 'c' * 32,
         peran='orang_tua', pada='2026-11-10T10:00:00', path=data / 'guru-tautan.db')
     return data / 'guru-tautan.db'
+
+
+def buat_tugas_guru(data):
+    """DB tugas guru sintetis dengan DDL minimal (user_version 1, tabel `tugas_guru`, satu baris); tanpa import modul tugas."""
+    ubah_sqlite(
+        data / 'guru-tugas.db',
+        'PRAGMA user_version = 1',
+        'CREATE TABLE tugas_guru(id INTEGER PRIMARY KEY, sesi_id INTEGER NOT NULL UNIQUE, '
+        'siswa_id INTEGER NOT NULL, guru_akun TEXT NOT NULL, topik TEXT NOT NULL, tenggat TEXT, '
+        'dibuat TEXT NOT NULL)',
+        "INSERT INTO tugas_guru(sesi_id, siswa_id, guru_akun, topik, tenggat, dibuat) "
+        "VALUES (11, 7, 'akun_" + 'f' * 32 + "', 'pengukuran', NULL, '2026-11-27T01:00:00')",
+    )
+    return data / 'guru-tugas.db'
 
 
 def sahkan_ulang(target, **manifest):
@@ -134,20 +149,24 @@ def test_capture_cetakan_v2_tercatat_dan_skema_lolos(sumber, tmp_path):
     c.close()
 
 
-def test_capture_keenam_opsional_terurut(sumber, tmp_path):
+def test_capture_semua_opsional_terurut(sumber, tmp_path):
     buat_sakelar(sumber)
     buat_kurikulum(sumber)
     buat_cetakan(sumber)
     buat_kuota_ai(sumber)
     buat_catatan_pertemuan(sumber)
     buat_kode_tautan(sumber)
+    buat_tugas_guru(sumber)
     target = buat(sumber, tmp_path)
     assert backup.OPSIONAL == (
-        'sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db')
+        'sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db',
+        'guru-tugas.db')
     assert backup.read_json(target / backup.MANIFEST)['optional'] == [
-        'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db', 'kurikulum.db', 'sakelar.db']
+        'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db', 'guru-tugas.db', 'kurikulum.db',
+        'sakelar.db']
     assert backup.validate(target)['optional'] == (
-        'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db', 'kurikulum.db', 'sakelar.db')
+        'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db', 'guru-tugas.db', 'kurikulum.db',
+        'sakelar.db')
 
 
 def test_capture_tanpa_catatan_pertemuan_tetap_valid_seperti_empat_opsional_lama(sumber, tmp_path):
@@ -252,6 +271,46 @@ def test_kode_tautan_tabel_hilang_ditolak(sumber, tmp_path, tabel):
                 'DROP TABLE %s' % tabel)
     sahkan_ulang(target)
     with pytest.raises(backup.Ditolak, match='schema tautan'):
+        backup.validate(target)
+
+
+def test_nama_opsional_tugas_guru_sama_dengan_nama_berkas_bentuk():
+    """Daftar OPSIONAL (literal) dan modul bentuk harus menyebut berkas yang sama."""
+    assert guru_tugas_bentuk.NAMA_BERKAS in backup.OPSIONAL
+
+
+def test_capture_tugas_guru_tercatat_dan_skema_lolos(sumber, tmp_path):
+    buat_tugas_guru(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('guru-tugas.db',)
+    with sqlite3.connect(target / 'opsional/guru-tugas.db') as c:
+        assert c.execute('SELECT sesi_id, topik FROM tugas_guru').fetchone() == (11, 'pengukuran')
+    c.close()
+
+
+def test_capture_tolak_tugas_guru_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):
+    ubah_sqlite(sumber / 'guru-tugas.db', 'CREATE TABLE sementara(id INTEGER)')
+    with pytest.raises(backup.Ditolak, match='schema tugas guru'):
+        buat(sumber, tmp_path)
+    assert not (tmp_path / 'backup-uji').exists()
+
+
+def test_tugas_guru_user_version_salah_ditolak(sumber, tmp_path):
+    buat_tugas_guru(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/guru-tugas.db', 'PRAGMA user_version = 2')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema tugas guru'):
+        backup.validate(target)
+
+
+@pytest.mark.parametrize('tabel', guru_tugas_bentuk.TABEL_SKEMA)
+def test_tugas_guru_tabel_hilang_ditolak(sumber, tmp_path, tabel):
+    buat_tugas_guru(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/guru-tugas.db', 'DROP TABLE %s' % tabel)
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema tugas guru'):
         backup.validate(target)
 
 

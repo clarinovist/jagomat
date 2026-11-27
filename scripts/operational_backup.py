@@ -31,7 +31,8 @@ DIGEST = re.compile(r'^sha256:[0-9a-f]{64}$')
 MANIFEST = 'operational-manifest.json'
 CORE = tuple(admin_backup.BERKAS_WAJIB.values())
 # DB SQLite di /data yang boleh tidak ada; ditangkap bila ada, bukan bagian CORE.
-OPSIONAL = ('sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db')
+OPSIONAL = ('sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db', 'guru-pertemuan.db', 'guru-tautan.db',
+            'guru-tugas.db')
 DIR_OPSIONAL = 'opsional'
 KEYS_V1 = {'version', 'id', 'cutoff', 'revision', 'image', 'coherence', 'files', 'directories', 'excluded'}
 ROOT_V1 = {'bundle', 'riset-separate.db', 'lampiran', MANIFEST}
@@ -252,6 +253,11 @@ def check_optional_schema(name, path):
         version, tables = _version_and_tables(path)
         if version != guru_tautan_bentuk.VERSI_SKEMA or not set(guru_tautan_bentuk.TABEL_SKEMA) <= tables:
             raise Ditolak('schema tautan kode anak tidak lengkap')
+    if name == 'guru-tugas.db':
+        import guru_tugas_bentuk
+        version, tables = _version_and_tables(path)
+        if version != guru_tugas_bentuk.VERSI_SKEMA or not set(guru_tugas_bentuk.TABEL_SKEMA) <= tables:
+            raise Ditolak('schema tugas guru tidak lengkap')
 
 
 def validate_optional(folder, names):

@@ -203,12 +203,13 @@ def halaman_daftar_sesi_baru(
     kon, siswa_id: int, nama: str, sesi_selesai: int | None = None, lomba_aktif: bool = False,
     sekarang: int | None = None, orang_tua: bool = False,
     kartu_cek: str = "", sembunyikan_sesi: frozenset = frozenset(), kartu_harian: str = "",
-    kartu_jadwal: str = "",
+    kartu_jadwal: str = "", kartu_tugas: str = "",
 ) -> bytes:
     """Beranda buku belajar: satu sesi utama, tugas lain, kabar, dan riwayat.
 
     `orang_tua` (sakelar DAFTAR_AKUN_ANAK hidup) menambah satu tautan sekunder "Untuk Ayah/Bunda";
-    bawaan False menghasilkan halaman yang byte-identik dengan sebelumnya.
+    `kartu_tugas` (kartu "Tugas dari Guru") disisipkan di kolom utama. Bawaan False/"" menghasilkan
+    halaman yang byte-identik dengan sebelumnya.
     """
     from orang_tua_style import GAYA_TAUTAN_BERANDA, TAUTAN_BERANDA
     from contest_style import GAYA_BERANDA
@@ -234,9 +235,9 @@ def halaman_daftar_sesi_baru(
     if not utama:
         if not daftar and lomba_aktif:
             kolom, kartu_lomba = kartu_lomba, ""  # kartu besar menggantikan "Siap untuk latihan pertama?"
-        else:
+        elif not kartu_tugas:  # kartu tugas sudah memuat sesi yang disembunyikan: tanpa keadaan kosong di sampingnya
             kolom = _keadaan_beranda(daftar, tugas, menunggu)
-    kolom = kartu_cek + kartu_harian + kartu_jadwal + kolom
+    kolom = kartu_cek + kartu_harian + kartu_jadwal + kartu_tugas + kolom
     if tugas:
         kolom += (
             '<section class="murid-latihan-lain-st" aria-labelledby="judul-lain">'

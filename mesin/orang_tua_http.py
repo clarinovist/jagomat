@@ -15,6 +15,7 @@ Dijawab di permukaan murid (sebelum `_lolos_sandi`, dipanggil `student_http`). A
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 import sqlite3
 import time
 import urllib.parse
@@ -28,6 +29,7 @@ import kelas_masa
 import kelas_store
 import laju_masuk
 import orang_tua_data
+import orang_tua_guru
 import orang_tua_pages as halaman
 import orang_tua_tautan_http as tautan_kode
 import paket_belajar_gate
@@ -37,6 +39,7 @@ import tirai_orang_tua as tirai
 from orang_tua_style import RUTE
 from support_pages import halaman_pesan_murid
 
+_log = logging.getLogger(__name__)
 RUTE_POST = (halaman.RUTE_PIN, halaman.RUTE_ATUR, halaman.RUTE_HAPUS)
 RUANG_LAJU = "pin-orang-tua"
 BATAS_FORM = 1024
@@ -114,8 +117,18 @@ def _tampilkan(penangan, kon, ctx: _Konteks, *, kabar: str = "", galat: str = ""
     isi = halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat, tautan_paket=tautan,
                               masa_paket=_masa_paket(ctx) if tautan else (),
                               tagihan_paket=_tagihan_paket(ctx) if tautan else (),
-                              kartu_kode=_kartu_kode(ctx, ada_pin))
+                              kartu_kode=_kartu_kode(ctx, ada_pin), guru=_guru_anak(kon, ctx))
     _kirim(penangan, isi, kode)
+
+
+def _guru_anak(kon, ctx: _Konteks) -> Optional[dict]:
+    """Blok kehadiran dan tugas dari Guru. Hanya dipanggil setelah gerbang tirai (`_tampilkan`); galat tak terduga = tanpa blok."""
+    kini = alur.waktu_sekarang()
+    try:
+        return orang_tua_guru.kumpulkan_guru(kon, ctx.id_akun, ctx.siswa_id, kini, orang_tua_guru.hari_ini_wib(kini))
+    except Exception as galat:  # blok tambahan: galat apa pun tidak boleh menjatuhkan halaman orang tua
+        _log.warning("blok guru di halaman orang tua dilewati: %s", type(galat).__name__)
+        return None
 
 
 def _kartu_kode(ctx: _Konteks, ada_pin: bool) -> str:

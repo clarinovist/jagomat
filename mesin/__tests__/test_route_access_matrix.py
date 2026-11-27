@@ -88,6 +88,8 @@ _PROBE_GET = {
     "/guru/kelas": "/guru/kelas",
     "/guru/kelas/": "/guru/kelas/klp_" + "0" * 32,
     "/guru/pertemuan/": "/guru/pertemuan/1",
+    "/guru/tugas": "/guru/tugas",
+    "/guru/tugas/": "/guru/tugas/kor_" + "0" * 32,
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
     "/lembar/": "/lembar/1",
@@ -156,6 +158,7 @@ _PROBE_POST = {
     "/akun": "/akun",
     "/akun/kontak": "/akun/kontak",
     "/guru/pertemuan/": "/guru/pertemuan/1",
+    "/guru/tugas/": "/guru/tugas/kor_" + "0" * 32,
     "/guru/kelas/": "/guru/kelas/klp_" + "0" * 32 + "/tautan",
     "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
     "/cek-kemampuan/tautan": "/cek-kemampuan/tautan",
@@ -188,6 +191,7 @@ RUTE_PERMUKAAN_GURU = (
     "/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1",
     "/cek-kemampuan/mulai", "/cek-kemampuan/hasil", "/pesanan", "/pesanan/qr", "/paket-coba/pesan",
     "/guru/jadwal", "/guru/kelas", "/guru/kelas/klp_" + "0" * 32, "/guru/pertemuan/1",
+    "/guru/tugas", "/guru/tugas/kor_" + "0" * 32,
 )
 
 

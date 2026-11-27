@@ -10,10 +10,14 @@ DILARANG di halaman ini: kunci jawaban, malrule, kode diagnosis, pembahasan soal
 from __future__ import annotations
 
 import html
+from datetime import datetime, timedelta
 
 import brand
 import cek_gratis_skor
 import cek_pages
+import format_tanggal
+import guru_pertemuan_aturan as aturan
+import guru_tugas_aturan
 import harian_langganan_pages
 import harian_pages
 import kelas_pages
@@ -66,6 +70,17 @@ STATUS_PESANAN_TANPA_TINDAKAN = frozenset((
 COPY_PESANAN_TERBIT = "Pembayaran diterima. Laporan Peta Kemampuan sudah tersedia di halaman ini."
 COPY_PESANAN_DISIAPKAN = "Pembayaran diterima. Laporan sedang disiapkan."
 COPY_PESANAN_LIHAT_DEPOSIT = "Lihat potongan & rincian pesanan"
+COPY_KEHADIRAN_JUDUL = "Kehadiran dan jurnal"
+COPY_TUGAS_JUDUL = "Tugas dari Guru"
+COPY_TENGGAT = "Tenggat %s"
+COPY_LEWAT_TENGGAT = "Lewat tenggat"
+COPY_BELUM_DIKERJAKAN = "Belum dikerjakan"
+COPY_SELESAI = "Selesai · %d dari %d benar"
+COPY_TOPIK = "Topik: %s"
+COPY_BELUM_DICATAT = "Belum dicatat"
+STATUS_HADIR_TAMPIL = {"hadir": "Hadir", "izin": "Izin", "tidak_hadir": "Tidak hadir"}
+HARI_SINGKAT = ("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
+PEMISAH_WAKTU = " · "
 COPY_PIN_MASUK_JUDUL = "Masukkan PIN"
 COPY_PIN_MASUK_TEKS = "Halaman ini ditutup dengan PIN. Masukkan 4 angka PIN Ayah/Bunda untuk membukanya."
 COPY_PIN_SALAH = "PIN belum cocok. Coba lagi."
@@ -240,6 +255,53 @@ def _tautan_bayar(teks: str) -> str:
             f'href="{_e(pesanan_permukaan.RUTE_MURID.status)}">{_e(teks)}</a>')
 
 
+def _waktu_ramah(mulai_utc: str) -> str:
+    """Waktu baku UTC jadwal sebagai 'Sen, 30 Nov 2026 · 15.00' (WIB)."""
+    waktu = datetime.strptime(mulai_utc, aturan.FORMAT_WAKTU) + timedelta(hours=pesanan_transfer_pages.WIB_JAM)
+    return f"{HARI_SINGKAT[waktu.weekday()]}, {format_tanggal.tanggal_pendek(waktu.date())}{PEMISAH_WAKTU}{waktu:%H.%M}"
+
+
+def _baris_kehadiran(item: dict) -> str:
+    status = STATUS_HADIR_TAMPIL.get(item.get("hadir"), COPY_BELUM_DICATAT)
+    topik = f"<p>{_e(COPY_TOPIK % item['topik'])}</p>" if item.get("topik") else ""
+    return f"<li><b>{_e(_waktu_ramah(item['mulai']))}</b><p>{_e(status)}</p>{topik}</li>"
+
+
+def _blok_kehadiran(riwayat: list) -> str:
+    if not riwayat:
+        return ""
+    baris = "".join(_baris_kehadiran(item) for item in riwayat)
+    return (f'<section class="ortu-kartu-st" id="ortu-kehadiran"><h2>{_e(COPY_KEHADIRAN_JUDUL)}</h2>'
+            f'<ul>{baris}</ul></section>')
+
+
+def _baris_tugas(item: dict) -> str:
+    tenggat = (f"<p>{_e(COPY_TENGGAT % format_tanggal.tanggal_dari_teks(item['tenggat']))}</p>"
+               if item.get("tenggat") else "")
+    if item["selesai"]:
+        status, lewat = COPY_SELESAI % (item["benar"], item["total"]), ""
+    else:
+        status = COPY_BELUM_DIKERJAKAN
+        lewat = (f"<p>{_e(COPY_LEWAT_TENGGAT)}</p>"
+                 if item["status_tenggat"] == guru_tugas_aturan.TENGGAT_LEWAT else "")
+    return f"<li><b>{_e(item['topik'])}</b>{tenggat}{lewat}<p>{_e(status)}</p></li>"
+
+
+def _blok_tugas(tugas: list) -> str:
+    if not tugas:
+        return ""
+    baris = "".join(_baris_tugas(item) for item in tugas)
+    return (f'<section class="ortu-kartu-st" id="ortu-tugas"><h2>{_e(COPY_TUGAS_JUDUL)}</h2>'
+            f'<ul>{baris}</ul></section>')
+
+
+def _blok_guru(guru) -> str:
+    """Kehadiran/jurnal dan tugas dari Guru (`orang_tua_guru.kumpulkan_guru`). Kosong bila `guru` None atau kedua daftar kosong."""
+    if not guru:
+        return ""
+    return _blok_kehadiran(guru.get("kehadiran") or []) + _blok_tugas(guru.get("tugas") or [])
+
+
 def _blok_harian(ringkas) -> str:
     """Kartu ringkasan Latihan Harian (F4); kosong bila sakelar mati (`ringkas` None)."""
     if ringkas is None:
@@ -295,11 +357,11 @@ def _kaki() -> str:
 
 
 def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan_paket: bool = False,
-                masa_paket=(), tagihan_paket=(), kartu_kode: str = "") -> bytes:
+                masa_paket=(), tagihan_paket=(), kartu_kode: str = "", guru=None) -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
     Urutan: banner perpanjang Latihan Harian, banner tagihan Latihan Harian belum dibayar, banner paket belajar
-    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), kartu kode anak untuk guru (`kartu_kode`, kosong bila tidak tampil), laporan Guru, PIN (lipat).
+    (hanya bila `tautan_paket`, isi `masa_paket`), hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), kartu kode anak untuk guru (`kartu_kode`, kosong bila tidak tampil), laporan Guru, kehadiran dan jurnal serta tugas dari Guru (`guru`, kosong bila tidak tampil), PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     banner_paket = (kelas_pages.banner_tagihan(tagihan_paket, data.nama_anak)
@@ -317,6 +379,6 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan
         + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + (kelas_pages.kartu_orang_tua() if tautan_paket else "")
         + kartu_kode + _blok_laporan_lama(data.laporan, data.status_pesanan)
-        + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
+        + _blok_guru(guru) + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
     return _dokumen(badan, ceria=True)
