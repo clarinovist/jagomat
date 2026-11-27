@@ -40,6 +40,7 @@ class DataOrangTua:
     harian: Optional[object] = None  # RingkasanHarian (Latihan Harian) atau None bila sakelar mati
     purna: Optional[object] = None  # KeadaanPurna (janji terbit laporan) atau None: belum lunas / purna belum dipasang
     peta: Optional[dict] = None  # laporan Peta TERBIT (isi, catatan, diterbitkan) bila order lunas; selain itu None
+    nominal_bayar: Optional[int] = None  # rupiah order Peta lunas (pesanan_order.rupiah); None bila belum lunas
 
 
 def _sekarang_baku() -> str:
@@ -57,6 +58,15 @@ def _order_id(kon, id_akun: str, siswa_id: int) -> Optional[str]:
         "SELECT order_id FROM pesanan_order WHERE akun_id = ? AND siswa_id = ?", (id_akun, siswa_id)
     ).fetchone()
     return None if baris is None else baris["order_id"]
+
+
+def _rupiah_order(kon, id_akun: str, siswa_id: int) -> Optional[int]:
+    """Nominal order Peta milik akun ini untuk anak ini (`pesanan_order.rupiah`); None bila tak ada atau tak sah."""
+    baris = kon.execute(
+        "SELECT rupiah FROM pesanan_order WHERE akun_id = ? AND siswa_id = ?", (id_akun, siswa_id)
+    ).fetchone()
+    nilai = None if baris is None else baris["rupiah"]
+    return nilai if isinstance(nilai, int) and nilai > 0 else None
 
 
 def status_pesanan(id_akun: str, siswa_id: int, sekarang: Optional[str] = None) -> Optional[str]:
@@ -88,6 +98,18 @@ def keadaan_purna(id_akun: str, siswa_id: int, status: Optional[str], sekarang: 
         _LOG.warning("order halaman orang tua tidak terbaca: %s", type(galat).__name__)
         return None
     return None if order_id is None else pesanan_voucher_baca.keadaan_order(order_id, id_akun, sekarang)
+
+
+def nominal_lunas(id_akun: str, siswa_id: int, status: Optional[str]) -> Optional[int]:
+    """Nominal Peta yang sudah lunas untuk anak ini; None bila belum lunas atau penyimpanan pesanan tak terbaca."""
+    if status != pesanan_dasar.STATUS_SUDAH_DIBAYAR:
+        return None
+    try:
+        with pesanan_dasar.buka(admin_store.BAWAAN) as kon:
+            return _rupiah_order(kon, id_akun, siswa_id)
+    except (admin_store_core.StoreBelumSiap, pesanan_dasar.PesananError, sqlite3.Error) as galat:
+        _LOG.warning("nominal pesanan halaman orang tua tidak terbaca: %s", type(galat).__name__)
+        return None
 
 
 def peta_terbit(kon, siswa_id: int, status: Optional[str]) -> Optional[dict]:
@@ -183,4 +205,5 @@ def kumpulkan(kon, id_akun: str, siswa_id: int, sekarang: Optional[str] = None) 
         harian=harian_http.ringkasan_untuk_orang_tua(kon, siswa_id),
         purna=keadaan_purna(id_akun, siswa_id, status, sekarang),
         peta=peta_terbit(kon, siswa_id, status),
+        nominal_bayar=nominal_lunas(id_akun, siswa_id, status),
     )

@@ -113,8 +113,9 @@ def test_pesanan_lunas_tanpa_laporan_memakai_kalimat_sedang_disiapkan():
 
 def test_tawaran_peta_menjanjikan_terbit_setelah_verifikasi_dengan_harga_pakai_konstanta():
     html = halaman._blok_pesanan(None, True)
-    assert ("Laporan lengkap langsung terbit setelah pembayaran terverifikasi. "
-            "Peta Kemampuan Rp49.000, dibayar sekali tanpa tagihan berulang.") in html
+    assert ("Laporan langsung terbit setelah pembayaran terverifikasi, jadi pembayaran tidak dapat dikembalikan."
+            in html)
+    assert "Rp49.000" in html and "Bukan langganan. Tidak ada tagihan bulan depan." in html
     assert "Guru" not in html and "48 jam" not in html
 
 
