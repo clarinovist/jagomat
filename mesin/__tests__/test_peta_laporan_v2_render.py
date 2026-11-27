@@ -4,6 +4,8 @@ Data sintetis saja. Isi dibangun lewat `peta_laporan_snapshot.periksa_isi` agar 
 """
 from __future__ import annotations
 
+import base64
+import hashlib
 import io
 import re
 import sys
@@ -13,12 +15,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import cek_gratis_skor  # noqa: E402
 import kurikulum_katalog  # noqa: E402
+import orang_tua_http  # noqa: E402
 import orang_tua_pages  # noqa: E402
+import pesanan_pages  # noqa: E402
 import peta_browser  # noqa: E402
 import peta_laporan_ortu_pages as halaman  # noqa: E402
 import peta_laporan_ortu_v2 as v2  # noqa: E402
 import peta_laporan_snapshot as snap  # noqa: E402
 import peta_saran_rumah as saran  # noqa: E402
+import web  # noqa: E402
+from orang_tua_data import DataOrangTua  # noqa: E402
+from teacher_style import SKRIP_MATA_SANDI  # noqa: E402
 
 # Grid 15 soal: 9 benar (1), 4 salah (0), 2 dilewati (2); sama dengan jumlah per materi di bawah.
 GRID = [1, 1, 0, 1, 1, 2, 1, 0, 0, 1, 1, 1, 1, 2, 0]
@@ -30,7 +37,7 @@ KATA_TERLARANG = (
     "/sesi/", "raka",
 )
 SEKSI_BERURUTAN = (
-    "Peta kemampuan per materi", "Detail penguasaan per materi", "Yang paling perlu dilatih dulu",
+    "Gambaran kemampuan", "Peta Kemampuan Matematika", "Detail penguasaan per materi", "Yang paling perlu dilatih dulu",
     "Materi yang sudah kuat", "Urutan belajar", "Cara mengerjakan", "Yang bisa dilakukan di rumah",
     "Rekomendasi pendampingan",
 )
@@ -204,7 +211,7 @@ def test_csp_header_memuat_hash_skrip_cetak_hanya_bila_diminta():
 
 
 class _PenangahUji:
-    """Pengganti minimal penangan HTTP: hanya header dan badan yang dibaca `_kirim_privat`."""
+    """Pengganti minimal penangan HTTP: `_kirim_privat` asli dijalankan atas objek ini dan header dicatat."""
 
     def __init__(self):
         self.header = {}
@@ -219,13 +226,49 @@ class _PenangahUji:
     def end_headers(self):
         pass
 
+    def _kirim_privat(self, isi: bytes, kode: int = 200, **kwargs) -> None:
+        import web
+
+        web.Penangan._kirim_privat(self, isi, kode, **kwargs)
+
 
 def _csp_untuk(isi: bytes, **kwargs) -> str:
-    import web
-
     penangah = _PenangahUji()
-    web.Penangan._kirim_privat(penangah, isi, 200, **kwargs)
+    penangah._kirim_privat(isi, 200, **kwargs)
     return penangah.header["Content-Security-Policy"]
+
+
+def _halaman_orang_tua(peta: dict) -> bytes:
+    data = DataOrangTua("Anak Sintetis", {"status": "belum_mulai"}, None, pesanan_pages.STATUS_SUDAH_DIBAYAR,
+                        peta=peta, nominal_bayar=49000)
+    return orang_tua_pages.halaman_isi(data, False)
+
+
+def _csp_lewat_rute_orang_tua(isi: bytes) -> str:
+    penangah = _PenangahUji()
+    orang_tua_http._kirim(penangah, isi)
+    return penangah.header["Content-Security-Policy"]
+
+
+def _hash_bytes(badan: bytes) -> str:
+    return "'sha256-" + base64.b64encode(hashlib.sha256(badan).digest()).decode("ascii") + "'"
+
+
+def test_rute_orang_tua_memasang_hash_setiap_skrip_inline_halaman():
+    isi = _halaman_orang_tua(_peta(_isi_v2()))
+    csp = _csp_lewat_rute_orang_tua(isi)
+    badan_skrip = re.findall(rb"<script>(.*?)</script>", isi, flags=re.S)
+    assert len(badan_skrip) == 2
+    for badan in badan_skrip:
+        assert _hash_bytes(badan) in csp
+    assert web._hash_skrip(peta_browser.SKRIP_CETAK) in csp
+    assert web._hash_skrip(SKRIP_MATA_SANDI) in csp
+
+
+def test_rute_orang_tua_v1_tanpa_hash_cetak_di_csp():
+    csp = _csp_lewat_rute_orang_tua(_halaman_orang_tua(_peta(_isi_v1())))
+    assert web._hash_skrip(peta_browser.SKRIP_CETAK) not in csp
+    assert web._hash_skrip(SKRIP_MATA_SANDI) in csp
 
 
 def test_saran_maks_tiga_urut_dari_perlu_dilatih():

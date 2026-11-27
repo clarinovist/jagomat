@@ -15,8 +15,9 @@ import peta_laporan_snapshot as snap
 from peta_browser import SKRIP_CETAK
 from peta_saran_rumah import pilih_saran
 
+COPY_GAMBARAN_JUDUL = "Gambaran kemampuan"
 COPY_BENAR_DARI = "%d dari %d soal benar"
-COPY_PETA_JUDUL = "Peta kemampuan per materi"
+COPY_PETA_JUDUL = "Peta Kemampuan Matematika"
 COPY_TARGET = "Target berikutnya: Siap materi Kelas %d"
 COPY_DETAIL_JUDUL = "Detail penguasaan per materi"
 COPY_URUTAN_JUDUL = "Urutan belajar"
@@ -134,9 +135,11 @@ def _tombol_cetak() -> str:
             f'{v1._e(COPY_CETAK)}</button></p>{NOSCRIPT_SEMBUNYI_CETAK}')
 
 
-def _benar_dari(isi: dict) -> str:
+def _bagian_gambaran(isi: dict, peta: dict, oleh_sistem: bool) -> str:
     benar = isi["grid"].count(snap.GRID_BENAR)
-    return f"<p>{v1._e(COPY_BENAR_DARI % (benar, isi['jumlah_soal']))}</p>"
+    return (f'<div class="ortu-peta-bagian-st"><h3>{v1._e(COPY_GAMBARAN_JUDUL)}</h3>'
+            f'{v1._bagian_kepala(isi, peta["diterbitkan"], oleh_sistem)}'
+            f"<p>{v1._e(COPY_BENAR_DARI % (benar, isi['jumlah_soal']))}</p></div>")
 
 
 def blok_peta_v2(peta: dict) -> str:
@@ -144,7 +147,7 @@ def blok_peta_v2(peta: dict) -> str:
     isi = peta["isi"]
     oleh_sistem = bool(peta.get("oleh_sistem", False))
     badan = (
-        v1._bagian_kepala(isi, peta["diterbitkan"], oleh_sistem) + _benar_dari(isi)
+        _bagian_gambaran(isi, peta, oleh_sistem)
         + _bagian_peta(isi) + _bagian_detail(isi) + v1._bagian_latih(isi["perlu_dilatih"])
         + v1._bagian_kuat(isi["kuat"]) + _bagian_urutan(isi["perlu_dilatih"]) + _bagian_cara(isi)
         + _bagian_rumah(isi) + _bagian_rekomendasi(isi["kategori"])

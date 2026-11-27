@@ -32,6 +32,7 @@ GAYA_PETA_V2 = f"""
   .funnel-alur-st:has(> .ortu-peta-v2-st) {{ max-width: none; }}
   .funnel-alur-st:has(> .ortu-peta-v2-st) > :not(.ortu-peta-v2-st) {{ display: none; }}
   .ortu-peta-v2-st {{ margin: 0; border: 0; box-shadow: none; }}
+  .ortu-peta-v2-st, .ortu-peta-v2-st * {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
   .ortu-peta-v2-st .ortu-peta-bagian-st, .ortu-peta-v2-st .ortu-peta-grid-st li {{ break-inside: avoid; page-break-inside: avoid; }}
   .ortu-peta-v2-st .ortu-peta-cetak-baris-st {{ display: none; }}
 }}
