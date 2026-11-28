@@ -272,8 +272,21 @@ def semua_terisi(kon, siswa_id: int, sesi_id: int) -> bool:
     ).fetchone()[0]
     return ada_kosong == 0
 
-def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | None:
+def _detik_simpan(ssid: int, data: dict, detik: int | None, lama: dict) -> int | None:
+    """Detik yang ditulis untuk satu soal: baru bila dikirim bersama jawabannya, selain itu yang lama.
+
+    Detik None (t0 tidak sah) tidak boleh menimpa detik yang sudah tersimpan.
+    """
+    if detik is not None and f"jwb_{ssid}" in data:
+        return detik
+    return lama.get("detik")
+
+
+def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict, detik: int | None = None) -> int | None:
     """Simpan jawaban dari form murid. Palang: hanya sesi miliknya sendiri.
+
+    `detik` (opsional) hanya berlaku untuk soal yang jawabannya dikirim dalam
+    panggilan ini (`jwb_<id>`); soal lain atau `detik` None mempertahankan nilai lama.
 
     Mengembalikan JUMLAH soal yang tersimpan, atau None kalau sesi bukan
     milik murid ini — pemanggil harus menolak, bukan diam-diam menyimpan ke
@@ -320,7 +333,7 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
     for b in baris_soal:
         ssid = b["sesi_soal_id"]
         lama = kon.execute(
-            "SELECT jawaban, cara, restatement, belum_pernah FROM jawaban WHERE sesi_soal_id=?",
+            "SELECT jawaban, cara, restatement, belum_pernah, detik FROM jawaban WHERE sesi_soal_id=?",
             (ssid,),
         ).fetchone()
         lama = dict(lama) if lama else {}
@@ -375,6 +388,7 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
             cara=cara,
             restatement=restate,
             belum_pernah=belum,
+            detik=_detik_simpan(ssid, data, detik, lama),
         )
         if jawaban:
             kon.execute('DELETE FROM refleksi_jawaban WHERE sesi_soal_id=?', (ssid,))

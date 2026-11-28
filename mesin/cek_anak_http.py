@@ -18,6 +18,8 @@ import urllib.parse
 from datetime import datetime, timezone
 
 import cek_gratis
+import cek_perilaku
+import cek_waktu_soal
 import database
 from cek_anak_komponen import JEDA_SETELAH, Konteks, konteks_dari_query, url
 from cek_anak_pages import (
@@ -31,10 +33,11 @@ KUNCI_LAYAR = ("soal", "jeda", "peta", "keluar")
 BATAS_FIELD_QUERY = 16
 POLA_ANGKA = re.compile(r"[0-9]{1,3}")
 AKSI_SAH = ("mulai", "simpan", "keluar", "kumpul")
+FIELD_SIMPAN = frozenset({"aksi", "soal", "revisi_pekerjaan", "dari", cek_waktu_soal.NAMA_FIELD})
 FIELD_BOLEH = {
     "mulai": frozenset({"aksi"}),
-    "simpan": frozenset({"aksi", "soal", "revisi_pekerjaan", "dari"}),
-    "keluar": frozenset({"aksi", "soal", "revisi_pekerjaan", "dari"}),
+    "simpan": FIELD_SIMPAN,
+    "keluar": FIELD_SIMPAN,
     "kumpul": frozenset({"aksi", "revisi_pekerjaan"}),
 }
 GALAT_ISIAN = "Isian tidak bisa diproses. Muat ulang halaman, lalu coba lagi."
@@ -148,7 +151,7 @@ def _get_soal(penangan, kon, k, akses, q, info, daftar) -> bool:
         return _tidak_ada(penangan)
     penangan._kirim_tautan(layar_soal(
         k, info["nama"], daftar, nomor, _revisi(kon, akses),
-        dari_peta=q.get("dari") == "peta", kabar=q.get("ok", ""),
+        t0=cek_waktu_soal.sekarang(), dari_peta=q.get("dari") == "peta", kabar=q.get("ok", ""),
     ))
     return True
 
@@ -213,9 +216,20 @@ def _pilihan_sah(entri: dict, nama_opsi: list, data: dict):
     return nilai
 
 
+def _tulis_pilihan(kon, siswa_id, sesi_id, entri, nama_opsi, nilai, data, detik) -> None:
+    """Simpan pilihan satu soal dan catat ganti jawabannya, dalam transaksi yang sama."""
+    import students
+
+    ssid = entri["sesi_soal_id"]
+    lama = cek_perilaku.baca_jawaban(kon, ssid)
+    students.simpan_jawaban_murid(kon, siswa_id, sesi_id, {
+        nama_opsi[0]: nilai, "revisi_pekerjaan": data["revisi_pekerjaan"],
+    }, detik=detik)
+    cek_perilaku.catat_ganti(kon, ssid, lama, cek_perilaku.baca_jawaban(kon, ssid))
+
+
 def _post_simpan(penangan, kon, k, akses, data, info, daftar, aksi, nama_opsi) -> bool:
     import student_submissions as kiriman
-    import students
 
     siswa_id, sesi_id = int(akses["siswa_id"]), int(akses["sesi_id"])
     nomor = _angka(data.get("soal"), len(daftar))
@@ -227,12 +241,12 @@ def _post_simpan(penangan, kon, k, akses, data, info, daftar, aksi, nama_opsi) -
     balik = url(k, soal=nomor, dari=dari or None)
     if nilai is False:
         return _tolak(penangan, kon, k, 400, GALAT_ISIAN, balik)
+    kini = cek_waktu_soal.sekarang()
+    detik = cek_waktu_soal.hitung_detik(data.get(cek_waktu_soal.NAMA_FIELD), kini)
     try:
         kiriman.validasi_versi(kon, sesi_id, data)
         if nilai is not None:
-            students.simpan_jawaban_murid(kon, siswa_id, sesi_id, {
-                nama_opsi[0]: nilai, "revisi_pekerjaan": data["revisi_pekerjaan"],
-            })
+            _tulis_pilihan(kon, siswa_id, sesi_id, entri, nama_opsi, nilai, data, detik)
     except ValueError as galat:
         status = getattr(galat, "status", 400)
         teks = GALAT_USANG if status == STATUS_USANG else GALAT_ISIAN
@@ -248,7 +262,7 @@ def _post_simpan(penangan, kon, k, akses, data, info, daftar, aksi, nama_opsi) -
     if nilai is None:
         penangan._kirim_tautan(layar_soal(
             k, info["nama"], daftar, nomor, kiriman.revisi(kon, sesi_id),
-            dari_peta=dari == "peta", galat=PESAN_BELUM_PILIH,
+            t0=kini, dari_peta=dari == "peta", galat=PESAN_BELUM_PILIH,
         ))
         return True
     return _alihkan(penangan, lokasi_berikut(k, nomor, len(daftar), dari == "peta", "simpan"))

@@ -264,7 +264,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   tersimpan dipetakan saat render; diturunkan dari `kurikulum_katalog.py`, katalog data beku peta kurikulum yang juga
   menjadi sumber `mastery_catalog.KELOMPOK` dan topik cek per kelas, lihat `docs/kurikulum-katalog.md`),
   `cek_gratis_sapu.py` (retensi 30/7 hari, guard daftar akun kosong, foreign_keys wajib aktif; dijalankan
-  harian oleh `cek_retensi.py` lewat cron host `osn-cek-retensi`). `cek_http.py` +
+  harian oleh `cek_retensi.py` lewat cron host `osn-cek-retensi`). Waktu per soal (F1, 28 Nov 2026): `cek_waktu_soal.py`
+  (hidden `t0` = epoch detik jam render di layar soal; `hitung_detik` membatasi jendela 3600 dtk dan batas atas 600 dtk,
+  hasilnya ke `jawaban.detik` lewat `students.simpan_jawaban_murid`), dan `cek_perilaku.py` (tabel aditif
+  `cek_ganti_jawaban(sesi_soal_id, jumlah)`, dipasang lazily oleh `catat_ganti` di transaksi tulis, cascade dari
+  `sesi_soal`; tanpa isi jawaban; `schema.py` tidak berubah). `cek_http.py` +
   `cek_pages.py`: rute guru di belakang `_lolos_sandi` dan `FUNNEL_AKTIF` (token HMAC per aksi, pembatas laju 10/IP/hari
   in-memory, admin 404). Sesi cek = sesi gabungan 3 topik yang mengikuti kelas (`cek_gratis_skor.TOPIK_PER_KELAS`, kelas 3–6; `TOPIK_LAMA`
   hanya untuk menilai sesi lama) atau `bilangan-dasar` (kelas 1–2, butuh flag materi dasar), PG, tanpa bukti siklus. `family_deletion` ikut menghapus baris cek. Perubahan skema menggeser fingerprint kontrak

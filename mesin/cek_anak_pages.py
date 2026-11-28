@@ -166,7 +166,7 @@ def _panel_istirahat() -> str:
 
 def layar_soal(
     k: Konteks, nama: str, daftar: list, nomor: int, revisi: int,
-    *, dari_peta: bool = False, kabar: str = "", galat: str = "",
+    *, t0: int, dari_peta: bool = False, kabar: str = "", galat: str = "",
 ) -> bytes:
     entri = daftar[nomor - 1]
     jumlah = len(daftar)
@@ -186,6 +186,7 @@ def layar_soal(
 <button class="bawaan" type="submit" name="aksi" value="simpan" tabindex="-1" aria-hidden="true">Simpan jawaban</button>
 <input type="hidden" name="soal" value="{nomor}">
 <input type="hidden" name="revisi_pekerjaan" value="{int(revisi)}">
+<input type="hidden" name="t0" value="{int(t0)}">
 {dari}
 {label_topik(entri["template_id"])}
 <div class="kertas">{teks_soal}</div>

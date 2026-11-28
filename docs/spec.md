@@ -335,7 +335,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   kembali lewat `/masuk?lanjut=/cek-kemampuan/hasil` (allow-list persis dua rute cek, peran guru). Hasil gratis hanya skor (benar/15), kategori, ringkasan nama topik (label awam dari `topik_awam`; hasil lama tersimpan dipetakan saat render), berlabel "belum
   ditinjau guru". **Pengecualian bercakupan sempit** atas larangan skor/persentase di laporan orang tua (Keputusan 17): skor cek
   dihitung di `cek_gratis` dan tidak lewat `parent_report_snapshot`. Bahan mentah dihapus 30 hari setelah selesai (sapuan
-  `sapu_cek_gratis` dijadwalkan harian lewat `cek_retensi.py` + cron host); turunan tetap selama akun aktif. Akun funnel tetap akun guru biasa, jadi halaman guru
+  `sapu_cek_gratis` dijadwalkan harian lewat `cek_retensi.py` + cron host); turunan tetap selama akun aktif. Data perilaku per soal
+  (detik mengerjakan dan jumlah ganti jawaban, tanpa isi jawaban) ikut terhapus bersama sesinya dan tidak pernah tampil ke murid. Akun funnel tetap akun guru biasa, jadi halaman guru
   yang ada (mis. `/sesi/<id>`) tetap terjangkau; bagian "terkunci" hanya berlaku di halaman hasil cek.
 - Fase 3 (Paket Coba sekali bayar Rp49.000, kode selesai, **belum aktif**): guru yang cek anaknya sudah selesai dan punya WhatsApp
   bisa memesan lewat `/paket-coba/pesan` dan memantau di `/pesanan` (QR QRIS via Midtrans, jendela bayar bisa dibuka ulang
