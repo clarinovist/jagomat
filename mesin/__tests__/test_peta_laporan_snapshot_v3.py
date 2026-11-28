@@ -365,15 +365,16 @@ def test_jalur_otomatis_menerbitkan_laporan_versi_tiga(kon):
     assert isi["versi"] == snap.VERSI_ISI_V3 and len(isi["soal"]) == isi["jumlah_soal"] == 15
 
 
-# --- renderer: v3 tampil lewat renderer v2 tanpa kunci baru -----------------------------------
+# --- renderer: v3 dirender renderer v3 (F6) tanpa membocorkan kunci mentah -----------------------
 
-def test_renderer_v3_sama_dengan_proyeksi_v2_dan_tanpa_kunci_baru():
+def test_renderer_v3_bukan_proyeksi_v2_dan_tanpa_kunci_mentah():
     isi = _isi_v3()
     proyeksi = {kunci: isi[kunci] for kunci in snap.KUNCI_ISI[snap.VERSI_ISI_V2]}
     proyeksi["versi"] = snap.VERSI_ISI_V2
     peta = {"catatan": CATATAN, "diterbitkan": "2026-11-24 15:00:00"}
     html_v3 = halaman.blok_peta({**peta, "isi": isi})
-    assert html_v3 == halaman.blok_peta({**peta, "isi": proyeksi})
+    assert 'ortu-peta-v3-st' in html_v3
+    assert html_v3 != halaman.blok_peta({**peta, "isi": proyeksi})
     assert "rata_detik_soal" not in html_v3 and "jumlah_cepat" not in html_v3
 
 
