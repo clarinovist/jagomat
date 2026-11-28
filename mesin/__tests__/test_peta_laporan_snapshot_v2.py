@@ -182,7 +182,7 @@ def test_periksa_isi_v2_menolak_grid_dan_waktu_tidak_sah(ubah):
         snap.periksa_isi({**_isi_v2(), **ubah})
 
 
-@pytest.mark.parametrize("ubah", [{"versi": 3}, {"versi": 0}, {"versi": True}, {"versi": "2"}, {"versi": None}])
+@pytest.mark.parametrize("ubah", [{"versi": 4}, {"versi": 0}, {"versi": True}, {"versi": "2"}, {"versi": None}])
 def test_periksa_isi_menolak_versi_tak_dikenal(ubah):
     with pytest.raises(ValueError):
         snap.periksa_isi({**_isi_v2(), **ubah})
@@ -267,7 +267,7 @@ def test_pembaca_proses_hanya_allowlist_dan_menolak_akun_atau_anak_lain(kon):
 def test_sql_pembaca_proses_tanpa_kolom_terlarang(sql):
     kolom = re.search(r"SELECT(.*?)FROM", sql, re.S | re.I).group(1).lower()
     for kata in ("teks", "penyajian", "kunci", "jawaban", "restatement", "cara", "alasan", "kode",
-                 "malrule", "soal_id", "nama", "kontak", "skor", "catatan"):
+                 "malrule", "soal_id", "nama", "kontak", "skor", "catatan", "belum_pernah", "dicatat"):
         assert kata not in kolom, kata
 
 

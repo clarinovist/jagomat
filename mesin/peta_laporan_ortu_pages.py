@@ -32,6 +32,8 @@ BULAN = ("Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustu
          "September", "Oktober", "November", "Desember")
 _PEMISAH_PARAGRAF = re.compile(r"\n[ \t]*\n")
 VERSI_ISI_V2 = 2  # sama dengan `peta_laporan_snapshot.VERSI_ISI_V2` (tidak diimpor: renderer ini tetap murni)
+# Versi 3 sementara dirender renderer v2 (kunci tambahan v3 tidak dibaca); renderer v3 dikerjakan terpisah.
+VERSI_ISI_V3 = 3  # sama dengan `peta_laporan_snapshot.VERSI_ISI_V3`
 
 
 def _e(teks) -> str:
@@ -113,11 +115,11 @@ def blok_peta(peta) -> str:
     """HTML blok Peta Kemampuan lengkap; "" bila `peta` None (tidak ada laporan terbit yang boleh tampil).
 
     `oleh_sistem` (kunci opsional, False bila absen): laporan diterbitkan otomatis, tanpa lencana dan catatan Guru.
-    Isi versi 2 dirender `peta_laporan_ortu_v2` (impor lokal: modul itu memakai helper di sini).
+    Isi versi 2 dan 3 dirender `peta_laporan_ortu_v2` (impor lokal: modul itu memakai helper di sini).
     """
     if peta is None:
         return ""
-    if peta["isi"].get("versi") == VERSI_ISI_V2:
+    if peta["isi"].get("versi") in (VERSI_ISI_V2, VERSI_ISI_V3):
         import peta_laporan_ortu_v2
         return peta_laporan_ortu_v2.blok_peta_v2(peta)
     isi = peta["isi"]

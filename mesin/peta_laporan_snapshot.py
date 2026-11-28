@@ -2,26 +2,32 @@
 
 `bangun` mengubah hasil pembaca allowlist `cek_ringkasan_admin.ringkasan_untuk_order` (dipakai ulang, bukan
 diduplikasi) menjadi isi laporan versi 1. Dengan `proses` (pembaca `cek_ringkasan_proses`) hasilnya versi 2: tambahan
-grid benar/salah per nomor, jumlah dilewati, dan perkiraan waktu. Hanya bahan `ada` dengan data per materi yang
-diterima; selain itu ValueError (tidak ada penebakan). Isi TANPA nama anak, kontak, teks soal, jawaban, kunci, kode diagnosis/malrule/
-alasan, id sesi/soal, nama Guru, peringkat, Tantangan/Resep/Lencana, status/bahan/hari_tersisa, atau jam selesai.
+grid benar/salah per nomor, jumlah dilewati, dan perkiraan waktu. Bila proses memuat detik jawaban (cek baru), hasilnya
+versi 3: tambahan daftar `soal` per nomor (benar, detik, jumlah ganti, materi), rata-rata detik soal, dan jumlah jawaban
+salah yang terlalu cepat. Hanya bahan `ada` dengan data per materi yang diterima; selain itu ValueError (tidak ada
+penebakan). Isi TANPA nama anak, kontak, teks soal, jawaban, kunci, kode diagnosis/malrule/alasan, id sesi/soal/
+sesi soal, nama Guru, peringkat, Tantangan/Resep/Lencana, status/bahan/hari_tersisa, atau jam selesai.
 
 `periksa_isi` adalah gerbang tunggal bentuk isi: dipakai store saat menulis dan saat membaca, dan oleh renderer
-halaman orang tua kelak. Kunci harus PERSIS `KUNCI_ISI`; tipe dan batas panjang ditegakkan; hasilnya salinan baru.
+halaman orang tua kelak. Kunci harus PERSIS `KUNCI_ISI` per versi; tipe dan batas panjang ditegakkan; hasilnya salinan
+baru. Isi versi 3 juga harus muat di kolom `peta_laporan.isi` (lihat `MAKS_KARAKTER_ISI`).
 """
 from __future__ import annotations
 
+import json
 from datetime import date
 from fractions import Fraction
 from typing import Optional
 
+import cek_waktu_soal
 import topik_awam
 from cek_gratis_skor import RETENSI_BELUM_SELESAI_HARI, waktu_baku
 from cek_ringkasan_admin import BAHAN_ADA, KUNCI_HASIL
-from cek_ringkasan_proses import KUNCI_PROSES, KUNCI_SOAL
+from cek_ringkasan_proses import KUNCI_PROSES, KUNCI_SOAL, KUNCI_SOAL_DASAR
 
 VERSI_ISI_V1 = 1
 VERSI_ISI_V2 = 2
+VERSI_ISI_V3 = 3
 MAKS_DILATIH = 3
 MAKS_MATERI = 40
 MAKS_NAMA = 80
@@ -32,13 +38,20 @@ KUNCI_V1 = (
     "perlu_dilatih", "ringkasan_perlu",
 )
 KUNCI_V2 = KUNCI_V1 + ("grid", "dilewati", "menit_total", "rata_detik")
-KUNCI_ISI = {VERSI_ISI_V1: KUNCI_V1, VERSI_ISI_V2: KUNCI_V2}
+KUNCI_V3 = KUNCI_V2 + ("soal", "rata_detik_soal", "jumlah_cepat")
+KUNCI_ISI = {VERSI_ISI_V1: KUNCI_V1, VERSI_ISI_V2: KUNCI_V2, VERSI_ISI_V3: KUNCI_V3}
 KUNCI_MATERI = ("materi", "benar", "total")
 GRID_SALAH, GRID_BENAR, GRID_DILEWATI = 0, 1, 2
 NILAI_GRID = (GRID_SALAH, GRID_BENAR, GRID_DILEWATI)
 DETIK_PER_MENIT = 60
 # Batas wajar satu cek: sesi belum selesai disapu setelah RETENSI_BELUM_SELESAI_HARI; durasi di atasnya tak diperkirakan.
 MAKS_MENIT_TOTAL = 60 * 24 * RETENSI_BELUM_SELESAI_HARI
+# Jawaban salah yang diisi kurang dari ambang ini dihitung sebagai "terlalu cepat" (tanpa menilai anak).
+AMBANG_CEPAT_DETIK = 10
+# Jumlah ganti di atas batas ini dijepit (bukan ditolak) agar laporan tetap terbit.
+MAKS_GANTI = 99
+# Sama dengan CHECK `length(isi) BETWEEN 2 AND 8000` di `schema_peta_laporan.py` (dibaca karakter JSON yang disimpan).
+MAKS_KARAKTER_ISI = 8000
 _PESAN_BAHAN = "bahan tidak tersedia"
 
 
@@ -77,25 +90,48 @@ def _isi_dari_ringkasan(ringkasan) -> dict:
 
 
 def bangun(ringkasan, proses=None) -> dict:
-    """Isi laporan dari `ringkasan_untuk_order`: versi 1 bila `proses` None; versi 2 bila ada (pembaca proses).
+    """Isi laporan dari `ringkasan_untuk_order`: versi 1 bila `proses` None; versi 2 atau 3 bila ada (pembaca proses).
 
-    ValueError("bahan tidak tersedia") bila bahan belum layak, atau bila untuk versi 2 grid tidak bisa dibentuk.
+    ValueError("bahan tidak tersedia") bila bahan belum layak, atau bila untuk versi 2/3 grid tidak bisa dibentuk.
     """
     isi = _isi_dari_ringkasan(ringkasan)
     if proses is not None:
-        isi = {**isi, "versi": VERSI_ISI_V2, **_bagian_proses(proses, isi["jumlah_soal"])}
+        isi = {**isi, **_bagian_proses(proses, isi["jumlah_soal"])}
     return periksa_isi(isi)
 
 
 def _bagian_proses(proses, jumlah) -> dict:
-    """Grid per nomor, jumlah dilewati, dan perkiraan waktu dari pembaca proses; ValueError bila tak lengkap."""
+    """Versi 2 (grid, dilewati, waktu) atau versi 3 bila ada detik soal; ValueError bila tak lengkap."""
     if type(proses) is not dict or set(proses) != set(KUNCI_PROSES):
         raise ValueError(_PESAN_BAHAN)
     if type(jumlah) is not int or jumlah < 1:
         raise ValueError(_PESAN_BAHAN)
     grid = _grid_dari_soal(proses["soal"], jumlah)
     menit, rata = _waktu_dari_durasi(proses["durasi_detik"], jumlah)
-    return {"grid": grid, "dilewati": grid.count(GRID_DILEWATI), "menit_total": menit, "rata_detik": rata}
+    dasar = {"versi": VERSI_ISI_V2, "grid": grid, "dilewati": grid.count(GRID_DILEWATI),
+             "menit_total": menit, "rata_detik": rata}
+    if not _ada_detik(proses["soal"]):
+        return dasar
+    return {**dasar, "versi": VERSI_ISI_V3, **_bagian_perilaku(proses["soal"], jumlah)}
+
+
+def _ada_detik(soal) -> bool:
+    """True bila ada butir berbentuk lengkap (`KUNCI_SOAL`) dengan detik terisi; cek lama tanpa detik tetap versi 2."""
+    return any(type(b) is dict and set(b) == set(KUNCI_SOAL) and b["detik"] is not None for b in soal)
+
+
+def _bagian_perilaku(soal, jumlah: int) -> dict:
+    """Butir soal versi 3 dan ringkasan perilakunya; jumlah ganti di atas `MAKS_GANTI` dijepit ke batas."""
+    butir = _soal_periksa([_jepit_ganti(b) for b in soal], jumlah)
+    return {"soal": butir, "rata_detik_soal": _rata_detik_soal(butir, jumlah),
+            "jumlah_cepat": _jumlah_cepat(butir)}
+
+
+def _jepit_ganti(butir):
+    """Butir dengan `ganti` di atas batas dijepit ke `MAKS_GANTI`; bentuk lain dibiarkan untuk diperiksa."""
+    if type(butir) is not dict or type(butir.get("ganti")) is not int:
+        return butir
+    return {**butir, "ganti": min(butir["ganti"], MAKS_GANTI)}
 
 
 def _grid_dari_soal(soal, jumlah: int) -> list:
@@ -107,7 +143,7 @@ def _grid_dari_soal(soal, jumlah: int) -> list:
 
 def _nilai_grid(butir, nomor: int) -> int:
     """GRID_DILEWATI bila tak ada jawaban; selain itu benar/salah dari diagnosis (belum dinilai = galat)."""
-    if type(butir) is not dict or set(butir) != set(KUNCI_SOAL):
+    if type(butir) is not dict or set(butir) not in (set(KUNCI_SOAL_DASAR), set(KUNCI_SOAL)):
         raise ValueError(_PESAN_BAHAN)
     if type(butir["nomor"]) is not int or butir["nomor"] != nomor or type(butir["dijawab"]) is not bool:
         raise ValueError(_PESAN_BAHAN)
@@ -132,6 +168,25 @@ def _waktu_dari_durasi(durasi, jumlah: int):
     if durasi > MAKS_MENIT_TOTAL * DETIK_PER_MENIT:
         return None, None
     return (durasi + DETIK_PER_MENIT - 1) // DETIK_PER_MENIT, durasi // jumlah
+
+
+def _rata_detik_soal(butir, jumlah: int) -> Optional[int]:
+    """Rata-rata detik soal yang punya detik (dibulatkan ke bawah); None bila kurang dari separuh soal punya detik."""
+    detik = [b["detik"] for b in butir if b["detik"] is not None]
+    if 2 * len(detik) < jumlah:
+        return None
+    return sum(detik) // len(detik)
+
+
+def _jumlah_cepat(butir) -> int:
+    """Jawaban SALAH yang diisi kurang dari `AMBANG_CEPAT_DETIK` detik; hanya dihitung bila detik ada."""
+    return sum(1 for b in butir
+               if b["dijawab"] and b["benar"] == 0 and b["detik"] is not None and b["detik"] < AMBANG_CEPAT_DETIK)
+
+
+def _grid_dari_butir(butir) -> list:
+    """Grid yang seharusnya dari butir versi 3 (dilewati / benar / salah)."""
+    return [GRID_DILEWATI if not b["dijawab"] else (GRID_BENAR if b["benar"] == 1 else GRID_SALAH) for b in butir]
 
 
 def _int(nilai, kecil: int, besar: int, nama: str) -> int:
@@ -203,8 +258,11 @@ def periksa_isi(isi) -> dict:
         "perlu_dilatih": _daftar_teks(isi["perlu_dilatih"], MAKS_DILATIH, "perlu_dilatih"),
         "ringkasan_perlu": _daftar_teks(isi["ringkasan_perlu"], MAKS_MATERI, "ringkasan_perlu"),
     }
-    if versi == VERSI_ISI_V2:
+    if versi in (VERSI_ISI_V2, VERSI_ISI_V3):
         bersih.update(_periksa_v2(isi, bersih["jumlah_soal"]))
+    if versi == VERSI_ISI_V3:
+        bersih.update(_periksa_v3(isi, bersih["jumlah_soal"], bersih["grid"]))
+        _periksa_ukuran(bersih)
     return bersih
 
 
@@ -221,6 +279,72 @@ def _periksa_v2(isi: dict, jumlah: int) -> dict:
     if menit is not None and rata * jumlah > menit * DETIK_PER_MENIT:
         raise ValueError("waktu tidak konsisten")
     return {"grid": grid, "dilewati": dilewati, "menit_total": menit, "rata_detik": rata}
+
+
+def _periksa_v3(isi: dict, jumlah: int, grid: list) -> dict:
+    """Bagian versi 3: butir soal, rata-rata detik, dan jumlah cepat; konsisten dengan grid dan dihitung ulang."""
+    soal = _soal_periksa(isi["soal"], jumlah)
+    if grid != _grid_dari_butir(soal):
+        raise ValueError("soal tidak konsisten dengan grid")
+    rata = _opsional_int(isi["rata_detik_soal"], cek_waktu_soal.BATAS_DETIK_SOAL, "rata_detik_soal")
+    if rata != _rata_detik_soal(soal, jumlah):
+        raise ValueError("rata_detik_soal tidak konsisten")
+    cepat = _int(isi["jumlah_cepat"], 0, jumlah, "jumlah_cepat")
+    if cepat != _jumlah_cepat(soal):
+        raise ValueError("jumlah_cepat tidak konsisten")
+    return {"soal": soal, "rata_detik_soal": rata, "jumlah_cepat": cepat}
+
+
+def _soal_periksa(nilai, jumlah: int) -> list:
+    """Butir per nomor 1..jumlah berkunci `KUNCI_SOAL` persis dan bertipe ketat; ValueError bila tidak sah."""
+    if type(nilai) is not list or len(nilai) != jumlah:
+        raise ValueError("soal tidak sah")
+    return [_butir_periksa(butir, nomor) for nomor, butir in enumerate(nilai, start=1)]
+
+
+def _butir_periksa(butir, nomor: int) -> dict:
+    """Satu butir versi 3: dilewati berarti tanpa benar dan tanpa detik; jawaban berarti benar 0/1 (bool ditolak)."""
+    if type(butir) is not dict or set(butir) != set(KUNCI_SOAL):
+        raise ValueError("soal tidak sah")
+    dijawab = butir["dijawab"]
+    if type(dijawab) is not bool or _int(butir["nomor"], nomor, nomor, "nomor") != nomor:
+        raise ValueError("soal tidak sah")
+    return {
+        "nomor": nomor,
+        "dijawab": dijawab,
+        "benar": _benar_butir(butir["benar"], dijawab),
+        "detik": _detik_butir(butir["detik"], dijawab),
+        "ganti": _int(butir["ganti"], 0, MAKS_GANTI, "ganti"),
+        "materi": _materi_opsional(butir["materi"]),
+    }
+
+
+def _benar_butir(benar, dijawab: bool):
+    if not dijawab:
+        if benar is not None:
+            raise ValueError("soal tidak sah")
+        return None
+    if type(benar) is not int or benar not in (0, 1):
+        raise ValueError("soal tidak sah")
+    return benar
+
+
+def _detik_butir(detik, dijawab: bool) -> Optional[int]:
+    if not dijawab:
+        if detik is not None:
+            raise ValueError("soal tidak sah")
+        return None
+    return _opsional_int(detik, cek_waktu_soal.BATAS_DETIK_SOAL, "detik")
+
+
+def _materi_opsional(nilai) -> Optional[str]:
+    return None if nilai is None else _teks(nilai, "materi")
+
+
+def _periksa_ukuran(bersih: dict) -> None:
+    """Isi versi 3 harus muat di kolom `peta_laporan.isi`, dihitung dari JSON yang disimpan toko."""
+    if len(json.dumps(bersih, ensure_ascii=False, sort_keys=True)) > MAKS_KARAKTER_ISI:
+        raise ValueError("isi laporan terlalu panjang")
 
 
 def _grid_periksa(nilai, jumlah: int) -> list:
